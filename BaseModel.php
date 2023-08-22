@@ -2,9 +2,18 @@
 
 namespace Common;
 
-#[\Attribute] class PropertyAttribute
-{
+use Attribute;
+use DateTime;
+use Exception;
+use ReflectionClass;
+use ReflectionProperty;
 
+#[Attribute] class PropertyAttribute
+{
+    function __construct(string $nomeColonna, string $tipoDato)
+    {
+
+    }
 }
 
 class BaseModel
@@ -14,8 +23,8 @@ class BaseModel
         $this->Id = 0;
         $this->ParentId = 0;
         $this->Visibile = true;
-        $this->Aggiornamento = new \DateTime();
-        $this->Inserimento = new \DateTime();
+        $this->Aggiornamento = new DateTime();
+        $this->Inserimento = new DateTime();
     }
 
     #[PropertyAttribute('Id', 'Numeri')]
@@ -28,19 +37,20 @@ class BaseModel
     public bool $Visibile;
 
     #[PropertyAttribute('Aggiornamento', 'Data')]
-    public \DateTime $Aggiornamento;
+    public DateTime $Aggiornamento;
 
     #[PropertyAttribute('Inserimento', 'Data')]
-    public \DateTime $Inserimento;
+    public DateTime $Inserimento;
 
-//    non ci sono i tipi anonimi in PHP quindi passo l'oggetto come parametro
+
     static function GetItem(object $tableObj, string $uniqueColumn = "Id", $uniqueValue = "", string $iso = "", bool $webP = true): ?BaseModel
     {
+        //    non ci sono i tipi anonimi in PHP quindi passo l'oggetto come parametro
         $tableName = get_class($tableObj);
 
-        $reflection = new \ReflectionClass($tableName);
+        $reflection = new ReflectionClass($tableName);
 
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
 
         $colonne = [];
         $tipi = [];
@@ -77,7 +87,7 @@ class BaseModel
 
         if ($result->Errore == 1)
         {
-            $obj->LogError("BaseModel->GetItem({$tableName}, {$uniqueColumn}) " . $result->Avviso);
+            $obj->LogError("BaseModel->GetItem($tableName, $uniqueColumn) " . $result->Avviso);
             return null;
         }
 
@@ -94,7 +104,6 @@ class BaseModel
             $type = $prop->getType();
             $typeName = $type->getName(); //ritorna in stringa "int" "string "bool"
 
-            $nome = $colonne[$i];
             $tipo = $tipi[$i];
 
             switch ($tipo)
@@ -127,8 +136,6 @@ class BaseModel
                                                 
                         $propertyOld = $reflection->getProperty($old);
                         
-                        $propertyOld->setAccessible(true);
-                        
                         $propertyOld->setValue($tableObj, $valori[$i]);
                     }
                     break;
@@ -139,9 +146,7 @@ class BaseModel
 
                         if ($len == 10)
                         {
-                            $date = \DateTime::createFromFormat('d/m/Y', $valori[$i]);
-
-                            $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y', $valori[$i]));
+                            $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y', $valori[$i]));
                         }
 
                         if ($len == 19)
@@ -151,9 +156,7 @@ class BaseModel
                             $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' .
                                     $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
 
-                            $date = \DateTime::createFromFormat('d/m/Y H:i:s', $str);
-
-                            $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
+                            $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y H:i:s', $str));
                         }
                     }
                     break;
@@ -171,17 +174,15 @@ class BaseModel
     {
         $tableName = get_class($this);
 
-        $reflection = new \ReflectionClass($tableName);
+        $reflection = new ReflectionClass($tableName);
 
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PRIVATE | \ReflectionProperty::IS_PUBLIC);
+        $properties = $reflection->getProperties(ReflectionProperty::IS_PRIVATE | ReflectionProperty::IS_PUBLIC);
 
         $colonne = [];
 
         //recupero le colonne della classe dalle etichette sulle variabili
         foreach ($properties as $property)
         {
-            $property->setAccessible(true);
-            
             $attributes = $property->getAttributes();
             
             //c'è massimo un solo attributo che è il nome del database, per adesso
@@ -205,8 +206,6 @@ class BaseModel
                     case "Testo":
                     {
                         $propertyOld = $reflection->getProperty("_" . $property->name);
-                        
-                        $propertyOld->setAccessible(true);
                         
                         $oldValue = $propertyOld->getValue($this); 
                         
@@ -250,7 +249,7 @@ class BaseModel
                 $colonne,
                 $onSave);
         
-        $saveRespone = new \Common\SaveResponse();
+        $saveRespone = new SaveResponse();
 
         if ($result->Errore == 1)
         {
@@ -281,7 +280,7 @@ class BaseModel
         //prendo i valori dal db
         $result = $obj->DatiElencoDelete($this->Id);
         
-        $response = new \Common\SaveResponse();
+        $response = new SaveResponse();
 
         if ($result->Errore == 1)
         {
@@ -308,9 +307,9 @@ class BaseModel
             bool $webP = true,
             bool $encode = false)
     {   
-        $reflection = new \ReflectionClass($tableName);
+        $reflection = new ReflectionClass($tableName);
 
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
 
         $colonne = [];
         $tipi = [];
@@ -346,14 +345,14 @@ class BaseModel
         if ($result->Errore == 'true')
         {
             //viene già loggata da doweb
-            throw new \Exception("Errore nella query: " . $result->Avviso);
+            throw new Exception("Errore nella query: " . $result->Avviso);
         }
 
         try
         {
             while (true)
             {
-                $valori = $obj->FetchRead($result);
+                $valori = $obj->FetchRead();
 
                 if ($valori == null)
                     return;
@@ -400,12 +399,12 @@ class BaseModel
 
                                 if ($len == 10)
                                 {
-                                    $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y', $valori[$i]));
+                                    $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y', $valori[$i]));
                                 }
 
                                 if ($len == 19)
                                 {
-                                    $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $valori[$i]));
+                                    $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y H:i:s', $valori[$i]));
                                 }
                             }
                             break;
@@ -417,12 +416,12 @@ class BaseModel
 
                                 if ($len == 10)
                                 {
-                                    $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y', $valori[$i]));
+                                    $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y', $valori[$i]));
                                 }
 
                                 if ($len == 19)
                                 {
-                                    $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $valori[$i]));
+                                    $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y H:i:s', $valori[$i]));
                                 }
                             }
                             break;
@@ -438,7 +437,7 @@ class BaseModel
         }
         finally
         {
-            $obj->FetchClose($result);
+            $obj->FetchClose();
         }
     }
 
@@ -451,23 +450,6 @@ class BaseModel
             bool $visible = null,
             bool $encode = false): int
     {
-        $reflection = new \ReflectionClass($tableName);
-
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-
-        $colonne = [];
-
-        //recupero le colonne della classe dalle etichette sulle variabili
-        foreach ($properties as $property)
-        {
-            $attributes = $property->getAttributes();
-
-            foreach ($attributes as $attribute)
-            {
-                $colonne[] = $attribute->getArguments()['0'];
-            }
-        }
-
         //del nome Model\Tipo, prendo solo l'ultimo pezzo: Tipo
         $parts = explode("\\", $tableName);
         $datoNome = end($parts);
@@ -484,10 +466,9 @@ class BaseModel
             //viene loggata da doweb
             //$obj->LogError("BaseModel->BaseList({$tableName}, {$wherePredicate}) " . $result->Avviso);            
 
-            throw new \Exception("Errore nella query: " . $result->Avviso);
+            throw new Exception("Errore nella query: " . $result->Avviso);
         }
 
         return $result->Count;
     }
-
 }

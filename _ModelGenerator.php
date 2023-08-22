@@ -340,7 +340,7 @@ foreach ($colonne as $index => $inner)
 
     //if (!file_exists($path))
     //{
-        $myfile = fopen($path, 'w');
+    $myfile = fopen($path, 'w');
 
         fwrite($myfile, $code);
 
