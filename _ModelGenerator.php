@@ -296,6 +296,19 @@ foreach ($colonne as $index => $inner)
 
     $code .= "\n";
 
+    $code .= $tab . "public function SaveLog(bool $" . "onSave = false, string $" . "iso = '') : \Common\SaveResponse\n";
+    $code .= $tab . "{\n";
+    $code .= $tab . $tab . "$" . "result = parent::Save($" . "onSave, $" . "iso);\n";
+    $code .= $tab . $tab . "if (!$"."result->Success)\n";
+    $code .= $tab . $tab . "{\n";
+    $code .= $tab . $tab . $tab . "$"."trace = debug_print_backtrace();\n";
+    $code .= $tab . $tab . $tab . "\\Common\\Log::Error(\"SaveLog: \" . \$"."result->Avviso() . \", \" . $"."trace . \"->\" . $"."this);\n";
+    $code .= $tab . $tab . "}\n";
+    $code .= $tab . $tab . "return $" . "result;\n";
+    $code .= $tab . "}\n";
+
+    $code .= "\n";
+
     $code .= $tab . "public function Delete() : \Common\SaveResponse\n";
     $code .= $tab . "{\n";
     $code .= $tab . $tab . "return parent::Delete();\n";

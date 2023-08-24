@@ -27,6 +27,44 @@ class BaseModel
         $this->Inserimento = new DateTime();
     }
 
+    public function __toString(): string
+    {
+        $fields = get_object_vars($this);
+
+        $output = "";
+
+        foreach ($fields as $name => $value)
+        {
+            $output .= $name . ": ";
+
+            switch (gettype($value))
+            {
+                case 'object':
+                    if ($value instanceof DateTime)
+                    {
+                        $output .= $value->format('Y-m-d H:i:s');
+                    }
+                    else
+                    {
+                        $output .= 'Object';
+                    }
+                    break;
+                case 'integer':
+                case 'string':
+                case 'boolean':
+                    $output .= $value;
+                    break;
+                default:
+                    $output .= 'Unknown Type';
+                    break;
+            }
+
+            $output .= ", ";
+        }
+
+        return $output;
+    }
+
     #[PropertyAttribute('Id', 'Numeri')]
     public int $Id;
 
@@ -42,7 +80,7 @@ class BaseModel
     #[PropertyAttribute('Inserimento', 'Data')]
     public DateTime $Inserimento;
 
-
+    /** @noinspection PhpIncompatibleReturnTypeInspection */
     static function GetItem(object $tableObj, string $uniqueColumn = "Id", $uniqueValue = "", string $iso = "", bool $webP = true): ?BaseModel
     {
         //    non ci sono i tipi anonimi in PHP quindi passo l'oggetto come parametro
@@ -66,7 +104,9 @@ class BaseModel
                 $tipo = $attribute->getArguments()['1'];
 
                 if ($tipo == "Dato")
+                {
                     $nome .= "_FkId";
+                }
 
                 $colonne[] = $nome;
                 $tipi[] = $tipo;
@@ -94,7 +134,9 @@ class BaseModel
         $valori = $result->Values;
 
         if (count($valori) == 0)
+        {
             return null;
+        }
 
         //imposto i valori nella istanza di classe
         for ($i = 0; $i < count($colonne); $i++)
@@ -116,26 +158,26 @@ class BaseModel
                         }
                         else //in teoria è sempre int
                         {
-                            $prop->setValue($tableObj, (int) $valori[$i]);
+                            $prop->setValue($tableObj, (int)$valori[$i]);
                         }
                     }
                     break;
 
                 case "Dato":
                     {
-                        $prop->setValue($tableObj, (int) $valori[$i]);
+                        $prop->setValue($tableObj, (int)$valori[$i]);
                     }
                     break;
 
                 case "Testo":
-                    {                    
+                    {
                         $prop->setValue($tableObj, $valori[$i]);
-                        
+
                         //imposto il valore anche a quella da usare per confronto
                         $old = '_' . $prop->name;
-                                                
+
                         $propertyOld = $reflection->getProperty($old);
-                        
+
                         $propertyOld->setValue($tableObj, $valori[$i]);
                     }
                     break;
@@ -154,13 +196,13 @@ class BaseModel
                             $a = $valori[$i];
 
                             $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' .
-                                    $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
+                                $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
 
                             $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y H:i:s', $str));
                         }
                     }
                     break;
-                    
+
                 default: //immagini, file, testo e senza definizione
                     $prop->setValue($tableObj, $valori[$i]);
                     break;
@@ -184,13 +226,13 @@ class BaseModel
         foreach ($properties as $property)
         {
             $attributes = $property->getAttributes();
-            
+
             //c'è massimo un solo attributo che è il nome del database, per adesso
             foreach ($attributes as $attribute)
             {
                 $nome = $attribute->getArguments()['0'];
-                $tipo = $attribute->getArguments()['1'];                
-                
+                $tipo = $attribute->getArguments()['1'];
+
                 if ($tipo == "")
                     continue;
 
@@ -204,17 +246,17 @@ class BaseModel
                         break;
 
                     case "Testo":
-                    {
-                        $propertyOld = $reflection->getProperty("_" . $property->name);
-                        
-                        $oldValue = $propertyOld->getValue($this); 
-                        
-                        //salvo solo se il valore è stato modificato
-                        if ($oldValue !== $propertyValue)                        
-                            $colonne[] = [$nome, $propertyValue];
-                    }
-                     
-                    break;
+                        {
+                            $propertyOld = $reflection->getProperty("_" . $property->name);
+
+                            $oldValue = $propertyOld->getValue($this);
+
+                            //salvo solo se il valore è stato modificato
+                            if ($oldValue !== $propertyValue)
+                                $colonne[] = [$nome, $propertyValue];
+                        }
+
+                        break;
 
                     case "Data":
                         $colonne[] = [$nome, $propertyValue->format('d/m/Y')];
@@ -224,6 +266,7 @@ class BaseModel
                     case "File":
                         if (!isset($propertyValue))
                             break;
+
                         $colonne[] = [$nome, [$propertyValue->Nome, base64_encode($propertyValue->Bytes)]];
 
                         break;
@@ -241,21 +284,21 @@ class BaseModel
 
         //prendo i valori dal db
         $result = $obj->DatiElencoSaveAvvisi(
-                $partialName,
-                $this->Id,
-                $this->ParentId,
-                $this->Visibile,
-                $iso,
-                $colonne,
-                $onSave);
-        
+            $partialName,
+            $this->Id,
+            $this->ParentId,
+            $this->Visibile,
+            $iso,
+            $colonne,
+            $onSave);
+
         $saveRespone = new SaveResponse();
 
-        if ($result->Errore == 1)
+        if ($result->Errore === 1)
         {
             $saveRespone->Success = false;
-            
-            if ($result->Avviso != "")
+
+            if ($result->Avviso !== "")
             {
                 $saveRespone->InternalAvviso = $result->Avviso;
             }
@@ -268,7 +311,7 @@ class BaseModel
         }
 
         $this->Id = $result->Id;
-        
+
         $saveRespone->Success = true;
         return $saveRespone;
     }
@@ -279,7 +322,7 @@ class BaseModel
 
         //prendo i valori dal db
         $result = $obj->DatiElencoDelete($this->Id);
-        
+
         $response = new SaveResponse();
 
         if ($result->Errore == 1)
@@ -288,25 +331,25 @@ class BaseModel
             $response->InternalAvviso = $result->Avviso;
             return $response;
         }
-        
+
         $response->Success = true;
 
         return $response;
-    } 
+    }
 
     static function BaseList(
-            string $tableName,
-            int $item4page = -1,
-            int $page = -1,
-            string $wherePredicate = '',
-            array $whereValues = [],
-            string $orderPredicate = '',
-            string $iso = '',
-            int $parentId = 0,
-            bool $visible = null,
-            bool $webP = true,
-            bool $encode = false)
-    {   
+        string $tableName,
+        int    $item4page = -1,
+        int    $page = -1,
+        string $wherePredicate = '',
+        array  $whereValues = [],
+        string $orderPredicate = '',
+        string $iso = '',
+        int    $parentId = 0,
+        bool   $visible = null,
+        bool   $webP = true,
+        bool   $encode = false)
+    {
         $reflection = new ReflectionClass($tableName);
 
         $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
@@ -325,7 +368,9 @@ class BaseModel
                 $tipo = $attribute->getArguments()['1'];
 
                 if ($tipo == "Dato")
+                {
                     $nome .= "_FkId";
+                }
 
                 $colonne[] = $nome;
                 $tipi[] = $tipo;
@@ -340,7 +385,7 @@ class BaseModel
 
         $obj = PHPDOWEB();
 
-        $result = $obj->FetchOpen($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $colonne, $orderPredicate, $item4page, $page, $webP, $encode);       
+        $result = $obj->FetchOpen($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $colonne, $orderPredicate, $item4page, $page, $webP, $encode);
 
         if ($result->Errore == 'true')
         {
@@ -355,7 +400,9 @@ class BaseModel
                 $valori = $obj->FetchRead();
 
                 if ($valori == null)
+                {
                     return;
+                }
 
                 $tableObj = $reflection->newInstance();
 
@@ -379,7 +426,7 @@ class BaseModel
                                 }
                                 else //in teoria è sempre int
                                 {
-                                    $prop->setValue($tableObj, (int) $valori[$i]);
+                                    $prop->setValue($tableObj, (int)$valori[$i]);
                                 }
                             }
                             break;
@@ -387,7 +434,7 @@ class BaseModel
                         case "Dato":
                             {
                                 //echo $valori[$i] . "<br>";
-                                $prop->setValue($tableObj, (int) $valori[$i]);
+                                $prop->setValue($tableObj, (int)$valori[$i]);
                             }
                             break;
 
@@ -425,30 +472,29 @@ class BaseModel
                                 }
                             }
                             break;
-                            
+
                         default: //immagini, file, testo e senza definizione
                             $prop->setValue($tableObj, $valori[$i]);
-                            break;                            
+                            break;
                     }
                 }
 
                 yield $tableObj;
             }
-        }
-        finally
+        } finally
         {
             $obj->FetchClose();
         }
     }
 
     static function BaseCount(
-            string $tableName,
-            string $wherePredicate = '',
-            array $whereValues = [],
-            string $iso = '',
-            int $parentId = 0,
-            bool $visible = null,
-            bool $encode = false): int
+        string $tableName,
+        string $wherePredicate = '',
+        array  $whereValues = [],
+        string $iso = '',
+        int    $parentId = 0,
+        bool   $visible = null,
+        bool   $encode = false): int
     {
         //del nome Model\Tipo, prendo solo l'ultimo pezzo: Tipo
         $parts = explode("\\", $tableName);
