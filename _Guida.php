@@ -8,7 +8,7 @@
  * il nome deve avere il percorso completo del file dove viene inclusa tranne per quelle generiche come il paginatore
  * 
  
- * ACTION
+ * ACTIONaaaaaaas
  * nessun salvataggio
  * ritornano sempre void 
  * mai json_encode / decode, usare sempre \Common\State::TempRead/Write / WindowRead/Write / SessionRead/Write

@@ -400,9 +400,7 @@ class BaseModel
                 $valori = $obj->FetchRead();
 
                 if ($valori == null)
-                {
                     return;
-                }
 
                 $tableObj = $reflection->newInstance();
 
@@ -412,7 +410,7 @@ class BaseModel
                     $prop = $properties[$i];
 
                     $type = $prop->getType();
-                    $typeName = $type->getName(); //ritona in stringa "int" "string "bool"
+                    $typeName = $type->getName(); //ritorna in stringa "int" "string "bool"
 
                     $tipo = $tipi[$i];
 
@@ -481,7 +479,8 @@ class BaseModel
 
                 yield $tableObj;
             }
-        } finally
+        }
+        finally
         {
             $obj->FetchClose();
         }
@@ -499,6 +498,8 @@ class BaseModel
         //del nome Model\Tipo, prendo solo l'ultimo pezzo: Tipo
         $parts = explode("\\", $tableName);
         $datoNome = end($parts);
+
+        $datoNome = str_replace("_", " ", $datoNome);
 
         $obj = PHPDOWEB();
 

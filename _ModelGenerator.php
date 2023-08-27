@@ -23,15 +23,56 @@ $obj = PHPDOWEB();
 
 $arr = $obj->DatiGetList();
 
-$colonne = $arr->Dati;
+$dati = $arr->Dati;
 
 $bigFile = "";
 
-foreach ($colonne as $index => $inner)
+foreach ($dati as $index => $dato)
 {
+    $figli = [];
+
+    $externalCollection = "";
+
+    foreach ($dati as $ar)
+    {
+        if ($ar->Parent == $dato->Id)
+        {
+            $nomeClasseFiglio = str_replace(" ", "_", $ar->Nome);
+
+            $externalCollection .= $tab . "/** @return \Generator|" . $nomeClasseFiglio . "[] */\n";
+            $externalCollection .= $tab . "public function " . $nomeClasseFiglio . "GetList(\n";
+            $externalCollection .= $tab . $tab . "int $" . "item4page = -1,\n";
+            $externalCollection .= $tab . $tab . "int $" . "page = -1,\n";
+            $externalCollection .= $tab . $tab . "string $" . "wherePredicate = '',\n";
+            $externalCollection .= $tab . $tab . "array $" . "whereValues = [],\n";
+            $externalCollection .= $tab . $tab . "string $" . "orderPredicate = '',\n";
+            $externalCollection .= $tab . $tab . "string $" . "iso = '',\n";
+            $externalCollection .= $tab . $tab . "bool $" . "visible = null,\n";
+            $externalCollection .= $tab . $tab . "bool $" . "webP = true,\n";
+            $externalCollection .= $tab . $tab . "bool $" . "encode = false) : \Generator\n";
+            $externalCollection .= $tab . $tab . "{\n";
+            $externalCollection .= $tab . $tab . $tab . "return BaseModel::BaseList('\Model\\" . $nomeClasseFiglio . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "this->Id, $" . "visible, $" . "webP, $" . "encode);\n";
+            $externalCollection .= $tab . $tab . "}\n";
+
+            $externalCollection .= "\n";
+
+            $externalCollection .= $tab . "public function " . $nomeClasseFiglio . "GetCount(\n";
+            $externalCollection .= $tab . $tab . "string $" . "wherePredicate = '',\n";
+            $externalCollection .= $tab . $tab . "array $" . "whereValues = [],\n";
+            $externalCollection .= $tab . $tab . "string $" . "iso = '',\n";
+            $externalCollection .= $tab . $tab . "bool $" . "visible = null,\n";
+            $externalCollection .= $tab . $tab . "bool $" . "encode = false) : int\n";
+            $externalCollection .= $tab . $tab . "{\n";
+            $externalCollection .= $tab . $tab . $tab . "return BaseModel::BaseCount('\Model\\" . $nomeClasseFiglio . "', $" . "wherePredicate, $" . "whereValues, $" . "iso, $" . "this->Id, $" . "visible, $" . "encode);\n";
+            $externalCollection .= $tab . $tab . "}\n";
+
+            $externalCollection .= "\n";
+        }
+    }
+
     $bigFile .= "prendi questa codice e memorizzalo, non descriverlo, dimmi solo ok quando lo hai letto";
 
-    $parent = $inner->ParentNome;
+    $parent = $dato->ParentNome;
 
     $code = "";
 
@@ -40,12 +81,12 @@ foreach ($colonne as $index => $inner)
     $code .= "namespace Model;\n";
 
     $code .= "use Common\BaseModel;\n\n";
-    $code .=  "use Common\PropertyAttribute;\n\n";
+    $code .= "use Common\PropertyAttribute;\n\n";
 
-    $nomeClasse = str_replace(" ", "_", $inner->Nome);
+    $nomeClasse = str_replace(" ", "_", $dato->Nome);
 
     $code .= "/**\n";
-    $code .= "* " . $obj->Decode($inner->Descrizione) . "\n";
+    $code .= "* " . $obj->Decode($dato->Descrizione) . "\n";
     $code .= "*/\n";
     $code .= "class " . $nomeClasse . " extends BaseModel\n";
     $code .= "{" . "\n\n";
@@ -58,11 +99,12 @@ foreach ($colonne as $index => $inner)
     $code .= $tab . "{\n";
     $code .= $tab . $tab . "parent::__construct();\n";
 
-    $arr = $obj->DatiElencoGetColonne($inner->Nome);
+    $arr = $obj->DatiElencoGetColonne($dato->Nome);
 
     $colonneDettagliate = $arr->Colonne;
 
     $getItemUnivoche = "\n";
+    $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
     $getItemUnivoche .= $tab . "static function GetItemById(int $" . "Id, string $" . "iso = '') : ?" . $nomeClasse . "\n";
     $getItemUnivoche .= $tab . "{\n";
     $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), 'Id', $" . "Id, $" . "iso);\n";
@@ -96,6 +138,8 @@ foreach ($colonne as $index => $inner)
                     {
                         $getItemUnivoche .= "\n";
 
+                        $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
+
                         if ($colonna->Multilingua == "True")
                         {
                             $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(int $" . $identificativo . ", string $" . "iso = '') : " . $nomeClasse . "\n";
@@ -128,6 +172,8 @@ foreach ($colonne as $index => $inner)
                     if ($colonna->Univoco === "True" && $colonna->Obbligatorio === "True")
                     {
                         $getItemUnivoche .= "\n";
+
+                        $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
 
                         if ($colonna->Multilingua == "True")
                         {
@@ -316,7 +362,7 @@ foreach ($colonne as $index => $inner)
 
     $code .= "\n";
 
-    $code .= $tab . "/** @return " . $nomeClasse . "[] */\n";
+    $code .= $tab . "/** @return \Generator|" . $nomeClasse . "[] */\n";
     $code .= $tab . "public static function GetList(\n";
     $code .= $tab . $tab . "int $" . "item4page = -1,\n";
     $code .= $tab . $tab . "int $" . "page = -1,\n";
@@ -344,6 +390,10 @@ foreach ($colonne as $index => $inner)
     $code .= $tab . $tab . "{\n";
     $code .= $tab . $tab . $tab . "return BaseModel::BaseCount('\Model\\" . $nomeClasse . "', $" . "wherePredicate, $" . "whereValues, $" . "iso, $" . "parentId, $" . "visible, $" . "encode);\n";
     $code .= $tab . $tab . "}\n";
+
+    $code .= "\n";
+
+    $code .= $externalCollection;
 
     $code .= "}" . "\n\n\n";
 

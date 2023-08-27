@@ -34,4 +34,28 @@ class Lingue
 
         return $lingua;
     }
+
+    /** @return Lingue[] */
+    public static function GetLingueAttive(): array
+    {
+        $obj = PHPDOWEB();
+
+        $lingueDb = $obj->LingueGetListAttive()->Lingue;
+
+        $arr = [];
+
+        foreach ($lingueDb as $linguaDb)
+        {
+            $lingua = new Lingue();
+
+            $lingua->Iso = $linguaDb->CodiceIso;
+            $lingua->Nome = $linguaDb->Nome;
+            $lingua->Default = filter_var($linguaDb->Default, FILTER_VALIDATE_BOOLEAN);
+            $lingua->Attiva = filter_var($linguaDb->Attiva, FILTER_VALIDATE_BOOLEAN);
+
+            $arr[] = $lingua;
+        }
+
+        return $arr;
+    }
 }

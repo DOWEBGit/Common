@@ -46,7 +46,7 @@ if (!empty($view))
     else
     {
         // Metodo non trovato                 
-        echo "Errore", "Non trovo la view " . $view;
+        echo "Errore: Non trovo la view " . $view;
         http_response_code(400);
     }
 
