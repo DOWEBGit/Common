@@ -4,11 +4,12 @@ namespace Common;
 
 class PagineDati
 {
-    public static function ControlliValori(string $nomePagina, string $identificativo, string $iso = "") : \Common\Controlli
+    public static function ControlliValori(string $nomePagina, string $identificativo, string $iso = "") : ?\Common\Controlli
     {
-        $phpobj = PHPDOWEB();
+        $controllo = PHPDOWEB()->PagineDatiControlliValori($nomePagina, $identificativo, $iso);
 
-        $controllo = $phpobj->PagineDatiControlliValori($nomePagina, $identificativo, $iso);
+        if ($controllo->Errore === 1) //potrei loggare se è null...
+            return null;
 
         $paginaControllo = new \Common\Controlli();
 
