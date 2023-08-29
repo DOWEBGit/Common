@@ -8,7 +8,8 @@ use Exception;
 use ReflectionClass;
 use ReflectionProperty;
 
-#[Attribute] class PropertyAttribute
+#[Attribute]
+class PropertyAttribute
 {
     function __construct(string $nomeColonna, string $tipoDato)
     {
@@ -23,8 +24,8 @@ class BaseModel
         $this->Id = 0;
         $this->ParentId = 0;
         $this->Visibile = true;
-        $this->Aggiornamento = new DateTime();
-        $this->Inserimento = new DateTime();
+        $this->Aggiornamento = new \DateTime();
+        $this->Inserimento = new \DateTime();
     }
 
     public function __toString(): string
@@ -125,7 +126,9 @@ class BaseModel
         //prendo i valori dal db
         $result = $obj->DatiElencoGetItem($partialName, $uniqueColumn, $uniqueValue, $iso, $colonne, $webP);
 
-        if ($result->Errore == 1)
+        $errore = (bool) filter_var($result->Errore, FILTER_VALIDATE_BOOLEAN);
+
+        if ($errore)
         {
             $obj->LogError("BaseModel->GetItem($tableName, $uniqueColumn) " . $result->Avviso);
             return null;
@@ -294,7 +297,9 @@ class BaseModel
 
         $saveRespone = new SaveResponse();
 
-        if ($result->Errore === 1)
+        $errore = (bool) filter_var($result->Errore, FILTER_VALIDATE_BOOLEAN);
+
+        if ($errore)
         {
             $saveRespone->Success = false;
 
@@ -325,7 +330,9 @@ class BaseModel
 
         $response = new SaveResponse();
 
-        if ($result->Errore == 1)
+        $errore = (bool) filter_var($result->Errore, FILTER_VALIDATE_BOOLEAN);
+
+        if ($errore)
         {
             $response->Success = false;
             $response->InternalAvviso = $result->Avviso;
@@ -348,7 +355,7 @@ class BaseModel
         int    $parentId = 0,
         bool   $visible = null,
         bool   $webP = true,
-        bool   $encode = false)
+        bool   $encode = false) : \Generator
     {
         $reflection = new ReflectionClass($tableName);
 

@@ -42,6 +42,27 @@ class SaveResponse
         return '';
     }
 
+    public function AvvisoDecode(string $delimiter = '<br>'): string
+    {
+        if ($this->InternalAvviso != '')
+            return html_entity_decode($this->InternalAvviso);
+
+        if (count($this->InternalAvvisi) > 0)
+        {
+            $result = '';
+
+            foreach ($this->InternalAvvisi as $controlloAvviso)
+                $result .= $controlloAvviso->Controllo . ': ' . $controlloAvviso->Avviso . $delimiter;
+
+            if (strlen($result) > 0)
+                $result = substr ($result, 0, strlen($result) - strlen($delimiter));
+
+            return html_entity_decode($result);
+        }
+
+        return '';
+    }
+
     public bool $Success;
     public array $InternalAvvisi;
     public string $InternalAvviso;

@@ -133,9 +133,16 @@ class State
         }
         
         return "";
-    }        
-    
-    
+    }
+
+    public static function SessionId() : string
+    {
+        if (session_status() == PHP_SESSION_NONE)
+            session_start();
+
+        return session_id();
+    }
+
     public static function SessionWrite(string $name, string $value) : void
     {            
         if (session_status() == PHP_SESSION_NONE)

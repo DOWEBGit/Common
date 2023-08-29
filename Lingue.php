@@ -32,6 +32,11 @@ class Lingue
             }
         }
 
+        $lingua->Iso = "";
+        $lingua->Nome = "";
+        $lingua->Attiva = true;
+        $lingua->Default = true;
+
         return $lingua;
     }
 

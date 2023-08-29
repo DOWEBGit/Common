@@ -13,7 +13,25 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "DOWEBGit"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="8fbca177-9d87-4542-9567-5ecedd3d2475" />
+        <option name="url" value="https://github.com/DOWEBGit/Common" />
+      </UrlAndAccount>
+    </option>
+  </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="PHP 8.0" />
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": -1
+}]]></component>
   <component name="ProjectId" id="2ULZc2c0nEoZG4GO8wHms1U3pyM" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -24,6 +42,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "master",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -36,6 +55,7 @@
       <option name="presentableId" value="Default" />
       <updated>1692720896852</updated>
       <workItem from="1692720898058" duration="236000" />
+      <workItem from="1693296975419" duration="113000" />
     </task>
     <servers />
   </component>
