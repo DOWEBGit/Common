@@ -11,34 +11,38 @@ $tab = "    ";
 $enumPath = $basePath . '\\Code\\Enum';
 
 if (!is_dir($enumPath))
-{
     mkdir($enumPath, 0777, true);
-}
 
-$pagineObj = $obj->PagineGetList()->Pagine;
+$pagine = [];
+
+$pagineObj = $obj->PagineDatiGetList()->Pagine;
 
 $code = "<?php\n\n";
 $code .= "namespace Code\\Enum;\n\n";
 
-$pagine = [];
-
-$code .= "enum PagineEnum : string\n";
+$code .= "enum PagineDatiControlliEnum\n";
 $code .= "{\n";
 
-foreach ($pagineObj as $index => $pagina)
+foreach ($pagine as $pagina)
 {
-    $val = $pagina->Nome;
+    $controlli = $obj->PagineDatiControlliList($pagina)->Controlli;
 
-    $pagine[] = $pagina->Nome;
+    $val = str_replace(" ", "_", $pagina) . "_";
 
-    $val = str_replace(" ", "_", $val);
+    foreach ($controlli as $controllo)
+    {
+        $valCon = $val . str_replace(" ", "_", $controllo->Identificativo);
 
-    $code .= $tab . "case " . $val . " = \"" . $pagina->Nome . "\";\n";
+        $code .= $tab . "#[EnumAttribute(\"" . $pagina . "\", \"" . $controllo->Identificativo . "\")]\n";
+        $code .= $tab . "case " . $valCon . ";\n";
+    }
 }
 
 $code .= "}";
 
-$file = $enumPath . "\\PagineEnum.php";
+
+
+$file = $enumPath . "\\PagineDatiControlliEnum.php";
 
 if (is_file($file))
 {

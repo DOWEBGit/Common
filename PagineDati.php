@@ -6,17 +6,20 @@ use Code\Enum\PagineDatiEnum;
 
 class PagineDati
 {
-    public static function ControlliValori(\Code\Enum\PagineDatiEnum $pagineDatiEnum, \Code\Enum\PagineDatiControlliEnum $controlliEnum, string $iso = ""): \Common\Controlli
+    public static function ControlliValori(\Code\Enum\PagineDatiControlliEnum $identificativoEnum, string $iso = ""): \Common\Controlli
     {
         $phpobj = PHPDOWEB();
 
-         $reflection = new \ReflectionEnum($controlliEnum);
+        $reflection = new \ReflectionEnum($identificativoEnum);
 
-         $attributes =  $reflection->getAttributes();
+        $case =  $reflection->getCase($identificativoEnum->name);
 
-         $value = $attributes[0]->getArguments()[0];
+        $attribute =  $case->getAttributes()[0];
 
-        $controllo = $phpobj->PagineDatiControlliValori($pagineDatiEnum->value, $controlliEnum->name, $iso);
+        $pagina = $attribute->getArguments()[0];
+        $identificativo = $attribute->getArguments()[1];
+
+        $controllo = $phpobj->PagineDatiControlliValori($pagina, $identificativo, $iso);
 
         $paginaControllo = new \Common\Controlli();
 

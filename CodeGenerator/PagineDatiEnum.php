@@ -34,29 +34,7 @@ foreach ($pagineObj as $index => $pagina)
     $code .= $tab . "case " . $val . " = \"" . $pagina->Nome . "\";\n";
 }
 
-$code .= "}\n\n";
-
-$code .= "enum PagineDatiControlliEnum\n";
-$code .= "{\n";
-
-foreach ($pagine as $pagina)
-{
-    $controlli = $obj->PagineDatiControlliList($pagina)->Controlli;
-
-    $val = str_replace(" ", "_", $pagina) . "_";
-
-    foreach ($controlli as $controllo)
-    {
-        $valCon = $val . str_replace(" ", "_", $controllo->Identificativo);
-
-        $code .= $tab . "#[EnumAttribute(\"" . $controllo->Identificativo . "\")]\n";
-        $code .= $tab . "case " . $valCon . ";\n";
-    }
-}
-
 $code .= "}";
-
-
 
 $file = $enumPath . "\\PagineDatiEnum.php";
 

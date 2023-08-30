@@ -17,21 +17,47 @@ class PagineResult
 
 class Pagine
 {
-    public static function ControlliValori(\Code\Enum\PagineEnum $pagina, \Code\Enum\PagineControlliEnum $identificativo, string $iso = ""): \Common\Controlli
+    public static function Valore(\Code\Enum\PagineControlliEnum $identificativoEnum): string
+    {
+        $iso = \Common\Lingue::GetLinguaFromUrl();
+
+        $phpobj = PHPDOWEB();
+
+        //recupero con reflection il valore dell'attributo che contiene l'identificativo
+
+        $reflection = new \ReflectionEnum($identificativoEnum);
+
+        $case = $reflection->getCase($identificativoEnum->name);
+
+        $attribute = $case->getAttributes()[0];
+
+        $pagina = $attribute->getArguments()[0];
+        $identificativo = $attribute->getArguments()[1];
+
+        $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso->Iso);
+
+        if ($controllo->Valore == "")
+            return $identificativo;
+
+        return $controllo->Valore;
+    }
+
+    public static function ControlliValori(\Code\Enum\PagineControlliEnum $identificativoEnum, string $iso = ""): \Common\Controlli
     {
         $phpobj = PHPDOWEB();
 
         //recupero con reflection il valore dell'attributo che contiene l'identificativo
 
-        $reflection = new \ReflectionEnum($identificativo);
+        $reflection = new \ReflectionEnum($identificativoEnum);
 
-        $case =  $reflection->getCase($identificativo->name);
+        $case = $reflection->getCase($identificativoEnum->name);
 
-        $attribute =  $case->getAttributes()[0];
+        $attribute = $case->getAttributes()[0];
 
-        $identificativo = $attribute->getArguments()[0];
+        $pagina = $attribute->getArguments()[0];
+        $identificativo = $attribute->getArguments()[1];
 
-        $controllo = $phpobj->PagineControlliValori($pagina->value, $identificativo, $iso);
+        $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso);
 
         $paginaControllo = new \Common\Controlli();
 
@@ -77,5 +103,39 @@ class Pagine
         $pagina->Multilingua = \Common\Convert::ToBool($result->Multilingua);
 
         return $pagina;
+    }
+
+    public static function GetUrlIso(\Code\Enum\PagineEnum $pagineEnum): string
+    {
+        $phpobj = PHPDOWEB();
+
+        $lingua = \Common\Lingue::GetLinguaFromUrl();
+
+        $iso = $lingua->Iso;
+
+        $result = $phpobj->Pagine($pagineEnum->value, $iso);
+
+        if (\Common\Convert::ToBool($result->Errore))
+        {
+            \Common\Log::Error("\Common\PagineDati->GetUrlIso(" . $pagineEnum->name . "), " . $result->Avviso);
+            return "";
+        }
+
+        return $result->FullUrl;
+    }
+
+    public static function GetUrl(\Code\Enum\PagineEnum $pagineEnum, string $iso): string
+    {
+        $phpobj = PHPDOWEB();
+
+        $result = $phpobj->Pagine($pagineEnum->value, $iso);
+
+        if (\Common\Convert::ToBool($result->Errore))
+        {
+            \Common\Log::Error("\Common\PagineDati->GetUrl(" . $pagineEnum->name . ", " . $iso . "), " . $result->Avviso);
+            return "";
+        }
+
+        return $result->FullUrl;
     }
 }

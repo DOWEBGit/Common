@@ -327,7 +327,7 @@ foreach ($dati as $index => $dato)
     $code .= $tab . $tab . "$" . "result = parent::Save($" . "onSave, $" . "iso);\n";
     $code .= $tab . $tab . "if (!$" . "result->Success)\n";
     $code .= $tab . $tab . "{\n";
-    $code .= $tab . $tab . $tab . "$" . "trace = debug_backtrace();\n";
+    $code .= $tab . $tab . $tab . "$" . "trace = print_r(debug_backtrace(), true);\n";
     $code .= $tab . $tab . $tab . "\\Common\\Log::Error(\"SaveLog: \" . \$" . "result->Avviso() . \", \" . $" . "trace . \"->\" . $" . "this);\n";
     $code .= $tab . $tab . "}\n";
     $code .= $tab . $tab . "return $" . "result;\n";
