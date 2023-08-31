@@ -452,7 +452,7 @@ class BaseModel
 
         //var_dump($result);
 
-        if ($result->Errore == 'true')
+        if (\Common\Convert::ToBool($result->Errore))
         {
             //viene loggata da doweb
             //$obj->LogError("BaseModel->BaseList({$tableName}, {$wherePredicate}) " . $result->Avviso);

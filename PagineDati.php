@@ -6,6 +6,31 @@ use Code\Enum\PagineDatiEnum;
 
 class PagineDati
 {
+    public static function Valore(\Code\Enum\PagineDatiControlliEnum $identificativoEnum): string
+    {
+        $iso = \Common\Lingue::GetLinguaFromUrl();
+
+        $phpobj = PHPDOWEB();
+
+        //recupero con reflection il valore dell'attributo che contiene l'identificativo
+
+        $reflection = new \ReflectionEnum($identificativoEnum);
+
+        $case = $reflection->getCase($identificativoEnum->name);
+
+        $attribute = $case->getAttributes()[0];
+
+        $pagina = $attribute->getArguments()[0];
+        $identificativo = $attribute->getArguments()[1];
+
+        $controllo = $phpobj->PagineDatiControlliValori($pagina, $identificativo, $iso->Iso);
+
+        if ($controllo->Valore == "")
+            return $identificativo;
+
+        return $controllo->Valore;
+    }
+
     public static function ControlliValori(\Code\Enum\PagineDatiControlliEnum $identificativoEnum, string $iso = ""): \Common\Controlli
     {
         $phpobj = PHPDOWEB();
