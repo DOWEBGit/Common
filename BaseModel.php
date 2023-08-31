@@ -82,14 +82,14 @@ class BaseModel
     public DateTime $Inserimento;
 
     /** @noinspection PhpIncompatibleReturnTypeInspection */
+    //    non ci sono i tipi anonimi in PHP quindi passo l'oggetto come parametro
     static function GetItem(object $tableObj, string $uniqueColumn = "Id", $uniqueValue = "", string $iso = "", bool $webP = true): ?BaseModel
     {
-        //    non ci sono i tipi anonimi in PHP quindi passo l'oggetto come parametro
         $tableName = get_class($tableObj);
 
-        $reflection = new ReflectionClass($tableName);
+        $reflection = new \ReflectionClass($tableName);
 
-        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
+        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
 
         $colonne = [];
         $tipi = [];
@@ -105,9 +105,7 @@ class BaseModel
                 $tipo = $attribute->getArguments()['1'];
 
                 if ($tipo == "Dato")
-                {
                     $nome .= "_FkId";
-                }
 
                 $colonne[] = $nome;
                 $tipi[] = $tipo;
@@ -126,23 +124,35 @@ class BaseModel
         //prendo i valori dal db
         $result = $obj->DatiElencoGetItem($partialName, $uniqueColumn, $uniqueValue, $iso, $colonne, $webP);
 
-        $errore = (bool) filter_var($result->Errore, FILTER_VALIDATE_BOOLEAN);
-
-        if ($errore)
+        if ($result->Errore == 1)
         {
-            $obj->LogError("BaseModel->GetItem($tableName, $uniqueColumn) " . $result->Avviso);
+            $obj->LogError("BaseModel->GetItem({$tableName}, {$uniqueColumn}) " . $result->Avviso);
             return null;
         }
 
         $valori = $result->Values;
 
         if (count($valori) == 0)
-        {
             return null;
-        }
 
         //imposto i valori nella istanza di classe
-        for ($i = 0; $i < count($colonne); $i++)
+        self::ImpostoIValoriNellaIstanzaDiClasse($properties, $tipi, $tableObj, $valori, $reflection);
+
+        return $tableObj;
+    }
+
+    /**
+     * @param array $properties
+     * @param array $tipi
+     * @param object $tableObj
+     * @param $valori
+     * @param \ReflectionClass $reflection
+     * @return void
+     * @throws \ReflectionException
+     */
+    private static function ImpostoIValoriNellaIstanzaDiClasse(array $properties, array $tipi, object $tableObj, $valori, \ReflectionClass $reflection): void
+    {
+        for ($i = 0; $i < count($tipi); $i++)
         {
             $prop = $properties[$i];
 
@@ -191,7 +201,7 @@ class BaseModel
 
                         if ($len == 10)
                         {
-                            $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y', $valori[$i]));
+                            $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y', $valori[$i]));
                         }
 
                         if ($len == 19)
@@ -199,9 +209,9 @@ class BaseModel
                             $a = $valori[$i];
 
                             $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' .
-                                $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
+                                   $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
 
-                            $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y H:i:s', $str));
+                            $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
                         }
                     }
                     break;
@@ -211,8 +221,6 @@ class BaseModel
                     break;
             }
         }
-
-        return $tableObj;
     }
 
     function Save(bool $onSave, string $iso): SaveResponse
@@ -283,6 +291,9 @@ class BaseModel
         $parts = explode("\\", $tableName);
         $partialName = end($parts);
 
+        //i nomi delle classi hanno lo spazio sostituito il simbolo
+        $partialName = str_replace("_", " ", $partialName);
+
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
@@ -297,9 +308,7 @@ class BaseModel
 
         $saveRespone = new SaveResponse();
 
-        $errore = (bool) filter_var($result->Errore, FILTER_VALIDATE_BOOLEAN);
-
-        if ($errore)
+        if (\Common\Convert::ToBool($result->Errore))
         {
             $saveRespone->Success = false;
 
@@ -330,9 +339,7 @@ class BaseModel
 
         $response = new SaveResponse();
 
-        $errore = (bool) filter_var($result->Errore, FILTER_VALIDATE_BOOLEAN);
-
-        if ($errore)
+        if (\Common\Convert::ToBool($result->Errore))
         {
             $response->Success = false;
             $response->InternalAvviso = $result->Avviso;
@@ -346,20 +353,20 @@ class BaseModel
 
     static function BaseList(
         string $tableName,
-        int    $item4page = -1,
-        int    $page = -1,
+        int $item4page = -1,
+        int $page = -1,
         string $wherePredicate = '',
-        array  $whereValues = [],
+        array $whereValues = [],
         string $orderPredicate = '',
         string $iso = '',
-        int    $parentId = 0,
-        bool   $visible = null,
-        bool   $webP = true,
-        bool   $encode = false) : \Generator
+        int $parentId = 0,
+        bool $visible = null,
+        bool $webP = true,
+        bool $encode = false)
     {
-        $reflection = new ReflectionClass($tableName);
+        $reflection = new \ReflectionClass($tableName);
 
-        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
+        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
 
         $colonne = [];
         $tipi = [];
@@ -375,9 +382,7 @@ class BaseModel
                 $tipo = $attribute->getArguments()['1'];
 
                 if ($tipo == "Dato")
-                {
                     $nome .= "_FkId";
-                }
 
                 $colonne[] = $nome;
                 $tipi[] = $tipo;
@@ -388,23 +393,24 @@ class BaseModel
         $parts = explode("\\", $tableName);
         $datoNome = end($parts);
 
+        //i nomi delle classi hanno lo spazio sostituito il simbolo
         $datoNome = str_replace("_", " ", $datoNome);
 
         $obj = PHPDOWEB();
 
         $result = $obj->FetchOpen($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $colonne, $orderPredicate, $item4page, $page, $webP, $encode);
 
-        if ($result->Errore == 'true')
+        if (\Common\Convert::ToBool($result->Errore))
         {
             //viene già loggata da doweb
-            throw new Exception("Errore nella query: " . $result->Avviso);
+            throw new \Exception("Errore nella query: " . $result->Avviso);
         }
 
         try
         {
             while (true)
             {
-                $valori = $obj->FetchRead();
+                $valori = $obj->FetchRead($result);
 
                 if ($valori == null)
                     return;
@@ -412,84 +418,14 @@ class BaseModel
                 $tableObj = $reflection->newInstance();
 
                 //imposto i valori nella istanza di classe
-                for ($i = 0; $i < count($colonne); $i++)
-                {
-                    $prop = $properties[$i];
-
-                    $type = $prop->getType();
-                    $typeName = $type->getName(); //ritorna in stringa "int" "string "bool"
-
-                    $tipo = $tipi[$i];
-
-                    switch ($tipo)
-                    {
-                        case "Numeri":
-                            {
-                                if ($typeName == "bool")
-                                {
-                                    $prop->setValue($tableObj, $valori[$i] === "true" || $valori[$i] === "1");
-                                }
-                                else //in teoria è sempre int
-                                {
-                                    $prop->setValue($tableObj, (int)$valori[$i]);
-                                }
-                            }
-                            break;
-
-                        case "Dato":
-                            {
-                                //echo $valori[$i] . "<br>";
-                                $prop->setValue($tableObj, (int)$valori[$i]);
-                            }
-                            break;
-
-                        case "Data":
-                            {
-                                //$prop->setValue($tableObj, $valori[$i]);
-
-                                $len = strlen($valori[$i]);
-
-                                if ($len == 10)
-                                {
-                                    $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y', $valori[$i]));
-                                }
-
-                                if ($len == 19)
-                                {
-                                    $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y H:i:s', $valori[$i]));
-                                }
-                            }
-                            break;
-
-                        case "DateTime":
-                            {
-
-                                $len = strlen($valori[$i]);
-
-                                if ($len == 10)
-                                {
-                                    $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y', $valori[$i]));
-                                }
-
-                                if ($len == 19)
-                                {
-                                    $prop->setValue($tableObj, DateTime::createFromFormat('d/m/Y H:i:s', $valori[$i]));
-                                }
-                            }
-                            break;
-
-                        default: //immagini, file, testo e senza definizione
-                            $prop->setValue($tableObj, $valori[$i]);
-                            break;
-                    }
-                }
+                self::ImpostoIValoriNellaIstanzaDiClasse($properties, $tipi, $tableObj, $valori, $reflection);
 
                 yield $tableObj;
             }
         }
         finally
         {
-            $obj->FetchClose();
+            $obj->FetchClose($result);
         }
     }
 
@@ -506,6 +442,7 @@ class BaseModel
         $parts = explode("\\", $tableName);
         $datoNome = end($parts);
 
+        //i nomi delle classi hanno lo spazio sostituito il simbolo
         $datoNome = str_replace("_", " ", $datoNome);
 
         $obj = PHPDOWEB();
@@ -518,7 +455,7 @@ class BaseModel
         if ($result->Errore == 'true')
         {
             //viene loggata da doweb
-            //$obj->LogError("BaseModel->BaseList({$tableName}, {$wherePredicate}) " . $result->Avviso);            
+            //$obj->LogError("BaseModel->BaseList({$tableName}, {$wherePredicate}) " . $result->Avviso);
 
             throw new Exception("Errore nella query: " . $result->Avviso);
         }
