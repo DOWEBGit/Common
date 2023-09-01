@@ -28,10 +28,10 @@
     </option>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="PHP 8.0" />
-  <component name="ProjectColorInfo">{
-  &quot;customColor&quot;: &quot;&quot;,
-  &quot;associatedIndex&quot;: -1
-}</component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 4
+}]]></component>
   <component name="ProjectId" id="2ULZc2c0nEoZG4GO8wHms1U3pyM" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -43,6 +43,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/DOWEB/Siti/Peanut-jeans/Public/Php",
     "vue.rearranger.settings.migration": "true"
   }
@@ -58,6 +59,7 @@
       <workItem from="1692720898058" duration="236000" />
       <workItem from="1693296975419" duration="113000" />
       <workItem from="1693485223452" duration="20000" />
+      <workItem from="1693596828469" duration="49000" />
     </task>
     <servers />
   </component>

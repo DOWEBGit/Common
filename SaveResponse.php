@@ -30,8 +30,8 @@ class SaveResponse
         {
             $result = '';
 
-            foreach ($this->InternalAvvisi as $controlloAvviso)
-                $result .= $controlloAvviso->Controllo . ': ' . $controlloAvviso->Avviso . $delimiter;               
+            foreach ($this->InternalAvvisi as $key => $value)
+                $result .= $key . ': ' . $value . $delimiter;
             
             if (strlen($result) > 0)
                 $result = substr ($result, 0, strlen($result) - strlen($delimiter));
@@ -51,8 +51,8 @@ class SaveResponse
         {
             $result = '';
 
-            foreach ($this->InternalAvvisi as $controlloAvviso)
-                $result .= $controlloAvviso->Controllo . ': ' . $controlloAvviso->Avviso . $delimiter;
+            foreach ($this->InternalAvvisi as $key => $value)
+                $result .= $key . ': ' . $value . $delimiter;
 
             if (strlen($result) > 0)
                 $result = substr ($result, 0, strlen($result) - strlen($delimiter));

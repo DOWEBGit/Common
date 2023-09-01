@@ -318,7 +318,8 @@ class BaseModel
             }
             else
             {
-                $saveRespone->InternalAvvisi = $result->Avvisi;
+                foreach ($result->Avvisi as $controlloAvviso)
+                    $saveRespone->InternalAvvisi[$controlloAvviso->Controllo] = $controlloAvviso->Avviso;
             }
 
             return $saveRespone;

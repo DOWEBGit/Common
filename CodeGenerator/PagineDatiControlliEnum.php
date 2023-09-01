@@ -23,17 +23,19 @@ $code .= "namespace Code\\Enum;\n\n";
 $code .= "enum PagineDatiControlliEnum\n";
 $code .= "{\n";
 
-foreach ($pagine as $pagina)
+foreach ($pagineObj as $pagina)
 {
-    $controlli = $obj->PagineDatiControlliList($pagina)->Controlli;
+    $nome = $pagina->Nome;
 
-    $val = str_replace(" ", "_", $pagina) . "_";
+    $controlli = $obj->PagineDatiControlliList($nome)->Controlli;
+
+    $val = str_replace(" ", "_", $nome) . "_";
 
     foreach ($controlli as $controllo)
     {
         $valCon = $val . str_replace(" ", "_", $controllo->Identificativo);
 
-        $code .= $tab . "#[EnumAttribute(\"" . $pagina . "\", \"" . $controllo->Identificativo . "\")]\n";
+        $code .= $tab . "#[EnumAttribute(\"" . $nome . "\", \"" . $controllo->Identificativo . "\")]\n";
         $code .= $tab . "case " . $valCon . ";\n";
     }
 }
