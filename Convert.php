@@ -8,4 +8,9 @@ class Convert
     {
         return (bool) filter_var($mixed, FILTER_VALIDATE_BOOLEAN);
     }
+
+    public static function ForInputValue(string $value)
+    {
+        return htmlentities($value, ENT_QUOTES);
+    }
 }

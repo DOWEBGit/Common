@@ -6,7 +6,7 @@
  * VIEW
  * solo visualizzazione e chiamate javascript
  * il nome deve avere il percorso completo del file dove viene inclusa tranne per quelle generiche come il paginatore
- * 
+ * i textbox devono avere maxlength uguale alla lunghezza limite impostata nel controllo
  
  * ACTION
  * nessun salvataggio

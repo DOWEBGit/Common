@@ -110,7 +110,7 @@ class State
         $GLOBALS['_WindowState'] = $newJson;
     }
     
-    public static function WindowRead(string $name) : string
+    public static function WindowRead(string $name, string $default = "") : string
     {            
         $name = strtolower($name);
         
@@ -132,7 +132,7 @@ class State
                 return $windowState[$name];
         }
         
-        return "";
+        return $default;
     }
 
     public static function SessionId() : string
