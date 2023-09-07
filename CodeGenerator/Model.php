@@ -343,6 +343,21 @@ foreach ($dati as $index => $dato)
 
     $code .= "\n";
 
+    $code .= $tab . "public function DeleteLog() : \Common\SaveResponse\n";
+    $code .= $tab . "{\n";
+    $code .= $tab . $tab . "$" . "result = parent::Delete();\n";
+    $code .= $tab . $tab . "if (!$" . "result->Success)\n";
+    $code .= $tab . $tab . "{\n";
+    $code .= $tab . $tab . $tab . "$" . "e = new \Exception;\n";
+    $code .= $tab . $tab . $tab . "$" . "trace = $" . "e->getTraceAsString();\n";
+    $code .= $tab . $tab . $tab . "\\Common\\Log::Error(\"DeleteLog: \" . \$" . "result->Avviso() . \", \" . $" . "trace . \"->\" . $" . "this);\n";
+    $code .= $tab . $tab . "}\n";
+    $code .= $tab . $tab . "return $" . "result;\n";
+
+    $code .= $tab . "}\n";
+
+    $code .= "\n";
+
     $code .= $tab . "/** @return \Generator|" . $nomeClasse . "[] */\n";
     $code .= $tab . "public static function GetList(\n";
     $code .= $tab . $tab . "int $" . "item4page = -1,\n";
