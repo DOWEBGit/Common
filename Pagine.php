@@ -17,7 +17,7 @@ class PagineResult
 
 class Pagine
 {
-    public static function Valore(\Code\Enum\PagineControlliEnum $identificativoEnum): string
+    public static function ValoreIso(\Code\Enum\PagineControlliEnum $identificativoEnum): string
     {
         $iso = \Common\Lingue::GetLinguaFromUrl();
 
@@ -31,13 +31,19 @@ class Pagine
 
         $attribute = $case->getAttributes()[0];
 
-        $pagina = $attribute->getArguments()[0];
-        $identificativo = $attribute->getArguments()[1];
+        $args = $attribute->getArguments();
+
+        $pagina = $args[0];
+        $identificativo = $args[1];
+        $decode = $args[2];
 
         $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso->Iso);
 
         if ($controllo->Valore == "")
             return $identificativo;
+
+        if ($decode)
+            return html_entity_decode($controllo->Valore);
 
         return $controllo->Valore;
     }

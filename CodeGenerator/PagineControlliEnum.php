@@ -14,6 +14,7 @@ if (!is_dir($enumPath))
     mkdir($enumPath, 0777, true);
 
 $pagineObj = $obj->PagineGetList()->Pagine;
+$controlliObj = $obj->ControlliGetList()->Controlli;
 
 $code = "<?php\n\n";
 $code .= "namespace Code\\Enum;\n\n";
@@ -33,9 +34,22 @@ foreach ($pagineObj as $index => $pagina)
 
     foreach ($controlli as $controllo)
     {
+        $decode = false;
+
+        foreach ($controlliObj as $controlloObj)
+        {
+            if ($controlloObj->Id == $controllo->IdControllo)
+            {
+                if ($controlloObj->TipoInput == "RichTextBox" || $controlloObj->TipoInput == "RichTextBoxMini")
+                    $decode = true;
+
+                break;
+            }
+         }
+
         $valCon = $val . str_replace(" ", "_", $controllo->Identificativo);
 
-        $code .= $tab . "#[EnumAttribute(\"" . $pagina . "\", \"" . $controllo->Identificativo . "\")]\n";
+        $code .= $tab . "#[EnumAttribute(\"" . $pagina . "\", \"" . $controllo->Identificativo . "\", " . ($decode ? "true" : "false") . ")]\n";
         $code .= $tab . "case " . $valCon . ";\n";
     }
 }

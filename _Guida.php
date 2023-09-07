@@ -1,7 +1,10 @@
 <?php
 
 /* 
- 
+ TYPE HINT
+/** @var ClassName $object */
+
+/*
  * 
  * VIEW
  * solo visualizzazione e chiamate javascript

@@ -6,7 +6,7 @@ use Code\Enum\PagineDatiEnum;
 
 class PagineDati
 {
-    public static function Valore(\Code\Enum\PagineDatiControlliEnum $identificativoEnum): string
+    public static function ValoreIso(\Code\Enum\PagineDatiControlliEnum $identificativoEnum): string
     {
         $iso = \Common\Lingue::GetLinguaFromUrl();
 
@@ -20,13 +20,19 @@ class PagineDati
 
         $attribute = $case->getAttributes()[0];
 
-        $pagina = $attribute->getArguments()[0];
-        $identificativo = $attribute->getArguments()[1];
+        $args = $attribute->getArguments();
+
+        $pagina = $args[0];
+        $identificativo = $args[1];
+        $decode = $args[2];
 
         $controllo = $phpobj->PagineDatiControlliValori($pagina, $identificativo, $iso->Iso);
 
         if ($controllo->Valore == "")
             return $identificativo;
+
+        if ($decode)
+            return html_entity_decode($controllo->Valore);
 
         return $controllo->Valore;
     }
