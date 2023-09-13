@@ -31,7 +31,7 @@ include_once $_SERVER['DOCUMENT_ROOT'] . '/public/php/start.php';
 
 if (!empty($view))
 {
-    $className = "\\View\\" . $view;
+    $className = $view;
 
 // Verifica se il metodo corrispondente all'azione esiste nella classe corrente
     if (method_exists($className, "Client"))

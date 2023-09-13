@@ -15,7 +15,7 @@ interface IView
 {
     //il json viene aggiunto al WindowState sia in Client e sia in Server
     
-    public static function Client(string $json) : void;
+    public function Client() : void;
     
-    public static function Server(string $json) : void;
+    public function Server() : void;
 }

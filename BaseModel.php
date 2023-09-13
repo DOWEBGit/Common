@@ -66,6 +66,23 @@ class BaseModel
         return $output;
     }
 
+    public function EqualsValues(\Common\BaseModel $external): bool
+    {
+        $externalFields = get_object_vars($external);
+        unset($externalFields["Id"]);
+        unset($externalFields["Visible"]);
+        unset($externalFields["Aggiornamento"]);
+        unset($externalFields["Inserimento"]);
+
+        $thisFields = get_object_vars($this);
+        unset($thisFields["Id"]);
+        unset($thisFields["Visible"]);
+        unset($thisFields["Aggiornamento"]);
+        unset($thisFields["Inserimento"]);
+
+        return $thisFields == $externalFields;
+    }
+
     #[PropertyAttribute('Id', 'Numeri')]
     public int $Id;
 
@@ -411,7 +428,7 @@ class BaseModel
         {
             while (true)
             {
-                $valori = $obj->FetchRead($result);
+                $valori = $obj->FetchRead();
 
                 if ($valori == null)
                     return;
@@ -426,7 +443,7 @@ class BaseModel
         }
         finally
         {
-            $obj->FetchClose($result);
+            $obj->FetchClose();
         }
     }
 

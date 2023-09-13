@@ -68,9 +68,7 @@ class Pagine
         $paginaControllo = new \Common\Controlli();
 
         if ($controllo->Valore == "")
-        {
             return $paginaControllo;
-        }
 
         $paginaControllo->Valore = $controllo->Valore;
         $paginaControllo->PercorsoWeb = $controllo->PercorsoWeb;
@@ -111,7 +109,7 @@ class Pagine
         return $pagina;
     }
 
-    public static function GetUrlIso(\Code\Enum\PagineEnum $pagineEnum): string
+    public static function GetUrlIso(\Code\Enum\PagineEnum $pagineEnum, bool $includiDominio = false): string
     {
         $phpobj = PHPDOWEB();
 
@@ -127,10 +125,15 @@ class Pagine
             return "";
         }
 
-        return $result->FullUrl;
+        $url = $result->FullUrl;
+
+        if ($includiDominio)
+            $url = \Common\SiteVars::Value(VarsEnum::webpath) . $url;
+
+        return $url;
     }
 
-    public static function GetUrl(\Code\Enum\PagineEnum $pagineEnum, string $iso): string
+    public static function GetUrl(\Code\Enum\PagineEnum $pagineEnum, string $iso, bool $includiDominio = false): string
     {
         $phpobj = PHPDOWEB();
 
@@ -142,6 +145,11 @@ class Pagine
             return "";
         }
 
-        return $result->FullUrl;
+        $url = $result->FullUrl;
+
+        if ($includiDominio)
+            $url = \Common\SiteVars::Value(VarsEnum::webpath) . $url;
+
+        return $url;
     }
 }

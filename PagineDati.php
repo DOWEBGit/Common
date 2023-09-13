@@ -70,7 +70,7 @@ class PagineDati
         return $paginaControllo;
     }
 
-    public static function GetUrlElenco(\Code\Enum\PagineDatiEnum $pagineDatiEnum, int $idElemento = 0, string $iso = ""): string
+    public static function GetUrlElenco(\Code\Enum\PagineDatiEnum $pagineDatiEnum, int $idElemento = 0, string $iso = "", bool $includiDominio = false): string
     {
         $phpobj = PHPDOWEB();
 
@@ -82,10 +82,15 @@ class PagineDati
             return "";
         }
 
-        return $result->Url;
+        $url = $result->Url;
+
+        if ($includiDominio)
+            $url = \Common\SiteVars::Value(VarsEnum::webpath) . $url;
+
+        return $url;
     }
 
-    public static function GetUrlElemento(\Code\Enum\PagineDatiEnum $pagineDatiEnum, int $idElemento = 0, string $iso = ""): string
+    public static function GetUrlElemento(\Code\Enum\PagineDatiEnum $pagineDatiEnum, int $idElemento = 0, string $iso = "", bool $includiDominio = false): string
     {
         $phpobj = PHPDOWEB();
 
@@ -97,6 +102,11 @@ class PagineDati
             return "";
         }
 
-        return $result->Url;
+        $url = $result->Url;
+
+        if ($includiDominio)
+            $url = \Common\SiteVars::Value(VarsEnum::webpath) . $url;
+
+        return $url;
     }
 }
