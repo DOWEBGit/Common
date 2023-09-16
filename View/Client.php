@@ -13,16 +13,17 @@ $view = "";
 if (isset($_GET['controller']) && isset($_GET['action']))
 {
     $controller = $_GET['controller'];
-    $action  = $_GET['action'];
-}  
+    $action = $_GET['action'];
+}
 else if (isset($_GET['view']))
 {
     $view = $_GET['view'];
 }
-    
+
 if ($action === null && $view === null)
-{    
-    echo "Indicare Action o View";
+{
+    // Metodo non trovato
+    \Common\Log::Error("\Common\View\Client.php, indicare Action o View: " . print_r($_GET, true));
     http_response_code(400);
     exit();
 }
@@ -39,14 +40,14 @@ if (!empty($view))
         // Creazione dell'oggetto utilizzando ReflectionClass
         $reflectionClass = new ReflectionClass($className);
         $obj = $reflectionClass->newInstance();
-                
+
         // Utilizzo dell'oggetto
-        $obj->Client();        
+        $obj->Client();
     }
     else
     {
-        // Metodo non trovato                 
-        echo "Errore: Non trovo la view " . $view;
+        // Metodo non trovato
+        \Common\Log::Error("\Common\View\Client.php, non trovo la view \"" . $view . "\": " . print_r($_GET, true));
         http_response_code(400);
     }
 
@@ -61,15 +62,15 @@ if (method_exists($className, $action))
     // Creazione dell'oggetto utilizzando ReflectionClass
     $reflectionClass = new ReflectionClass($className);
     $obj = $reflectionClass->newInstance();
-    
-    call_user_func(array($obj, $action));         
+
+    call_user_func(array($obj, $action));
 
     //invia lo stato a javascript, tempState e windowState
     \Common\State::StateToBody();
 }
 else
 {
-    // Metodo non trovato         
-    echo "Non trovo la action " . $controller . ":" . $action;
+    // Metodo non trovato
+    \Common\Log::Error("\Common\View\Client.php, non trovo la action \"" . $controller . "\":\"" . $action . "\": " . print_r($_GET, true));
     http_response_code(400);
 }

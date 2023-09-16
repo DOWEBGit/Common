@@ -5,7 +5,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/PHPClass.php to edit this template
  */
 
-namespace Common;
+namespace Common\Response;
+
+use Common\Response;
 
 /**
  * Description of SaveResponse
@@ -14,7 +16,7 @@ namespace Common;
  */
 class SaveResponseModel extends SaveResponse
 {   
-    function __construct(?\Common\SaveResponse $response = null)
+    function __construct(?Response\SaveResponse $response = null)
     {
         parent::__construct();
         
@@ -28,5 +30,5 @@ class SaveResponseModel extends SaveResponse
         $this->Success = $response->Success;
     }
     
-    public ?\Common\BaseModel $Model;
+    public ?\Common\Base\BaseModel $Model;
 }

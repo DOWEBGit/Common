@@ -1,8 +1,9 @@
 <?php
 
-namespace Common;
+namespace Common\Base;
 
-class BaseBody
+//ogni view deve estendere questa classe
+class BodyToState
 {
     function __construct()
     {   

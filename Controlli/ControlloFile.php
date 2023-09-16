@@ -1,6 +1,6 @@
 <?php
 
-namespace Common;
+namespace Common\Controlli;
 
 class ControlloFile
 {

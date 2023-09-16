@@ -2,8 +2,6 @@
 
 namespace Common;
 
-use Code\Enum\PagineDatiEnum;
-
 class PagineDati
 {
     public static function ValoreIso(\Code\Enum\PagineDatiControlliEnum $identificativoEnum): string
@@ -37,7 +35,7 @@ class PagineDati
         return $controllo->Valore;
     }
 
-    public static function ControlliValori(\Code\Enum\PagineDatiControlliEnum $identificativoEnum, string $iso = ""): \Common\Controlli
+    public static function ControlliValori(\Code\Enum\PagineDatiControlliEnum $identificativoEnum, string $iso = ""): Controlli\Controlli
     {
         $phpobj = PHPDOWEB();
 
@@ -52,7 +50,7 @@ class PagineDati
 
         $controllo = $phpobj->PagineDatiControlliValori($pagina, $identificativo, $iso);
 
-        $paginaControllo = new \Common\Controlli();
+        $paginaControllo = new Controlli\Controlli();
 
         if ($controllo->Valore == "")
         {

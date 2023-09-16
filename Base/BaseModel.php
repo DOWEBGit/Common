@@ -1,12 +1,13 @@
 <?php
 
-namespace Common;
+namespace Common\Base;
 
 use Attribute;
 use DateTime;
 use Exception;
 use ReflectionClass;
 use ReflectionProperty;
+use \Common\Response\SaveResponse;
 
 #[Attribute]
 class PropertyAttribute
@@ -66,7 +67,7 @@ class BaseModel
         return $output;
     }
 
-    public function EqualsValues(\Common\BaseModel $external): bool
+    public function EqualsValues(BaseModel $external): bool
     {
         $externalFields = get_object_vars($external);
         unset($externalFields["Id"]);
@@ -100,19 +101,20 @@ class BaseModel
 
     /** @noinspection PhpIncompatibleReturnTypeInspection */
     //    non ci sono i tipi anonimi in PHP quindi passo l'oggetto come parametro
-    static function GetItem(object $tableObj, string $uniqueColumn = "Id", $uniqueValue = "", string $iso = "", bool $webP = true): ?BaseModel
+    static function GetItem(object $tableObj, string $uniqueColumn = "Id", $uniqueValue = "", string $iso = "", bool $webP = true, array $selectColumns = []): ?BaseModel
     {
         $tableName = get_class($tableObj);
 
         $reflection = new \ReflectionClass($tableName);
 
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-
+        $properties = [];
         $colonne = [];
         $tipi = [];
 
+        $filterColumns = count($selectColumns) > 0;
+
         //recupero le colonne della classe dalle etichette sulle variabili
-        foreach ($properties as $property)
+        foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property)
         {
             $attributes = $property->getAttributes();
 
@@ -124,8 +126,23 @@ class BaseModel
                 if ($tipo == "Dato")
                     $nome .= "_FkId";
 
-                $colonne[] = $nome;
-                $tipi[] = $tipo;
+                if ($filterColumns)
+                {
+                    $found = array_search($nome, $selectColumns);
+
+                    if ($found !== false)
+                    {
+                        $properties[] = $property;
+                        $colonne[] = $nome;
+                        $tipi[] = $tipo;
+                    }
+                }
+                else
+                {
+                    $properties[] = $property;
+                    $colonne[] = $nome;
+                    $tipi[] = $tipo;
+                }
             }
         }
 
@@ -141,9 +158,12 @@ class BaseModel
         //prendo i valori dal db
         $result = $obj->DatiElencoGetItem($partialName, $uniqueColumn, $uniqueValue, $iso, $colonne, $webP);
 
-        if ($result->Errore == 1)
+        if (\Common\Convert::ToBool($result->Errore))
         {
-            $obj->LogError("BaseModel->GetItem({$tableName}, {$uniqueColumn}) " . $result->Avviso);
+            $e = new \Exception;
+            $trace = $e->getTraceAsString();
+
+            $obj->LogError("BaseModel->GetItem({$tableName}, {$uniqueColumn}) " . $result->Avviso . " -> " . $trace);
             return null;
         }
 
@@ -380,17 +400,19 @@ class BaseModel
         int $parentId = 0,
         bool $visible = null,
         bool $webP = true,
-        bool $encode = false)
+        bool $encode = false,
+        array $selectColumns = [])
     {
         $reflection = new \ReflectionClass($tableName);
 
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-
+        $properties = [];
         $colonne = [];
         $tipi = [];
 
+        $filterColumns = count($selectColumns) > 0;
+
         //recupero le colonne della classe dalle etichette sulle variabili
-        foreach ($properties as $property)
+        foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property)
         {
             $attributes = $property->getAttributes();
 
@@ -402,8 +424,23 @@ class BaseModel
                 if ($tipo == "Dato")
                     $nome .= "_FkId";
 
-                $colonne[] = $nome;
-                $tipi[] = $tipo;
+                if ($filterColumns)
+                {
+                    $found = array_search($nome, $selectColumns);
+
+                    if ($found !== false)
+                    {
+                        $properties[] = $property;
+                        $colonne[] = $nome;
+                        $tipi[] = $tipo;
+                    }
+                }
+                else
+                {
+                    $properties[] = $property;
+                    $colonne[] = $nome;
+                    $tipi[] = $tipo;
+                }
             }
         }
 
@@ -420,8 +457,11 @@ class BaseModel
 
         if (\Common\Convert::ToBool($result->Errore))
         {
+            $e = new \Exception;
+            $trace = $e->getTraceAsString();
+
             //viene già loggata da doweb
-            throw new \Exception("Errore nella query: " . $result->Avviso);
+            throw new \Exception("Errore nella GetList " . $trace . ", " . $result->Avviso);
         }
 
         try
@@ -475,7 +515,12 @@ class BaseModel
             //viene loggata da doweb
             //$obj->LogError("BaseModel->BaseList({$tableName}, {$wherePredicate}) " . $result->Avviso);
 
-            throw new Exception("Errore nella query: " . $result->Avviso);
+            $e = new \Exception;
+            $trace = $e->getTraceAsString();
+
+            //viene già loggata da doweb
+            throw new \Exception("Errore nella GetCount " . $trace . ", " . $result->Avviso);
+
         }
 
         return $result->Count;

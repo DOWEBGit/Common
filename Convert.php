@@ -11,6 +11,6 @@ class Convert
 
     public static function ForInputValue(string $value)
     {
-        return htmlentities($value, ENT_QUOTES);
+        return html_entity_decode($value, ENT_QUOTES);
     }
 }

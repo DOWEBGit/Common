@@ -48,7 +48,7 @@ class Pagine
         return $controllo->Valore;
     }
 
-    public static function ControlliValori(\Code\Enum\PagineControlliEnum $identificativoEnum, string $iso = ""): \Common\Controlli
+    public static function ControlliValori(\Code\Enum\PagineControlliEnum $identificativoEnum, string $iso = ""): Controlli\Controlli
     {
         $phpobj = PHPDOWEB();
 
@@ -65,7 +65,7 @@ class Pagine
 
         $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso);
 
-        $paginaControllo = new \Common\Controlli();
+        $paginaControllo = new Controlli\Controlli();
 
         if ($controllo->Valore == "")
             return $paginaControllo;

@@ -1,4 +1,6 @@
 <?php
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("expires: -1");
 
 $basePath = $_SERVER["DOCUMENT_ROOT"] . "\\Public\\Php";
 
@@ -49,9 +51,10 @@ foreach ($dati as $index => $dato)
             $externalCollection .= $tab . $tab . "string $" . "iso = '',\n";
             $externalCollection .= $tab . $tab . "bool $" . "visible = null,\n";
             $externalCollection .= $tab . $tab . "bool $" . "webP = true,\n";
-            $externalCollection .= $tab . $tab . "bool $" . "encode = false) : \Generator\n";
+            $externalCollection .= $tab . $tab . "bool $" . "encode = false,\n";
+            $externalCollection .= $tab . $tab . "array $" . "selectColumns = []) : \Generator\n";
             $externalCollection .= $tab . $tab . "{\n";
-            $externalCollection .= $tab . $tab . $tab . "return BaseModel::BaseList('\Model\\" . $nomeClasseFiglio . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "this->Id, $" . "visible, $" . "webP, $" . "encode);\n";
+            $externalCollection .= $tab . $tab . $tab . "return BaseModel::BaseList('\Model\\" . $nomeClasseFiglio . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "this->Id, $" . "visible, $" . "webP, $" . "encode, $" . "selectColumns);\n";
             $externalCollection .= $tab . $tab . "}\n";
 
             $externalCollection .= "\n";
@@ -80,8 +83,12 @@ foreach ($dati as $index => $dato)
 
     $code .= "namespace Model;\n";
 
-    $code .= "use Common\BaseModel;\n\n";
-    $code .= "use Common\PropertyAttribute;\n\n";
+    $code .= "use \Common\Base\BaseModel;\n";
+    $code .= "use \Common\Base\PropertyAttribute;\n";
+    $code .= "use \Common\Controlli\ControlloFile;\n";
+    $code .= "use \Common\Controlli\ControlloImmagine;\n";
+    $code .= "use \Common\Response\SaveResponse;\n\n";
+
 
     $nomeClasse = str_replace(" ", "_", $dato->Nome);
 
@@ -105,9 +112,9 @@ foreach ($dati as $index => $dato)
 
     $getItemUnivoche = "\n";
     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
-    $getItemUnivoche .= $tab . "static function GetItemById(int $" . "Id, string $" . "iso = '') : ?" . $nomeClasse . "\n";
+    $getItemUnivoche .= $tab . "static function GetItemById(int $" . "Id, string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
     $getItemUnivoche .= $tab . "{\n";
-    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), 'Id', $" . "Id, $" . "iso);\n";
+    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), 'Id', $" . "Id, $" . "iso, selectColumns: $" . "selectColumns);\n";
     $getItemUnivoche .= $tab . "}\n";
 
     foreach ($colonneDettagliate as $colonna)
@@ -139,9 +146,9 @@ foreach ($dati as $index => $dato)
                     $getItemUnivoche .= "\n";
 
                     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
-                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(int $" . $identificativo . ", string $" . "iso = '') : " . $nomeClasse . "\n";
+                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(int $" . $identificativo . ", string $" . "iso = '', array $" . "selectColumns = []) : " . $nomeClasse . "\n";
                     $getItemUnivoche .= $tab . "{\n";
-                    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso);\n";
+                    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
                     $getItemUnivoche .= $tab . "}\n";
                 }
 
@@ -163,9 +170,9 @@ foreach ($dati as $index => $dato)
                     $getItemUnivoche .= "\n";
 
                     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
-                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(string $" . $identificativo . ", string $" . "iso = '') : ?" . $nomeClasse . "\n";
+                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(string $" . $identificativo . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
                     $getItemUnivoche .= $tab . "{\n";
-                    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso);\n";
+                    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
                     $getItemUnivoche .= $tab . "}\n";
                 }
 
@@ -209,8 +216,8 @@ foreach ($dati as $index => $dato)
 
                     $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Dato')]\n";
                     $code .= $tab . "public int $" . $identificativo . ";\n";
-                    $code .= $tab . "public function " . $identificativo . "_get($" . "iso = '') : ?" . $identificativoRef . "\n";
-                    $code .= $tab . "{ return " . $identificativoRef . "::GetItemById($" . "this->" . $identificativo . ", $" . "iso); }\n";
+                    $code .= $tab . "public function " . $identificativo . "_get($" . "iso = '', array $" . "selectColumns = []) : ?" . $identificativoRef . "\n";
+                    $code .= $tab . "{ return " . $identificativoRef . "::GetItemById($" . "this->" . $identificativo . ", $" . "iso, $" . "selectColumns); }\n";
                     $code .= $tab . "public function " . $identificativo . "_set(?" . $identificativoRef . " $" . "value) : void\n";
                     $code .= $tab . "{ $" . "this-> " . $identificativo . " = $" . "value === null ? 0 : $" . "value->Id; }\n\n";
                 }
@@ -251,20 +258,20 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "_Percorso', '')]\n";
                 $code .= $tab . "public string $" . $identificativo . "_Percorso;\n";
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'File')]\n";
-                $code .= $tab . "private ?\Common\ControlloFile $" . $identificativo . ";\n";
-                $code .= $tab . "public function " . $identificativo . "Get() : ?\Common\ControlloFile\n";
+                $code .= $tab . "private ?ControlloFile $" . $identificativo . ";\n";
+                $code .= $tab . "public function " . $identificativo . "Get() : ?ControlloFile\n";
                 $code .= $tab . "{\n";
                 $code .= $tab . $tab . "if (isset($" . "this->" . $identificativo . "))\n";
                 $code .= $tab . $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
                 $code .= $tab . $tab . "$" . "obj = PHPDOWEB()->DatiElencoFileInfo($" . "this->Id, '" . $colonnaDettagliata->Identificativo . "', $" . "iso = '');\n";
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new \Common\ControlloFile();\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new ControlloFile();\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Nome = $" . "obj->Nome;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Bytes = $" . "obj->Bytes;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneReale = $" . "obj->DimensioneReale;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneCompressa = $" . "obj->DimensioneCompressa;\n";
                 $code .= $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
                 $code .= $tab . "}\n";
-                $code .= $tab . "public function " . $identificativo . "Set(\Common\ControlloFile $" . "controlloFile) : void\n";
+                $code .= $tab . "public function " . $identificativo . "Set(ControlloFile $" . "controlloFile) : void\n";
                 $code .= $tab . "{\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = $" . "controlloFile;\n";
                 $code .= $tab . "}\n\n";
@@ -276,13 +283,13 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "_Percorso', '')]\n";
                 $code .= $tab . "public string $" . $identificativo . "_Percorso;\n";
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Immagini')]\n";
-                $code .= $tab . "private ?\Common\ControlloImmagine $" . $identificativo . ";\n";
-                $code .= $tab . "public function " . $identificativo . "Get() : ?\Common\ControlloImmagine\n";
+                $code .= $tab . "private ?ControlloImmagine $" . $identificativo . ";\n";
+                $code .= $tab . "public function " . $identificativo . "Get() : ?ControlloImmagine\n";
                 $code .= $tab . "{\n";
                 $code .= $tab . $tab . "if (isset($" . "this->" . $identificativo . "))\n";
                 $code .= $tab . $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
                 $code .= $tab . $tab . "$" . "obj = PHPDOWEB()->DatiElencoFileInfo('" . $colonnaDettagliata->Nome . "', $" . "this->Id, '" . $colonnaDettagliata->Identificativo . "', $" . "iso = '');\n";
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new \Common\ControlloImmagine();\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new ControlloImmagine();\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Nome = $" . "obj->Nome;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Bytes = $" . "obj->Bytes;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneReale = $" . "obj->DimensioneReale;\n";
@@ -291,7 +298,7 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->ImmagineLarghezza = $" . "obj->ImmagineLarghezza;\n";
                 $code .= $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
                 $code .= $tab . "}\n";
-                $code .= $tab . "public function " . $identificativo . "Set(\Common\ControlloImmagine $" . "controlloImmagine) : void\n";
+                $code .= $tab . "public function " . $identificativo . "Set(ControlloImmagine $" . "controlloImmagine) : void\n";
                 $code .= $tab . "{\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = $" . "controlloImmagine;\n";
                 $code .= $tab . "}\n\n";
@@ -304,8 +311,8 @@ foreach ($dati as $index => $dato)
     {
         $parentName = str_replace(" ", "_", $parent);
 
-        $code .= $tab . "public function Parent_get($" . "iso = '') : ?" . $parentName . "\n";
-        $code .= $tab . "{ return " . $parentName . "::GetItemById($" . "this->ParentId, $" . "iso); }\n";
+        $code .= $tab . "public function Parent_get($" . "iso = '', array $" . "selectColumns = []) : ?" . $parentName . "\n";
+        $code .= $tab . "{ return " . $parentName . "::GetItemById($" . "this->ParentId, $" . "iso, $" . "selectColumns); }\n";
         $code .= $tab . "public function Parent_set(?" . $parentName . " $" . "value) : void\n";
         $code .= $tab . "{ $" . "this->ParentId = $" . "value === null ? 0 : $" . "value->Id; }\n\n";
     }
@@ -315,14 +322,14 @@ foreach ($dati as $index => $dato)
 
     $code .= "\n";
 
-    $code .= $tab . "public function Save(bool $" . "onSave = false, string $" . "iso = '') : \Common\SaveResponse\n";
+    $code .= $tab . "public function Save(bool $" . "onSave = false, string $" . "iso = '') : SaveResponse\n";
     $code .= $tab . "{\n";
     $code .= $tab . $tab . "return parent::Save($" . "onSave, $" . "iso);\n";
     $code .= $tab . "}\n";
 
     $code .= "\n";
 
-    $code .= $tab . "public function SaveLog(bool $" . "onSave = false, string $" . "iso = '') : \Common\SaveResponse\n";
+    $code .= $tab . "public function SaveLog(bool $" . "onSave = false, string $" . "iso = '') : SaveResponse\n";
     $code .= $tab . "{\n";
     $code .= $tab . $tab . "$" . "result = parent::Save($" . "onSave, $" . "iso);\n";
     $code .= $tab . $tab . "if (!$" . "result->Success)\n";
@@ -336,14 +343,14 @@ foreach ($dati as $index => $dato)
 
     $code .= "\n";
 
-    $code .= $tab . "public function Delete() : \Common\SaveResponse\n";
+    $code .= $tab . "public function Delete() : SaveResponse\n";
     $code .= $tab . "{\n";
     $code .= $tab . $tab . "return parent::Delete();\n";
     $code .= $tab . "}\n";
 
     $code .= "\n";
 
-    $code .= $tab . "public function DeleteLog() : \Common\SaveResponse\n";
+    $code .= $tab . "public function DeleteLog() : SaveResponse\n";
     $code .= $tab . "{\n";
     $code .= $tab . $tab . "$" . "result = parent::Delete();\n";
     $code .= $tab . $tab . "if (!$" . "result->Success)\n";
@@ -369,9 +376,10 @@ foreach ($dati as $index => $dato)
     $code .= $tab . $tab . "int $" . "parentId = 0,\n";
     $code .= $tab . $tab . "bool $" . "visible = null,\n";
     $code .= $tab . $tab . "bool $" . "webP = true,\n";
-    $code .= $tab . $tab . "bool $" . "encode = false)\n";
+    $code .= $tab . $tab . "bool $" . "encode = false,\n";
+    $code .= $tab . $tab . "array $" . "selectColumns = []) : \Generator\n";
     $code .= $tab . $tab . "{\n";
-    $code .= $tab . $tab . $tab . "return BaseModel::BaseList('\Model\\" . $nomeClasse . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "parentId, $" . "visible, $" . "webP, $" . "encode);\n";
+    $code .= $tab . $tab . $tab . "return BaseModel::BaseList('\Model\\" . $nomeClasse . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "parentId, $" . "visible, $" . "webP, $" . "encode, $" . "selectColumns);\n";
     $code .= $tab . $tab . "}\n";
 
     $code .= "\n";
