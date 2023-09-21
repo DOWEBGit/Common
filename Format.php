@@ -16,10 +16,15 @@ class Format
 {
     //arriva il prezzo in centesimi
     public static function FormatPrezzo(int $prezzo) : string
-    {        
-       return number_format($prezzo / 100, 2, ',', '');
+    {
+        return number_format($prezzo / 100, 2, ',', '');
     }
-    
+
+    public static function FormatPrezzoPunto(int $prezzo) : string
+    {
+        return number_format($prezzo / 100, 2, '.', '');
+    }
+
     /**
      * Converte un oggetto DateTime in un numero intero lungo per il database.
      * È un metodo super ottimizzato che in genere è 3 o 4 volte più veloce di .ToString("yyyyMMddHHmmss").

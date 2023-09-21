@@ -141,7 +141,7 @@ foreach ($dati as $index => $dato)
 
             case "Numeri":
             {
-                if ($colonna->Univoco === "True" && $colonna->Obbligatorio === "True")
+                if ($colonna->Univoco === "true" && $colonna->Obbligatorio === "true")
                 {
                     $getItemUnivoche .= "\n";
 
@@ -165,7 +165,7 @@ foreach ($dati as $index => $dato)
 
             case "Testo":
             {
-                if ($colonna->Univoco === "True" && $colonna->Obbligatorio === "True")
+                if ($colonna->Univoco === "true" && $colonna->Obbligatorio === "true")
                 {
                     $getItemUnivoche .= "\n";
 
