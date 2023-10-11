@@ -45,6 +45,9 @@ foreach ($pagineObj as $pagina)
                 if ($controlloObj->TipoInput == "RichTextBox" || $controlloObj->TipoInput == "RichTextBoxMini")
                     $decode = true;
 
+                if ($controlloObj->Decode == "true")
+                    $decode = true;
+
                 break;
             }
         }

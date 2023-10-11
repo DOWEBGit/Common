@@ -73,6 +73,11 @@
         }
     }
 
+    function ReloadViewCompleted()
+    {
+
+    }
+
     function ReloadView(viewName)
     {
         const call = async () =>
@@ -115,7 +120,10 @@
             div.innerHTML = result;
             globalReload--;
             if (globalReload <= 0)
-                hideLoader()
+            {
+                ReloadViewCompleted();
+                hideLoader();
+            }
         }
         call();
     }
@@ -368,6 +376,7 @@
             alert(parser.parseFromString(message, 'text/html').documentElement.textContent);
         }
     }
+
     // Funzione per salvare lo stato dei valori degli input
     function WindowWriteAllId()
     {

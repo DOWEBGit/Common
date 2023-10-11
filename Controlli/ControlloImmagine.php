@@ -14,5 +14,5 @@ class ControlloImmagine extends ControlloFile
     
     public int $ImmagineAltezza;
     
-    public int $ImmagineLarghezza;    
+    public int $ImmagineLarghezza;
 }

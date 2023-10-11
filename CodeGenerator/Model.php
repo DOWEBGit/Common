@@ -269,6 +269,7 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Bytes = $" . "obj->Bytes;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneReale = $" . "obj->DimensioneReale;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneCompressa = $" . "obj->DimensioneCompressa;\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Base64Encoded = true;\n";
                 $code .= $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
                 $code .= $tab . "}\n";
                 $code .= $tab . "public function " . $identificativo . "Set(ControlloFile $" . "controlloFile) : void\n";
@@ -296,6 +297,7 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneCompressa = $" . "obj->DimensioneCompressa;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->ImmagineAltezza = $" . "obj->ImmagineAltezza;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->ImmagineLarghezza = $" . "obj->ImmagineLarghezza;\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Base64Encoded = true;\n";
                 $code .= $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
                 $code .= $tab . "}\n";
                 $code .= $tab . "public function " . $identificativo . "Set(ControlloImmagine $" . "controlloImmagine) : void\n";

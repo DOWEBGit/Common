@@ -246,7 +246,7 @@ class BaseModel
                             $a = $valori[$i];
 
                             $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' .
-                                   $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
+                                $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
 
                             $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
                         }
@@ -315,7 +315,10 @@ class BaseModel
                         if (!isset($propertyValue))
                             break;
 
-                        $colonne[] = [$nome, [$propertyValue->Nome, base64_encode($propertyValue->Bytes)]];
+                        if (\Common\Convert::ToBool($propertyValue->Base64Encoded))
+                            $colonne[] = [$nome, [$propertyValue->Nome, $propertyValue->Bytes]];
+                        else
+                            $colonne[] = [$nome, [$propertyValue->Nome, base64_encode($propertyValue->Bytes)]];
 
                         break;
 
@@ -356,7 +359,9 @@ class BaseModel
             else
             {
                 foreach ($result->Avvisi as $controlloAvviso)
+                {
                     $saveRespone->InternalAvvisi[$controlloAvviso->Controllo] = $controlloAvviso->Avviso;
+                }
             }
 
             return $saveRespone;
@@ -391,17 +396,17 @@ class BaseModel
 
     static function BaseList(
         string $tableName,
-        int $item4page = -1,
-        int $page = -1,
+        int    $item4page = -1,
+        int    $page = -1,
         string $wherePredicate = '',
-        array $whereValues = [],
+        array  $whereValues = [],
         string $orderPredicate = '',
         string $iso = '',
-        int $parentId = 0,
-        bool $visible = null,
-        bool $webP = true,
-        bool $encode = false,
-        array $selectColumns = [])
+        int    $parentId = 0,
+        bool   $visible = null,
+        bool   $webP = true,
+        bool   $encode = false,
+        array  $selectColumns = [])
     {
         $reflection = new \ReflectionClass($tableName);
 

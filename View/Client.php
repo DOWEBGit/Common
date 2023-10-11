@@ -63,7 +63,7 @@ if (method_exists($className, $action))
     $reflectionClass = new ReflectionClass($className);
     $obj = $reflectionClass->newInstance();
 
-    call_user_func(array($obj, $action));
+    $v = call_user_func(array($obj, $action));
 
     //invia lo stato a javascript, tempState e windowState
     \Common\State::StateToBody();

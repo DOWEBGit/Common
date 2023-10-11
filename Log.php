@@ -4,6 +4,19 @@ namespace Common;
 
 class Log
 {
+    public static function ErrorSaveResponse(\Common\Response\SaveResponse $saveResponse) : \Common\Response\SaveResponse
+    {
+        $e = new \Exception;
+        $trace = $e->getTraceAsString();
+
+        $str = $saveResponse->Avviso(PHP_EOL) . ", " . $trace;
+
+        $obj = PHPDOWEB();
+        $obj->LogError($str);
+
+        return $saveResponse;
+    }
+
     public static function ErrorStack(string $messaggio) : string
     {
         $e = new \Exception;
