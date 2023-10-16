@@ -121,7 +121,7 @@ class Pagine
 
         if (\Common\Convert::ToBool($result->Errore))
         {
-            \Common\Log::Error("\Common\PagineDati->GetUrlIso(" . $pagineEnum->name . "), " . $result->Avviso);
+            \Common\Log::Error("\Common\Pagine->GetUrlIso(" . $pagineEnum->name . "), " . $result->Avviso);
             return "";
         }
 
@@ -141,7 +141,7 @@ class Pagine
 
         if (\Common\Convert::ToBool($result->Errore))
         {
-            \Common\Log::Error("\Common\PagineDati->GetUrl(" . $pagineEnum->name . ", " . $iso . "), " . $result->Avviso);
+            \Common\Log::Error("\Common\Pagine->GetUrl(" . $pagineEnum->name . ", " . $iso . "), " . $result->Avviso);
             return "";
         }
 

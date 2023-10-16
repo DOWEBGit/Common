@@ -15,12 +15,12 @@ namespace Common;
 class Format
 {
     //arriva il prezzo in centesimi
-    public static function FormatPrezzo(int $prezzo) : string
+    public static function FormatPrezzo(int|float $prezzo) : string
     {
         return number_format($prezzo / 100, 2, ',', '');
     }
 
-    public static function FormatPrezzoPunto(int $prezzo) : string
+    public static function FormatPrezzoPunto(int|float $prezzo) : string
     {
         return number_format($prezzo / 100, 2, '.', '');
     }

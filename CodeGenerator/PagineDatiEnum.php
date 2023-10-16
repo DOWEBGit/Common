@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("expires: -1");
 
@@ -19,7 +20,8 @@ $pagine = [];
 
 $pagineObj = $obj->PagineDatiGetList()->Pagine;
 
-$code = "<?php\n\n";
+$code = "<?php\n";
+$code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code\\Enum;\n\n";
 
 $code .= "enum PagineDatiEnum : string\n";

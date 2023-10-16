@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("expires: -1");
 
@@ -19,7 +20,8 @@ if (!is_dir($enumPath))
 $pagineObj = $obj->PagineGetList()->Pagine;
 $controlliObj = $obj->ControlliGetList()->Controlli;
 
-$code = "<?php\n\n";
+$code = "<?php\n";
+$code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code\\Enum;\n\n";
 
 $pagine = [];
@@ -44,6 +46,9 @@ foreach ($pagineObj as $index => $pagina)
             if ($controlloObj->Id == $controllo->IdControllo)
             {
                 if ($controlloObj->TipoInput == "RichTextBox" || $controlloObj->TipoInput == "RichTextBoxMini")
+                    $decode = true;
+
+                if ($controlloObj->Decode == "true")
                     $decode = true;
 
                 break;

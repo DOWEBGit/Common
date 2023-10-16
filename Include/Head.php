@@ -62,6 +62,8 @@
 
     function ReloadViewAll()
     {
+        ReloadViewBefore();
+
         showLoader();
 
         var elementi = document.querySelectorAll('[id^="View"]');
@@ -71,6 +73,11 @@
             var viewName = elementi[i].id.replace(/view/gi, ""); //case sensitive
             ReloadView(viewName);
         }
+    }
+
+    function ReloadViewBefore()
+    {
+
     }
 
     function ReloadViewCompleted()

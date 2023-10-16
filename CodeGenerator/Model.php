@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("expires: -1");
 
@@ -80,7 +81,7 @@ foreach ($dati as $index => $dato)
     $code = "";
 
     $code .= "<?php\n";
-
+    $code .= "declare(strict_types=1);\n\n";
     $code .= "namespace Model;\n";
 
     $code .= "use \Common\Base\BaseModel;\n";

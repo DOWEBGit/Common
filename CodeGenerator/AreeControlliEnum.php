@@ -3,6 +3,7 @@ declare(strict_types=1);
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("expires: -1");
 
+
 //CREO L'ENUM PER LE ETICHETTE CHE FINISCE DENTRO CODE/ENUM/ETICHETTEENUM.PHP
 
 $obj = PHPDOWEB();
@@ -16,25 +17,25 @@ $enumPath = $basePath . '\\Code\\Enum';
 if (!is_dir($enumPath))
     mkdir($enumPath, 0777, true);
 
-$pagine = [];
-
+$areeObj = $obj->AreeGetList()->Aree;
 $controlliObj = $obj->ControlliGetList()->Controlli;
-$pagineObj = $obj->PagineDatiGetList()->Pagine;
 
 $code = "<?php\n";
 $code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code\\Enum;\n\n";
 
-$code .= "enum PagineDatiControlliEnum\n";
+$aree = [];
+
+$code .= "enum AreeControlliEnum\n";
 $code .= "{\n";
 
-foreach ($pagineObj as $pagina)
+foreach ($areeObj as $index => $area)
 {
-    $nome = $pagina->Nome;
+    $area = $area->Nome;
 
-    $controlli = $obj->PagineDatiControlliList($nome)->Controlli;
+    $controlli = $obj->AreeControlliList($area)->Controlli;
 
-    $val = str_replace(" ", "_", $nome) . "_";
+    $val = str_replace(" ", "_", $area) . "_";
 
     foreach ($controlli as $controllo)
     {
@@ -52,21 +53,18 @@ foreach ($pagineObj as $pagina)
 
                 break;
             }
-        }
+         }
 
         $valCon = $val . str_replace(" ", "_", $controllo->Identificativo);
 
-        $code .= $tab . "#[EnumAttribute(\"" . $nome . "\", \"" . $controllo->Identificativo . "\", " . ($decode ? "true" : "false") . ")]\n";
+        $code .= $tab . "#[EnumAttribute(\"" . $area . "\", \"" . $controllo->Identificativo . "\", " . ($decode ? "true" : "false") . ")]\n";
         $code .= $tab . "case " . $valCon . ";\n";
-
     }
 }
 
 $code .= "}";
 
-
-
-$file = $enumPath . "\\PagineDatiControlliEnum.php";
+$file = $enumPath . "\\AreeControlliEnum.php";
 
 if (is_file($file))
 {
