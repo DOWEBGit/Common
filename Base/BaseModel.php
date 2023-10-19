@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Common\Base;
 
@@ -12,7 +13,7 @@ use \Common\Response\SaveResponse;
 #[Attribute]
 class PropertyAttribute
 {
-    function __construct(string $nomeColonna, string $tipoDato)
+    function __construct(string $nomeColonna, string $tipoDato, bool $univoco)
     {
 
     }
@@ -84,19 +85,19 @@ class BaseModel
         return $thisFields == $externalFields;
     }
 
-    #[PropertyAttribute('Id', 'Numeri')]
+    #[PropertyAttribute('Id', 'Numeri', true)]
     public int $Id;
 
-    #[PropertyAttribute('ParentId', 'Numeri')]
+    #[PropertyAttribute('ParentId', 'Numeri', false)]
     public int $ParentId;
 
-    #[PropertyAttribute('Visibile', 'Numeri')]
+    #[PropertyAttribute('Visibile', 'Numeri', false)]
     public bool $Visibile;
 
-    #[PropertyAttribute('Aggiornamento', 'Data')]
+    #[PropertyAttribute('Aggiornamento', 'Data', false)]
     public DateTime $Aggiornamento;
 
-    #[PropertyAttribute('Inserimento', 'Data')]
+    #[PropertyAttribute('Inserimento', 'Data', false)]
     public DateTime $Inserimento;
 
     /** @noinspection PhpIncompatibleReturnTypeInspection */
@@ -105,11 +106,28 @@ class BaseModel
     {
         $tableName = get_class($tableObj);
 
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            $GLOBALS['globalCache'] = [];
+        }
+
+        $globalCache = &$GLOBALS['globalCache'];
+
+        $searchKey = strtolower("item|" . $tableName . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
+
+        if (array_key_exists($searchKey, $globalCache))
+        {
+            return $globalCache[$searchKey];
+        }
+
+
         $reflection = new \ReflectionClass($tableName);
 
         $properties = [];
         $colonne = [];
         $tipi = [];
+        $univoci = [];
 
         $filterColumns = count($selectColumns) > 0;
 
@@ -120,11 +138,16 @@ class BaseModel
 
             foreach ($attributes as $attribute)
             {
-                $nome = $attribute->getArguments()['0'];
-                $tipo = $attribute->getArguments()['1'];
+                $arguments = $attribute->getArguments();
+
+                $nome = $arguments['0'];
+                $tipo = $arguments['1'];
+                $univoco = $arguments['2'];
 
                 if ($tipo == "Dato")
+                {
                     $nome .= "_FkId";
+                }
 
                 if ($filterColumns)
                 {
@@ -135,6 +158,11 @@ class BaseModel
                         $properties[] = $property;
                         $colonne[] = $nome;
                         $tipi[] = $tipo;
+
+                        if ($univoco)
+                        {
+                            $univoci[] = $arguments['0'];
+                        }
                     }
                 }
                 else
@@ -142,6 +170,11 @@ class BaseModel
                     $properties[] = $property;
                     $colonne[] = $nome;
                     $tipi[] = $tipo;
+
+                    if ($univoco)
+                    {
+                        $univoci[] = $arguments['0'];
+                    }
                 }
             }
         }
@@ -156,11 +189,11 @@ class BaseModel
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
-        $result = $obj->DatiElencoGetItem($partialName, $uniqueColumn, $uniqueValue, $iso, $colonne, $webP);
+        $result = $obj->DatiElencoGetItem($partialName, $uniqueColumn, (string)$uniqueValue, $iso, $colonne, (string)$webP);
 
         if (\Common\Convert::ToBool($result->Errore))
         {
-            $e = new \Exception;
+            $e = new \Exception();
             $trace = $e->getTraceAsString();
 
             $obj->LogError("BaseModel->GetItem({$tableName}, {$uniqueColumn}) " . $result->Avviso . " -> " . $trace);
@@ -170,10 +203,12 @@ class BaseModel
         $valori = $result->Values;
 
         if (count($valori) == 0)
+        {
             return null;
+        }
 
         //imposto i valori nella istanza di classe
-        self::ImpostoIValoriNellaIstanzaDiClasse($properties, $tipi, $tableObj, $valori, $reflection);
+        self::ImpostoIValoriNellaIstanzaDiClasse($iso, !$filterColumns, $properties, $tipi, $univoci, $tableObj, $valori, $reflection);
 
         return $tableObj;
     }
@@ -187,7 +222,7 @@ class BaseModel
      * @return void
      * @throws \ReflectionException
      */
-    private static function ImpostoIValoriNellaIstanzaDiClasse(array $properties, array $tipi, object $tableObj, $valori, \ReflectionClass $reflection): void
+    private static function ImpostoIValoriNellaIstanzaDiClasse(string $iso, bool $cache, array $properties, array $tipi, array $univoci, object &$tableObj, $valori, \ReflectionClass $reflection): void
     {
         for ($i = 0; $i < count($tipi); $i++)
         {
@@ -258,10 +293,44 @@ class BaseModel
                     break;
             }
         }
+
+        if (!$cache)
+        {
+            return;
+        }
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            $GLOBALS['globalCache'] = [];
+        }
+
+        $globalCache = &$GLOBALS['globalCache'];
+
+        $tableName = get_class($tableObj);
+
+        if (!isset($globalCache[$tableName]))
+        {
+            $globalCache[$tableName] = [];
+        }
+
+        //salvo in cache ogni valore univoco
+        foreach ($univoci as $univoco)
+        {
+            $propertyName = str_replace(" ", "_", $univoco);
+
+            $uniqueValue = $tableObj->$propertyName;
+
+            $searchKey = strtolower("item|" . $tableName . "|" . $univoco . "|" . $uniqueValue . "|" . $iso);
+
+            $globalCache[$searchKey] = $tableObj;
+        }
     }
 
     function Save(bool $onSave, string $iso): SaveResponse
     {
+        self::ClearCache();
+
         $tableName = get_class($this);
 
         $reflection = new ReflectionClass($tableName);
@@ -282,7 +351,9 @@ class BaseModel
                 $tipo = $attribute->getArguments()['1'];
 
                 if ($tipo == "")
+                {
                     continue;
+                }
 
                 $propertyValue = $property->getValue($this);
 
@@ -301,7 +372,9 @@ class BaseModel
 
                             //salvo solo se il valore è stato modificato
                             if ($oldValue !== $propertyValue)
+                            {
                                 $colonne[] = [$nome, $propertyValue];
+                            }
                         }
 
                         break;
@@ -313,12 +386,18 @@ class BaseModel
                     case "Immagini":
                     case "File":
                         if (!isset($propertyValue))
+                        {
                             break;
+                        }
 
                         if (\Common\Convert::ToBool($propertyValue->Base64Encoded))
+                        {
                             $colonne[] = [$nome, [$propertyValue->Nome, $propertyValue->Bytes]];
+                        }
                         else
+                        {
                             $colonne[] = [$nome, [$propertyValue->Nome, base64_encode($propertyValue->Bytes)]];
+                        }
 
                         break;
 
@@ -375,6 +454,8 @@ class BaseModel
 
     function Delete(): SaveResponse
     {
+        self::ClearCache();
+
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
@@ -408,26 +489,63 @@ class BaseModel
         bool   $encode = false,
         array  $selectColumns = [])
     {
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            $GLOBALS['globalCache'] = [];
+        }
+
+        $globalCache = &$GLOBALS['globalCache'];
+
+        $searchKey = strtolower("list|" .
+                                $tableName . "|" .
+                                $item4page . "|" .
+                                $page . "|" .
+                                $wherePredicate . "|" .
+                                implode(",", $whereValues) . "|" .
+                                $orderPredicate . "|" .
+                                $iso . "|" .
+                                $parentId . "|" .
+                                $visible . "|" .
+                                $webP . "|" .
+                                $encode . "|" .
+                                implode(",", $selectColumns));
+
+        if (array_key_exists($searchKey, $globalCache))
+        {
+            $items = $globalCache[$searchKey];
+
+            foreach ($items as $item)
+                yield $item;
+
+            return;
+        }
+
         $reflection = new \ReflectionClass($tableName);
 
         $properties = [];
         $colonne = [];
         $tipi = [];
+        $univoci = [];
 
         $filterColumns = count($selectColumns) > 0;
 
-        //recupero le colonne della classe dalle etichette sulle variabili
         foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property)
         {
             $attributes = $property->getAttributes();
 
             foreach ($attributes as $attribute)
             {
-                $nome = $attribute->getArguments()['0'];
-                $tipo = $attribute->getArguments()['1'];
+                $arguments = $attribute->getArguments();
+
+                $nome = $arguments['0'];
+                $tipo = $arguments['1'];
+                $univoco = $arguments['2'];
 
                 if ($tipo == "Dato")
+                {
                     $nome .= "_FkId";
+                }
 
                 if ($filterColumns)
                 {
@@ -438,6 +556,11 @@ class BaseModel
                         $properties[] = $property;
                         $colonne[] = $nome;
                         $tipi[] = $tipo;
+
+                        if ($univoco)
+                        {
+                            $univoci[] = $arguments['0'];
+                        }
                     }
                 }
                 else
@@ -445,6 +568,11 @@ class BaseModel
                     $properties[] = $property;
                     $colonne[] = $nome;
                     $tipi[] = $tipo;
+
+                    if ($univoco)
+                    {
+                        $univoci[] = $arguments['0'];
+                    }
                 }
             }
         }
@@ -462,12 +590,16 @@ class BaseModel
 
         if (\Common\Convert::ToBool($result->Errore))
         {
-            $e = new \Exception;
+            $e = new \Exception();
             $trace = $e->getTraceAsString();
 
             //viene già loggata da doweb
             throw new \Exception("Errore nella GetList " . $trace . ", " . $result->Avviso);
         }
+
+        $cache = [];
+
+        $terminated = false;
 
         try
         {
@@ -476,19 +608,30 @@ class BaseModel
                 $valori = $obj->FetchRead();
 
                 if ($valori == null)
+                {
+                    $terminated = true;
+
                     return;
+                }
 
                 $tableObj = $reflection->newInstance();
 
                 //imposto i valori nella istanza di classe
-                self::ImpostoIValoriNellaIstanzaDiClasse($properties, $tipi, $tableObj, $valori, $reflection);
+                self::ImpostoIValoriNellaIstanzaDiClasse($iso, !$filterColumns, $properties, $tipi, $univoci, $tableObj, $valori, $reflection);
+
+                $cache[] = $tableObj;
 
                 yield $tableObj;
             }
+
+
         }
         finally
         {
             $obj->FetchClose();
+
+            if ($terminated)
+                $globalCache[$searchKey] = $cache;
         }
     }
 
@@ -501,6 +644,28 @@ class BaseModel
         bool   $visible = null,
         bool   $encode = false): int
     {
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            $GLOBALS['globalCache'] = [];
+        }
+
+        $globalCache = &$GLOBALS['globalCache'];
+
+        $searchKey = strtolower("count|" .
+                                $tableName . "|" .
+                                $wherePredicate . "|" .
+                                implode(",", $whereValues) . "|" .
+                                $iso . "|" .
+                                $parentId . "|" .
+                                $visible . "|" .
+                                $encode . "|");
+
+        if (array_key_exists($searchKey, $globalCache))
+        {
+            return $globalCache[$searchKey];
+        }
+
         //del nome Model\Tipo, prendo solo l'ultimo pezzo: Tipo
         $parts = explode("\\", $tableName);
         $datoNome = end($parts);
@@ -513,14 +678,12 @@ class BaseModel
         //prendo i valori dal db
         $result = $obj->DatiElencoGetCount($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $encode);
 
-        //var_dump($result);
-
         if (\Common\Convert::ToBool($result->Errore))
         {
             //viene loggata da doweb
             //$obj->LogError("BaseModel->BaseList({$tableName}, {$wherePredicate}) " . $result->Avviso);
 
-            $e = new \Exception;
+            $e = new \Exception();
             $trace = $e->getTraceAsString();
 
             //viene già loggata da doweb
@@ -528,6 +691,21 @@ class BaseModel
 
         }
 
-        return $result->Count;
+        $tot = intval($result->Count);
+
+        $globalCache[$searchKey] = $tot;
+
+        return $tot;
+    }
+
+    static function ClearCache(): void
+    {
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['cache']))
+        {
+            return;
+        }
+
+        unset($GLOBALS['cache']);
     }
 }

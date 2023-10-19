@@ -1,10 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace Common\View;
 
 class Server
 {
-    public static function View(string $viewName)
+    public static function View(string $viewName) : void
     {
         $className = "\\View\\" . $viewName;
 
@@ -14,8 +15,6 @@ class Server
             $reflectionClass = new \ReflectionClass($className);
             $obj = $reflectionClass->newInstance();
             $obj->Server();
-            
-            //call_user_func(array($className, "Server"));
         }
         else
         {

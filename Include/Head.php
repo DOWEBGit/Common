@@ -123,8 +123,7 @@
                         },
                     body: JSON.stringify(array)
                 });
-            const result = await response.text();
-            div.innerHTML = result;
+            div.innerHTML = await response.text();
             globalReload--;
             if (globalReload <= 0)
             {

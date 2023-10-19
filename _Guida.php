@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /* 
  TYPE HINT
@@ -33,18 +34,15 @@
  * 
  * MODEL
  * generata automaticamente da modelgenerator.php, mai modificare toccare
- *   
-
- * 
- * 
+ *
+ *
+ *
  * GENERALE
  * non usare direttamente $_SESSION ma appoggiarsi a \Common\State::SessionRead/SessionWrite
  * usate sempre save/delete/getitem/getlist/count dei model, non "phpobj"
- * Common\State::SessionRead/SessionWrite, TempRead/TempWrite, WindowRead/WindowWrite hanno la key insensitive, ritornano sempre stringa vuota se il valore non c'è, 
+ * Common\State::SessionRead/SessionWrite, TempRead/TempWrite, WindowRead/WindowWrite hanno la key insensitive, ritornano sempre stringa vuota se il valore non c'è,
+ * declare(strict_types=1); sopra ogni riga, ogni file php
 
- * 
- * spiegare counter e  ReloadViewAll(); * 
- * mostrare area riservata con modifica * 
- *  * 
+
  */
 

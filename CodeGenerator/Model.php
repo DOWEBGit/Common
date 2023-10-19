@@ -215,7 +215,7 @@ foreach ($dati as $index => $dato)
                 {
                     $identificativoRef = str_replace(" ", "_", $colonnaDettagliata->DatiRefNome);
 
-                    $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Dato')]\n";
+                    $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Dato', " . $colonnaDettagliata->Univoco . ")]\n";
                     $code .= $tab . "public int $" . $identificativo . ";\n";
                     $code .= $tab . "public function " . $identificativo . "_get($" . "iso = '', array $" . "selectColumns = []) : ?" . $identificativoRef . "\n";
                     $code .= $tab . "{ return " . $identificativoRef . "::GetItemById($" . "this->" . $identificativo . ", $" . "iso, $" . "selectColumns); }\n";
@@ -227,7 +227,7 @@ foreach ($dati as $index => $dato)
 
             case "Data":
             {
-                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Data')]\n";
+                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Data', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "public \DateTime $" . $identificativo . ";\n\n";
                 break;
             }
@@ -241,14 +241,14 @@ foreach ($dati as $index => $dato)
                     $type = "bool";
                 }
 
-                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Numeri')]\n";
+                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Numeri', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "public {$type} $" . $identificativo . ";\n\n";
                 break;
             }
 
             case "Testo":
             {
-                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Testo')]\n";
+                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Testo', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "public string $" . $identificativo . ";\n";
                 $code .= $tab . "private string $" . "_" . $identificativo . ";\n\n";
                 break;
@@ -256,9 +256,9 @@ foreach ($dati as $index => $dato)
 
             case "File":
             {
-                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "_Percorso', '')]\n";
+                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "_Percorso', '', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "public string $" . $identificativo . "_Percorso;\n";
-                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'File')]\n";
+                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'File', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "private ?ControlloFile $" . $identificativo . ";\n";
                 $code .= $tab . "public function " . $identificativo . "Get() : ?ControlloFile\n";
                 $code .= $tab . "{\n";
@@ -282,9 +282,9 @@ foreach ($dati as $index => $dato)
 
             case "Immagini":
             {
-                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "_Percorso', '')]\n";
+                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "_Percorso', '', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "public string $" . $identificativo . "_Percorso;\n";
-                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Immagini')]\n";
+                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Immagini', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "private ?ControlloImmagine $" . $identificativo . ";\n";
                 $code .= $tab . "public function " . $identificativo . "Get() : ?ControlloImmagine\n";
                 $code .= $tab . "{\n";

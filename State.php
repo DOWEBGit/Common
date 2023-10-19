@@ -182,7 +182,7 @@ class State
     //sessionstate lo scrivo tramite javascript direttamente con una api SetSessionState
     //chiamato da baseview e da baseaction    
     
-    public static function BodyToState()
+    public static function BodyToState() : void
     {        
         if (!isset($_POST))
             return;
@@ -198,7 +198,7 @@ class State
         $GLOBALS['_WindowState'] = $stateArray[1];        
     }
     
-    public static function StateToBody()    
+    public static function StateToBody() : void
     {        
         if (!isset($GLOBALS['_TempStateWrite']))            
             $resultArray[] = "";           

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST')
 {
@@ -34,7 +35,7 @@ if (!empty($view))
 {
     $className = $view;
 
-// Verifica se il metodo corrispondente all'azione esiste nella classe corrente
+    // Verifica se il metodo corrispondente all'azione esiste nella classe corrente
     if (method_exists($className, "Client"))
     {
         // Creazione dell'oggetto utilizzando ReflectionClass
