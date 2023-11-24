@@ -40,6 +40,7 @@ foreach ($pagineObj as $index => $pagina)
     foreach ($controlli as $controllo)
     {
         $decode = false;
+        $tipoInput = "";
 
         foreach ($controlliObj as $controlloObj)
         {
@@ -51,13 +52,15 @@ foreach ($pagineObj as $index => $pagina)
                 if ($controlloObj->Decode == "true")
                     $decode = true;
 
+                $tipoInput = $controlloObj->TipoInput;
+
                 break;
             }
          }
 
         $valCon = $val . str_replace(" ", "_", $controllo->Identificativo);
 
-        $code .= $tab . "#[EnumAttribute(\"" . $pagina . "\", \"" . $controllo->Identificativo . "\", " . ($decode ? "true" : "false") . ")]\n";
+        $code .= $tab . "#[EnumAttribute(\"" . $pagina . "\", \"" . $controllo->Identificativo . "\", \"" . $tipoInput . "\", " . ($decode ? "true" : "false") . ")]\n";
         $code .= $tab . "case " . $valCon . ";\n";
     }
 }

@@ -114,6 +114,7 @@
                 catch (e)
                 {}
             }
+
             const response = await fetch('/Public/Php/Common/View/Client.php?view=' + viewTag,
                 {
                     method: 'POST',
@@ -219,7 +220,9 @@
             return;
         }
         name = name.toLowerCase();
-        var json = document.getElementById("WindowState").value;
+
+        let windowState = document.getElementById("WindowState");
+        var json = windowState.value;
         var jsonArray = {};
         if (json)
         {
@@ -233,7 +236,7 @@
         }
         jsonArray[name] = value.toString();
         json = JSON.stringify(jsonArray);
-        document.getElementById("WindowState").value = btoa(unescape(encodeURIComponent(json)));
+        windowState.value = btoa(unescape(encodeURIComponent(json)));
     }
 
     function WindowRead(name)

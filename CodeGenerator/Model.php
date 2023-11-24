@@ -130,6 +130,7 @@ foreach ($dati as $index => $dato)
                 {
                     $identificativoRef = str_replace(" ", "_", $colonna->DatiRefNome);
                     $code .= $tab . $tab . "$" . "this->" . $identificativo . " = 0;\n";
+                    $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = 0;\n";
                 }
                 break;
             }
@@ -137,6 +138,7 @@ foreach ($dati as $index => $dato)
             case "Data":
             {
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new \DateTime();\n";
+                $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = new \DateTime();\n";
                 break;
             }
 
@@ -156,10 +158,12 @@ foreach ($dati as $index => $dato)
                 if ($colonna->TipoInput == "CheckBox")
                 {
                     $code .= $tab . $tab . "$" . "this->" . $identificativo . " = false;\n";
+                    $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = false;\n";
                 }
                 else
                 {
                     $code .= $tab . $tab . "$" . "this->" . $identificativo . " = 0;\n";
+                    $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = 0;\n";
                 }
                 break;
             }
@@ -220,7 +224,8 @@ foreach ($dati as $index => $dato)
                     $code .= $tab . "public function " . $identificativo . "_get($" . "iso = '', array $" . "selectColumns = []) : ?" . $identificativoRef . "\n";
                     $code .= $tab . "{ return " . $identificativoRef . "::GetItemById($" . "this->" . $identificativo . ", $" . "iso, $" . "selectColumns); }\n";
                     $code .= $tab . "public function " . $identificativo . "_set(?" . $identificativoRef . " $" . "value) : void\n";
-                    $code .= $tab . "{ $" . "this-> " . $identificativo . " = $" . "value === null ? 0 : $" . "value->Id; }\n\n";
+                    $code .= $tab . "{ $" . "this-> " . $identificativo . " = $" . "value === null ? 0 : $" . "value->Id; }\n";
+                    $code .= $tab . "private int $" . "_" . $identificativo . ";\n\n";
                 }
                 break;
             }
@@ -228,7 +233,8 @@ foreach ($dati as $index => $dato)
             case "Data":
             {
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Data', " . $colonnaDettagliata->Univoco . ")]\n";
-                $code .= $tab . "public \DateTime $" . $identificativo . ";\n\n";
+                $code .= $tab . "public \DateTime $" . $identificativo . ";\n";
+                $code .= $tab . "private \DateTime $" . "_" . $identificativo . ";\n\n";
                 break;
             }
 
@@ -242,7 +248,8 @@ foreach ($dati as $index => $dato)
                 }
 
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Numeri', " . $colonnaDettagliata->Univoco . ")]\n";
-                $code .= $tab . "public {$type} $" . $identificativo . ";\n\n";
+                $code .= $tab . "public {$type} $" . $identificativo . ";\n";
+                $code .= $tab . "private {$type} $" . "_" . $identificativo . ";\n\n";
                 break;
             }
 
@@ -268,8 +275,8 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new ControlloFile();\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Nome = $" . "obj->Nome;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Bytes = $" . "obj->Bytes;\n";
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneReale = $" . "obj->DimensioneReale;\n";
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneCompressa = $" . "obj->DimensioneCompressa;\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneReale = intval($" . "obj->DimensioneReale);\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneCompressa = intval($" . "obj->DimensioneCompressa);\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Base64Encoded = true;\n";
                 $code .= $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
                 $code .= $tab . "}\n";
@@ -290,14 +297,14 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . "{\n";
                 $code .= $tab . $tab . "if (isset($" . "this->" . $identificativo . "))\n";
                 $code .= $tab . $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
-                $code .= $tab . $tab . "$" . "obj = PHPDOWEB()->DatiElencoFileInfo('" . $colonnaDettagliata->Nome . "', $" . "this->Id, '" . $colonnaDettagliata->Identificativo . "', $" . "iso = '');\n";
+                $code .= $tab . $tab . "$" . "obj = PHPDOWEB()->DatiElencoFileInfo($" . "this->Id, '" . $colonnaDettagliata->Identificativo . "', $" . "iso = '');\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new ControlloImmagine();\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Nome = $" . "obj->Nome;\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Bytes = $" . "obj->Bytes;\n";
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneReale = $" . "obj->DimensioneReale;\n";
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneCompressa = $" . "obj->DimensioneCompressa;\n";
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->ImmagineAltezza = $" . "obj->ImmagineAltezza;\n";
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->ImmagineLarghezza = $" . "obj->ImmagineLarghezza;\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneReale = intval($" . "obj->DimensioneReale);\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->DimensioneCompressa = intval($" . "obj->DimensioneCompressa);\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->ImmagineAltezza = intval($" . "obj->ImmagineAltezza);\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . "->ImmagineLarghezza = intval($" . "obj->ImmagineLarghezza);\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "->Base64Encoded = true;\n";
                 $code .= $tab . $tab . "return $" . "this->" . $identificativo . ";\n";
                 $code .= $tab . "}\n";

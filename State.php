@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Common;
 
@@ -128,7 +129,7 @@ class State
                     return "";
             }
 
-            if (isset($windowState[$name]))
+            if (isset($windowState[$name]) && !empty($windowState[$name]))
                 return $windowState[$name];
         }
         
@@ -183,7 +184,7 @@ class State
     //chiamato da baseview e da baseaction    
     
     public static function BodyToState() : void
-    {        
+    {
         if (!isset($_POST))
             return;
         
@@ -213,5 +214,3 @@ class State
         echo json_encode($resultArray);
     }
 }
-
-

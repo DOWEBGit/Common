@@ -40,6 +40,7 @@ foreach ($areeObj as $index => $area)
     foreach ($controlli as $controllo)
     {
         $decode = false;
+        $tipoInput = "";
 
         foreach ($controlliObj as $controlloObj)
         {
@@ -51,13 +52,15 @@ foreach ($areeObj as $index => $area)
                 if ($controlloObj->Decode == "true")
                     $decode = true;
 
+                $tipoInput = $controlloObj->TipoInput;
+
                 break;
             }
-         }
+        }
 
         $valCon = $val . str_replace(" ", "_", $controllo->Identificativo);
 
-        $code .= $tab . "#[EnumAttribute(\"" . $area . "\", \"" . $controllo->Identificativo . "\", " . ($decode ? "true" : "false") . ")]\n";
+        $code .= $tab . "#[EnumAttribute(\"" . $area . "\", \"" . $controllo->Identificativo . "\", \"" . $tipoInput . "\", " . ($decode ? "true" : "false") . ")]\n";
         $code .= $tab . "case " . $valCon . ";\n";
     }
 }

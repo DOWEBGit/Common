@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Common;
 
@@ -11,6 +12,12 @@ class Lingue
 
     public static function GetLinguaFromUrl(): Lingue
     {
+        // Verifica se la cache è già stata inizializzata
+        if (isset($GLOBALS['linguaSelezionata']))
+        {
+            return $GLOBALS['linguaSelezionata'];
+        }
+
         $lingua = new Lingue();
 
         $iso = $_GET['iso'];
@@ -28,6 +35,8 @@ class Lingue
                 $lingua->Default = filter_var($linguaDb->Default, FILTER_VALIDATE_BOOLEAN);
                 $lingua->Attiva = filter_var($linguaDb->Attiva, FILTER_VALIDATE_BOOLEAN);
 
+                $GLOBALS['linguaSelezionata'] = $lingua;
+
                 return $lingua;
             }
         }
@@ -36,6 +45,8 @@ class Lingue
         $lingua->Nome = "";
         $lingua->Attiva = true;
         $lingua->Default = true;
+
+        $GLOBALS['linguaSelezionata'] = $lingua;
 
         return $lingua;
     }

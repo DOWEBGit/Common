@@ -26,7 +26,3 @@ if ($asyncArray && count($asyncArray) > 0)
     </script>
     <?php
 }
-
-//$asyncArray[] = [$viewCounter, $className];
-
-

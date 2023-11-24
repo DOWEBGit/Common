@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Common\Collection;
 
@@ -63,15 +64,33 @@ class DictionaryIntInt implements \IteratorAggregate, \ArrayAccess
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        if (is_null($offset)) {
+        if (is_null($offset))
+        {
             $this->Add($value, 0);
-        } else {
+        }
+        else
+        {
             $this->dictionary[$offset] = $value;
         }
     }
 
+    //elimina un elemento dalla key
     public function offsetUnset(mixed $offset): void
     {
         unset($this->dictionary[$offset]);
+    }
+
+    public function SortByValue(bool $ascending = true): void
+    {
+        uasort($this->dictionary, function ($a, $b) use ($ascending) {
+            return $ascending ? $a <=> $b : $b <=> $a;
+        });
+    }
+
+    public function SortByKey(bool $ascending = true): void
+    {
+        uksort($this->dictionary, function ($a, $b) use ($ascending) {
+            return $ascending ? $a <=> $b : $b <=> $a;
+        });
     }
 }

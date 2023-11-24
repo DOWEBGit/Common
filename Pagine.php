@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Common;
 
@@ -35,17 +36,25 @@ class Pagine
 
         $pagina = $args[0];
         $identificativo = $args[1];
-        $decode = $args[2];
+        $tipoInput = $args[2];
+        $decode = $args[3];
 
         $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso->Iso);
-
-        if ($controllo->Valore == "")
-            return $identificativo;
 
         if ($decode)
             return html_entity_decode($controllo->Valore);
 
-        return $controllo->Valore;
+        $valore = $controllo->Valore;
+
+        if ($tipoInput == "TextArea")
+        {
+            $valore = str_replace("\r\n", "<br>", $valore);
+            $valore = str_replace("\n", "<br>", $valore);
+
+            $valore = \Common\Convert::ConvertUrlsToLinks($valore);
+        }
+
+        return $valore;
     }
 
     public static function ControlliValori(\Code\Enum\PagineControlliEnum $identificativoEnum, string $iso = ""): Controlli\Controlli

@@ -25,7 +25,9 @@ class BaseModel
     {
         $this->Id = 0;
         $this->ParentId = 0;
+        $this->_ParentId = 0;
         $this->Visibile = true;
+        $this->_Visibile = false; //differente, cosi nella save aggiunge anche il salvataggio della visibile
         $this->Aggiornamento = new \DateTime();
         $this->Inserimento = new \DateTime();
     }
@@ -68,17 +70,32 @@ class BaseModel
         return $output;
     }
 
+    public function HtmlDecode(): void
+    {
+        $fields = get_object_vars($this);
+
+        foreach ($fields as $name => $value)
+        {
+            if (gettype($value) !== "string")
+                continue;
+
+            $this->$name = html_entity_decode($value);
+        }
+    }
+
     public function EqualsValues(BaseModel $external): bool
     {
         $externalFields = get_object_vars($external);
         unset($externalFields["Id"]);
         unset($externalFields["Visible"]);
+        unset($externalFields["_Visible"]);
         unset($externalFields["Aggiornamento"]);
         unset($externalFields["Inserimento"]);
 
         $thisFields = get_object_vars($this);
         unset($thisFields["Id"]);
         unset($thisFields["Visible"]);
+        unset($thisFields["_Visible"]);
         unset($thisFields["Aggiornamento"]);
         unset($thisFields["Inserimento"]);
 
@@ -90,9 +107,11 @@ class BaseModel
 
     #[PropertyAttribute('ParentId', 'Numeri', false)]
     public int $ParentId;
+    private int $_ParentId;
 
     #[PropertyAttribute('Visibile', 'Numeri', false)]
     public bool $Visibile;
+    private bool $_Visibile;
 
     #[PropertyAttribute('Aggiornamento', 'Data', false)]
     public DateTime $Aggiornamento;
@@ -224,6 +243,11 @@ class BaseModel
      */
     private static function ImpostoIValoriNellaIstanzaDiClasse(string $iso, bool $cache, array $properties, array $tipi, array $univoci, object &$tableObj, $valori, \ReflectionClass $reflection): void
     {
+        //in questo modo se salvo questa istanza a cui rimane l'id a -1, ovvero non viene recuperato l'id, mi tira un'errore
+        $tableObj->Id = -1;
+
+        $baseClass = $reflection->getParentClass();
+
         for ($i = 0; $i < count($tipi); $i++)
         {
             $prop = $properties[$i];
@@ -237,13 +261,43 @@ class BaseModel
             {
                 case "Numeri":
                     {
+                        $old = '_' . $prop->name;
+
                         if ($typeName == "bool")
                         {
-                            $prop->setValue($tableObj, $valori[$i] === "true" || $valori[$i] === "1");
+                            if ($prop->name == "Visibile") // visible fa parte della classe ereditata basemodel
+                            {
+                                $property = $baseClass->getProperty($prop->name);
+                                $property->setValue($tableObj, $valori[$i] === "true" || $valori[$i] === "1");
+
+                                $propertyOld = $baseClass->getProperty($old);
+                                $propertyOld->setValue($tableObj, $valori[$i] === "true" || $valori[$i] === "1");
+                            }
+                            else
+                            {
+                                $prop->setValue($tableObj, $valori[$i] === "true" || $valori[$i] === "1");
+                                $propertyOld = $reflection->getProperty($old);
+                                $propertyOld->setValue($tableObj, $valori[$i] === "true" || $valori[$i] === "1");
+                            }
                         }
                         else //in teoria è sempre int
                         {
-                            $prop->setValue($tableObj, (int)$valori[$i]);
+                            if ($prop->name == "ParentId")
+                            {
+                                $property = $baseClass->getProperty($prop->name);
+                                $property->setValue($tableObj, (int)$valori[$i]);
+
+                                $propertyOld = $baseClass->getProperty($old);
+                                $propertyOld->setValue($tableObj, (int)$valori[$i]);
+                            }
+                            elseif ($prop->name != "Id")
+                            {
+                                $propertyOld = $reflection->getProperty($old);
+                                $propertyOld->setValue($tableObj, (int)$valori[$i]);
+                                $prop->setValue($tableObj, (int)$valori[$i]);
+                            }
+                            else
+                                $prop->setValue($tableObj, (int)$valori[$i]);
                         }
                     }
                     break;
@@ -251,6 +305,10 @@ class BaseModel
                 case "Dato":
                     {
                         $prop->setValue($tableObj, (int)$valori[$i]);
+
+                        $old = '_' . $prop->name;
+                        $propertyOld = $reflection->getProperty($old);
+                        $propertyOld->setValue($tableObj, (int)$valori[$i]);
                     }
                     break;
 
@@ -258,22 +316,25 @@ class BaseModel
                     {
                         $prop->setValue($tableObj, $valori[$i]);
 
-                        //imposto il valore anche a quella da usare per confronto
                         $old = '_' . $prop->name;
-
                         $propertyOld = $reflection->getProperty($old);
-
                         $propertyOld->setValue($tableObj, $valori[$i]);
                     }
                     break;
 
                 case "Data":
                     {
+                        $old = '_' . $prop->name;
+
+
                         $len = strlen($valori[$i]);
 
                         if ($len == 10)
                         {
                             $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y', $valori[$i]));
+
+                            $propertyOld = $reflection->getProperty($old);
+                            $propertyOld->setValue($tableObj, \DateTime::createFromFormat('d/m/Y', $valori[$i]));
                         }
 
                         if ($len == 19)
@@ -284,11 +345,17 @@ class BaseModel
                                 $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
 
                             $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
+
+                            if ($prop->name == "Aggiornamento" || $prop->name == "Inserimento")
+                                break;
+
+                            $propertyOld = $reflection->getProperty($old);
+                            $propertyOld->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
                         }
                     }
                     break;
 
-                default: //immagini, file, testo e senza definizione
+                default: //immagini, file e senza definizione
                     $prop->setValue($tableObj, $valori[$i]);
                     break;
             }
@@ -331,11 +398,13 @@ class BaseModel
     {
         self::ClearCache();
 
+        $nuovo = $this->Id == 0;
+
         $tableName = get_class($this);
 
         $reflection = new ReflectionClass($tableName);
 
-        $properties = $reflection->getProperties(ReflectionProperty::IS_PRIVATE | ReflectionProperty::IS_PUBLIC);
+        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PRIVATE);
 
         $colonne = [];
 
@@ -360,15 +429,36 @@ class BaseModel
                 switch ($tipo)
                 {
                     case "Dato":
-                    case "Numeri":
-                        $colonne[] = [$nome, $propertyValue];
-                        break;
-
                     case "Testo":
-                        {
-                            $propertyOld = $reflection->getProperty("_" . $property->name);
+                    case "Numeri":
+                    {
+                        $oldValue = "";
 
-                            $oldValue = $propertyOld->getValue($this);
+                        if ($nuovo)
+                        {
+                            $colonne[] = [$nome, $propertyValue];
+                        }
+                        else
+                        {
+                            if ($property->name == "Id")
+                            {
+                                $colonne[] = [$nome, $propertyValue];
+                            }
+                            elseif ($property->name == "ParentId")
+                            {
+                                $propertyOld = $reflection->getParentClass()->getProperty("_" . $property->name); //parentid è nella basemodel
+                                $oldValue = $propertyOld->getValue($this);
+                            }
+                            elseif ($property->name == "Visibile")
+                            {
+                                $propertyOld = $reflection->getParentClass()->getProperty("_" . $property->name); //Visibile è nella basemodel
+                                $oldValue = $propertyOld->getValue($this);
+                            }
+                            else
+                            {
+                                $propertyOld = $reflection->getProperty("_" . $property->name);
+                                $oldValue = $propertyOld->getValue($this);
+                            }
 
                             //salvo solo se il valore è stato modificato
                             if ($oldValue !== $propertyValue)
@@ -378,13 +468,40 @@ class BaseModel
                         }
 
                         break;
+                    }
 
                     case "Data":
-                        $colonne[] = [$nome, $propertyValue->format('d/m/Y')];
+                    {
+                        if ($property->name == "Aggiornamento" || $property->name == "Inserimento")
+                        {
+                            break;
+                        }
+
+                        $dateNew = $propertyValue->format('d/m/Y');
+
+                        if ($nuovo)
+                        {
+                            $colonne[] = [$nome, $dateNew];
+                        }
+                        else
+                        {
+                            $propertyOld = $reflection->getProperty("_" . $property->name);
+                            $oldValue = $propertyOld->getValue($this);
+                            $dateOld = $oldValue->format('d/m/Y');
+
+                            //salvo solo se il valore è stato modificato
+                            if ($dateOld != $dateNew)
+                            {
+                                $colonne[] = [$nome, $dateNew];
+                            }
+                        }
+
                         break;
+                    }
 
                     case "Immagini":
                     case "File":
+                    {
                         if (!isset($propertyValue))
                         {
                             break;
@@ -400,7 +517,7 @@ class BaseModel
                         }
 
                         break;
-
+                    }
                 }
             }
         }
@@ -415,12 +532,23 @@ class BaseModel
 
         $obj = PHPDOWEB();
 
+        $parentId = 0;
+
+        //non aggiorno il padre se è sempre uguale
+        if ($this->_ParentId != $this->ParentId)
+            $parentId = $this->ParentId; //se è 0 c# serverpipe non lo aggiorna
+
+        $visible = "";
+
+        if ($this->_Visibile != $this->Visibile)
+            $visible = $this->Visibile;
+
         //prendo i valori dal db
         $result = $obj->DatiElencoSaveAvvisi(
             $partialName,
             $this->Id,
-            $this->ParentId,
-            $this->Visibile,
+            $parentId,
+            $visible,
             $iso,
             $colonne,
             $onSave);
@@ -516,7 +644,9 @@ class BaseModel
             $items = $globalCache[$searchKey];
 
             foreach ($items as $item)
+            {
                 yield $item;
+            }
 
             return;
         }
@@ -547,7 +677,7 @@ class BaseModel
                     $nome .= "_FkId";
                 }
 
-                if ($filterColumns)
+                if ($filterColumns) //se sto recuperando solo alcune colonne
                 {
                     $found = array_search($nome, $selectColumns);
 
@@ -701,11 +831,11 @@ class BaseModel
     static function ClearCache(): void
     {
         // Verifica se la cache è già stata inizializzata
-        if (!isset($GLOBALS['cache']))
+        if (!isset($GLOBALS['globalCache']))
         {
             return;
         }
 
-        unset($GLOBALS['cache']);
+        unset($GLOBALS['globalCache']);
     }
 }

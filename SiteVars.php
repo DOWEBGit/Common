@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Common;
 
@@ -32,8 +33,18 @@ class SiteVars
 {
     public static function Value(VarsEnum $varsEnum): string
     {
+        $name = $varsEnum->name;
+
+        // Verifica se la cache è già stata inizializzata
+        if (isset($GLOBALS['SiteVars' . $name]))
+        {
+            return $GLOBALS['SiteVars' . $name];
+        }
+
         $phpobj = PHPDOWEB();
 
-        return $phpobj->InfoSito($varsEnum->name)->Valore;
+        $GLOBALS['SiteVars' . $name] = $phpobj->InfoSito($varsEnum->name)->Valore;
+
+        return $GLOBALS['SiteVars' . $name];
     }
 }
