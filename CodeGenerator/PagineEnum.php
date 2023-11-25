@@ -25,6 +25,8 @@ $code = "<?php\n";
 $code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code\\Enum;\n\n";
 
+$code .= "use Common\Attribute\EnumAttribute as EnumAttribute;\n\n";
+
 $pagine = [];
 
 $code .= "enum PagineEnum : string\n";

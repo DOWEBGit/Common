@@ -3,9 +3,6 @@ declare(strict_types=1);
 
 namespace Common\Base;
 
-use Common\Response\SaveResponse;
-use Controller\AvvisiKey;
-
 /**
  * Ogni controller deve implementare questa interfaccia
  */

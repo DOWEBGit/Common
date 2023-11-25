@@ -269,7 +269,7 @@ class Convert
             $key = $arrIndMsg[0];
             $values = isset($arrIndMsg[1]) ? $arrIndMsg[1] : '';
 
-            $dictionary[] = new \Common\Collection\NameValue($key, $values);
+            $dictionary[$key] = $values;
         }
 
         return $dictionary;
