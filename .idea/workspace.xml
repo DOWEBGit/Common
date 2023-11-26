@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="869fb1f9-e623-4e84-9746-0426d0a0a99e" name="Changes" comment="fix e aggiunte varie" />
+    <list default="true" id="869fb1f9-e623-4e84-9746-0426d0a0a99e" name="Changes" comment="fix e aggiunte varie">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,7 +49,11 @@
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/DOWEB/Siti/CloneBoat/Public/Php",
+    "last_opened_file_path": "C:/DOWEB/Siti/Lavezzini-fly/Public/Php",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -64,6 +73,8 @@
       <workItem from="1697047108805" duration="205000" />
       <workItem from="1697528416430" duration="18000" />
       <workItem from="1700920579558" duration="16000" />
+      <workItem from="1700998514215" duration="671000" />
+      <workItem from="1701009774346" duration="14000" />
     </task>
     <task id="LOCAL-00001" summary="fix e aggiunte varie">
       <option name="closed" value="true" />
