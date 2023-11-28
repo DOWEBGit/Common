@@ -149,7 +149,7 @@ foreach ($dati as $index => $dato)
                     $getItemUnivoche .= "\n";
 
                     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
-                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(int $" . $identificativo . ", string $" . "iso = '', array $" . "selectColumns = []) : " . $nomeClasse . "\n";
+                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(int $" . $identificativo . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
                     $getItemUnivoche .= $tab . "{\n";
                     $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
                     $getItemUnivoche .= $tab . "}\n";
