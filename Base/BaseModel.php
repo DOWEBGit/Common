@@ -40,6 +40,9 @@ class BaseModel
 
         foreach ($fields as $name => $value)
         {
+            if (str_starts_with($name, "_"))
+                continue;
+
             $output .= $name . ": ";
 
             switch (gettype($value))
@@ -47,7 +50,14 @@ class BaseModel
                 case 'object':
                     if ($value instanceof DateTime)
                     {
-                        $output .= $value->format('Y-m-d H:i:s');
+                        if ($value->format('H:i') == '00:00')
+                        {
+                            $output .= $value->format('Y-m-d');
+                        }
+                        else
+                        {
+                            $output .= $value->format('Y-m-d H:i:s');
+                        }
                     }
                     else
                     {
@@ -56,8 +66,10 @@ class BaseModel
                     break;
                 case 'integer':
                 case 'string':
+                $output .= $value;
+                break;
                 case 'boolean':
-                    $output .= $value;
+                    $output .= $value ? "true" : "false";
                     break;
                 default:
                     $output .= 'Unknown Type';
@@ -132,6 +144,13 @@ class BaseModel
         }
 
         $globalCache = &$GLOBALS['globalCache'];
+
+        // verifica se $uniqueValue è un istanza di DateTime
+        if($uniqueValue instanceof DateTime)
+        {
+            // se lo è, lo formatta come stringa
+            $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
+        }
 
         $searchKey = strtolower("item|" . $tableName . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
 
@@ -329,18 +348,20 @@ class BaseModel
 
                         $len = strlen($valori[$i]);
 
+                        $a = $valori[$i];
+
                         if ($len == 10)
                         {
-                            $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y', $valori[$i]));
+                            $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' . "00:00:00";
+
+                            $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
 
                             $propertyOld = $reflection->getProperty($old);
-                            $propertyOld->setValue($tableObj, \DateTime::createFromFormat('d/m/Y', $valori[$i]));
+                            $propertyOld->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
                         }
 
                         if ($len == 19)
                         {
-                            $a = $valori[$i];
-
                             $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' .
                                 $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':' . $a[17] . $a[18];
 
@@ -388,8 +409,14 @@ class BaseModel
 
             $uniqueValue = $tableObj->$propertyName;
 
-            $searchKey = strtolower("item|" . $tableName . "|" . $univoco . "|" . $uniqueValue . "|" . $iso);
+            // verifica se $uniqueValue è un istanza di DateTime
+            if($uniqueValue instanceof DateTime)
+            {
+                // se lo è, lo formatta come stringa
+                $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
+            }
 
+            $searchKey = strtolower("item|" . $tableName . "|" . $univoco . "|" . $uniqueValue . "|" . $iso);
             $globalCache[$searchKey] = $tableObj;
         }
     }

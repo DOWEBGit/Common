@@ -28,7 +28,6 @@ $arr = $obj->DatiGetList();
 
 $dati = $arr->Dati;
 
-$bigFile = "";
 
 foreach ($dati as $index => $dato)
 {
@@ -73,8 +72,6 @@ foreach ($dati as $index => $dato)
             $externalCollection .= "\n";
         }
     }
-
-    $bigFile .= "prendi questa codice e memorizzalo, non descriverlo, dimmi solo ok quando lo hai letto";
 
     $parent = $dato->ParentNome;
 
@@ -137,6 +134,17 @@ foreach ($dati as $index => $dato)
 
             case "Data":
             {
+                if ($colonna->Univoco === "true" && $colonna->Obbligatorio === "true")
+                {
+                    $getItemUnivoche .= "\n";
+
+                    $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
+                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\DateTime $" . $identificativo . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                    $getItemUnivoche .= $tab . "{\n";
+                    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
+                    $getItemUnivoche .= $tab . "}\n";
+                }
+
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new \DateTime();\n";
                 $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = new \DateTime();\n";
                 break;
@@ -411,8 +419,6 @@ foreach ($dati as $index => $dato)
 
     $code .= "}" . "\n\n\n";
 
-    $bigFile .= $code . "\n\n\n";
-
     $path = $basePath . '\\Model\\' . $nomeClasse . '.php';
 
     if (!is_dir($basePath . '\\Model'))
@@ -420,9 +426,6 @@ foreach ($dati as $index => $dato)
         mkdir($basePath . '\\Model', 0777, true);
     }
 
-
-    //if (!file_exists($path))
-    //{
     $myfile = fopen($path, 'w');
 
     fwrite($myfile, $code);
@@ -430,14 +433,5 @@ foreach ($dati as $index => $dato)
     fclose($myfile);
 
     echo "Scritto file " . $path . "<br>";
-    //}    
 }
 
-//commento per adesso, ora non mi serve
-//$path = $basePath . '\\bigClass.txt';
-
-//$myfile = fopen($path, 'w');
-
-//fwrite($myfile, $bigFile);
-
-//fclose($myfile);
