@@ -26,7 +26,7 @@ class PagineDati
         $tipoInput = $args[2];
         $decode = $args[3];
 
-        $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso->Iso);
+        $controllo = $phpobj->PagineDatiControlliValori($pagina, $identificativo, $iso->Iso);
 
         if ($decode)
             return html_entity_decode($controllo->Valore);

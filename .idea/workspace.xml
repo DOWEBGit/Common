@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="869fb1f9-e623-4e84-9746-0426d0a0a99e" name="Changes" comment="fix e aggiunte varie">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="869fb1f9-e623-4e84-9746-0426d0a0a99e" name="Changes" comment="fix e aggiunte varie" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -39,6 +35,7 @@
       <server host="localhost" id="cfb0a360-53b8-4e27-88df-ebc77d20e84f" name="localhost" port="8081" />
     </servers>
   </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="PHP 8.2" />
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 4
@@ -55,7 +52,7 @@
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/DOWEB/Siti/Lavezzini-fly/Public/Php",
+    "last_opened_file_path": "C:/DOWEB/Siti/CamperBadia/Public/Php",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -92,6 +89,7 @@
       <workItem from="1701009774346" duration="14000" />
       <workItem from="1701107914454" duration="43000" />
       <workItem from="1702919000229" duration="494000" />
+      <workItem from="1702977060682" duration="63000" />
     </task>
     <task id="LOCAL-00001" summary="fix e aggiunte varie">
       <option name="closed" value="true" />
