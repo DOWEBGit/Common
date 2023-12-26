@@ -7,3 +7,9 @@ class Cache
 {
 
 }
+
+
+$d = PHPDOWEB();
+
+var_dump($d->DatiCache());
+
