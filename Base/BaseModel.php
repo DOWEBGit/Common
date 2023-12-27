@@ -235,6 +235,7 @@ class BaseModel
 
         if (count($valori) == 0)
         {
+            \Common\Base\Cache::Set($tableName, $searchKey, null);
             return null;
         }
 
@@ -628,7 +629,6 @@ class BaseModel
         array  $selectColumns = [])
     {
         $searchKey = strtolower("list|" .
-                                $tableName . "|" .
                                 $item4page . "|" .
                                 $page . "|" .
                                 $wherePredicate . "|" .
@@ -735,6 +735,8 @@ class BaseModel
 
         $terminated = false;
 
+        $count = 0;
+
         try
         {
             while (true)
@@ -747,6 +749,8 @@ class BaseModel
 
                     return;
                 }
+
+                $count++;
 
                 $tableObj = $reflection->newInstance();
 
@@ -764,7 +768,7 @@ class BaseModel
         {
             $obj->FetchClose();
 
-            if ($terminated)
+            if ($terminated || $count == $item4page)
                 \Common\Base\Cache::Set($tableName, $searchKey, $cache);
         }
     }
@@ -778,16 +782,7 @@ class BaseModel
         bool   $visible = null,
         bool   $encode = false): int
     {
-        // Verifica se la cache è già stata inizializzata
-        if (!isset($GLOBALS['globalCache']))
-        {
-            $GLOBALS['globalCache'] = [];
-        }
-
-        $globalCache = &$GLOBALS['globalCache'];
-
         $searchKey = strtolower("count|" .
-                                $tableName . "|" .
                                 $wherePredicate . "|" .
                                 implode(",", $whereValues) . "|" .
                                 $iso . "|" .
@@ -795,9 +790,13 @@ class BaseModel
                                 $visible . "|" .
                                 $encode . "|");
 
-        if (array_key_exists($searchKey, $globalCache))
+        $success = false;
+
+        $count = \Common\Base\Cache::Get($tableName, $searchKey, $success);
+
+        if ($success)
         {
-            return $globalCache[$searchKey];
+            return $count;
         }
 
         //del nome Model\Tipo, prendo solo l'ultimo pezzo: Tipo
@@ -827,7 +826,7 @@ class BaseModel
 
         $tot = intval($result->Count);
 
-        $globalCache[$searchKey] = $tot;
+        \Common\Base\Cache::Set($tableName, $searchKey, $tot);
 
         return $tot;
     }
