@@ -137,6 +137,14 @@ class BaseModel
     {
         $tableName = get_class($tableObj);
 
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            $GLOBALS['globalCache'] = [];
+        }
+
+        $globalCache = &$GLOBALS['globalCache'];
+
         // verifica se $uniqueValue è un istanza di DateTime
         if($uniqueValue instanceof DateTime)
         {
@@ -144,14 +152,23 @@ class BaseModel
             $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
         }
 
-        $searchKey = strtolower("i|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
+        $searchKey = strtolower("item|" . $tableName . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
+
+        if (array_key_exists($searchKey, $globalCache))
+        {
+            return $globalCache[$searchKey];
+        }
 
         $success = false;
 
         $value = \Common\Base\Cache::Get($tableName, $searchKey,$success);
 
         if ($success)
+        {
+            $globalCache[$searchKey] = $value;
+
             return $value;
+        }
 
         $reflection = new \ReflectionClass($tableName);
 
@@ -235,7 +252,6 @@ class BaseModel
 
         if (count($valori) == 0)
         {
-            \Common\Base\Cache::Set($tableName, $searchKey, null);
             return null;
         }
 
@@ -381,7 +397,20 @@ class BaseModel
             return;
         }
 
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            $GLOBALS['globalCache'] = [];
+        }
+
+        $globalCache = &$GLOBALS['globalCache'];
+
         $tableName = get_class($tableObj);
+
+        if (!isset($globalCache[$tableName]))
+        {
+            $globalCache[$tableName] = [];
+        }
 
         //salvo in cache ogni valore univoco
         foreach ($univoci as $univoco)
@@ -397,7 +426,9 @@ class BaseModel
                 $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
             }
 
-            $searchKey = strtolower("i|" . $univoco . "|" . $uniqueValue . "|" . $iso);
+            $searchKey = strtolower("item|" . $tableName . "|" . $univoco . "|" . $uniqueValue . "|" . $iso);
+
+            $globalCache[$searchKey] = $tableObj;
 
             \Common\Base\Cache::Set($tableName, $searchKey, $tableObj);
         }
@@ -405,6 +436,8 @@ class BaseModel
 
     function Save(bool $onSave, string $iso): SaveResponse
     {
+        self::ClearCache();
+
         $nuovo = $this->Id == 0;
 
         $tableName = get_class($this);
@@ -595,6 +628,8 @@ class BaseModel
 
         \Common\Base\Cache::Reset($tableName);
 
+        self::ClearCache();
+
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
@@ -628,7 +663,16 @@ class BaseModel
         bool   $encode = false,
         array  $selectColumns = [])
     {
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            $GLOBALS['globalCache'] = [];
+        }
+
+        $globalCache = &$GLOBALS['globalCache'];
+
         $searchKey = strtolower("list|" .
+                                $tableName . "|" .
                                 $item4page . "|" .
                                 $page . "|" .
                                 $wherePredicate . "|" .
@@ -641,12 +685,26 @@ class BaseModel
                                 $encode . "|" .
                                 implode(",", $selectColumns));
 
+        if (array_key_exists($searchKey, $globalCache))
+        {
+            $items = $globalCache[$searchKey];
+
+            foreach ($items as $item)
+            {
+                yield $item;
+            }
+
+            return;
+        }
+
         $success = false;
 
         $items = \Common\Base\Cache::Get($tableName, $searchKey, $success);
 
         if ($success)
         {
+            $globalCache[$searchKey] = $items;
+
             foreach ($items as $item)
             {
                 yield $item;
@@ -769,7 +827,11 @@ class BaseModel
             $obj->FetchClose();
 
             if ($terminated || $count == $item4page)
+            {
+                $globalCache[$searchKey] = $cache;
+
                 \Common\Base\Cache::Set($tableName, $searchKey, $cache);
+            }
         }
     }
 
@@ -782,7 +844,16 @@ class BaseModel
         bool   $visible = null,
         bool   $encode = false): int
     {
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            $GLOBALS['globalCache'] = [];
+        }
+
+        $globalCache = &$GLOBALS['globalCache'];
+
         $searchKey = strtolower("count|" .
+                                $tableName . "|" .
                                 $wherePredicate . "|" .
                                 implode(",", $whereValues) . "|" .
                                 $iso . "|" .
@@ -790,12 +861,19 @@ class BaseModel
                                 $visible . "|" .
                                 $encode . "|");
 
+        if (array_key_exists($searchKey, $globalCache))
+        {
+            return $globalCache[$searchKey];
+        }
+
         $success = false;
 
         $count = \Common\Base\Cache::Get($tableName, $searchKey, $success);
 
         if ($success)
         {
+            $globalCache[$searchKey] = $count;
+
             return $count;
         }
 
@@ -826,8 +904,21 @@ class BaseModel
 
         $tot = intval($result->Count);
 
+        $globalCache[$searchKey] = $tot;
+
         \Common\Base\Cache::Set($tableName, $searchKey, $tot);
 
         return $tot;
+    }
+
+    static function ClearCache(): void
+    {
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['globalCache']))
+        {
+            return;
+        }
+
+        unset($GLOBALS['globalCache']);
     }
 }
