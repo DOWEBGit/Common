@@ -137,14 +137,6 @@ class BaseModel
     {
         $tableName = get_class($tableObj);
 
-        // Verifica se la cache è già stata inizializzata
-        if (!isset($GLOBALS['globalCache']))
-        {
-            $GLOBALS['globalCache'] = [];
-        }
-
-        $globalCache = &$GLOBALS['globalCache'];
-
         // verifica se $uniqueValue è un istanza di DateTime
         if($uniqueValue instanceof DateTime)
         {
@@ -152,13 +144,14 @@ class BaseModel
             $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
         }
 
-        $searchKey = strtolower("item|" . $tableName . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
+        $searchKey = strtolower("i|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
 
-        if (array_key_exists($searchKey, $globalCache))
-        {
-            return $globalCache[$searchKey];
-        }
+        $success = false;
 
+        $value = \Common\Base\Cache::Get($tableName, $searchKey,$success);
+
+        if ($success)
+            return $value;
 
         $reflection = new \ReflectionClass($tableName);
 
@@ -387,20 +380,7 @@ class BaseModel
             return;
         }
 
-        // Verifica se la cache è già stata inizializzata
-        if (!isset($GLOBALS['globalCache']))
-        {
-            $GLOBALS['globalCache'] = [];
-        }
-
-        $globalCache = &$GLOBALS['globalCache'];
-
         $tableName = get_class($tableObj);
-
-        if (!isset($globalCache[$tableName]))
-        {
-            $globalCache[$tableName] = [];
-        }
 
         //salvo in cache ogni valore univoco
         foreach ($univoci as $univoco)
@@ -416,18 +396,19 @@ class BaseModel
                 $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
             }
 
-            $searchKey = strtolower("item|" . $tableName . "|" . $univoco . "|" . $uniqueValue . "|" . $iso);
-            $globalCache[$searchKey] = $tableObj;
+            $searchKey = strtolower("i|" . $univoco . "|" . $uniqueValue . "|" . $iso);
+
+            \Common\Base\Cache::Set($tableName, $searchKey, $tableObj);
         }
     }
 
     function Save(bool $onSave, string $iso): SaveResponse
     {
-        self::ClearCache();
-
         $nuovo = $this->Id == 0;
 
         $tableName = get_class($this);
+
+        \Common\Base\Cache::Reset($tableName);
 
         $reflection = new ReflectionClass($tableName);
 
@@ -609,7 +590,9 @@ class BaseModel
 
     function Delete(): SaveResponse
     {
-        self::ClearCache();
+        $tableName = get_class($this);
+
+        \Common\Base\Cache::Reset($tableName);
 
         $obj = PHPDOWEB();
 
@@ -644,14 +627,6 @@ class BaseModel
         bool   $encode = false,
         array  $selectColumns = [])
     {
-        // Verifica se la cache è già stata inizializzata
-        if (!isset($GLOBALS['globalCache']))
-        {
-            $GLOBALS['globalCache'] = [];
-        }
-
-        $globalCache = &$GLOBALS['globalCache'];
-
         $searchKey = strtolower("list|" .
                                 $tableName . "|" .
                                 $item4page . "|" .
@@ -666,10 +641,12 @@ class BaseModel
                                 $encode . "|" .
                                 implode(",", $selectColumns));
 
-        if (array_key_exists($searchKey, $globalCache))
-        {
-            $items = $globalCache[$searchKey];
+        $success = false;
 
+        $items = \Common\Base\Cache::Get($tableName, $searchKey, $success);
+
+        if ($success)
+        {
             foreach ($items as $item)
             {
                 yield $item;
@@ -788,7 +765,7 @@ class BaseModel
             $obj->FetchClose();
 
             if ($terminated)
-                $globalCache[$searchKey] = $cache;
+                \Common\Base\Cache::Set($tableName, $searchKey, $cache);
         }
     }
 
@@ -853,16 +830,5 @@ class BaseModel
         $globalCache[$searchKey] = $tot;
 
         return $tot;
-    }
-
-    static function ClearCache(): void
-    {
-        // Verifica se la cache è già stata inizializzata
-        if (!isset($GLOBALS['globalCache']))
-        {
-            return;
-        }
-
-        unset($GLOBALS['globalCache']);
     }
 }
