@@ -161,7 +161,7 @@ class BaseModel
 
         $success = false;
 
-        $value = \Common\Base\Cache::Get($tableName, $searchKey,$success);
+        $value = \Common\Base\Cache::Get($searchKey,$success);
 
         if ($success)
         {
@@ -252,6 +252,10 @@ class BaseModel
 
         if (count($valori) == 0)
         {
+            $globalCache[$searchKey] = null;
+
+            \Common\Base\Cache::Set($searchKey, null);
+
             return null;
         }
 
@@ -430,7 +434,7 @@ class BaseModel
 
             $globalCache[$searchKey] = $tableObj;
 
-            \Common\Base\Cache::Set($tableName, $searchKey, $tableObj);
+            \Common\Base\Cache::Set($searchKey, $tableObj);
         }
     }
 
@@ -699,7 +703,7 @@ class BaseModel
 
         $success = false;
 
-        $items = \Common\Base\Cache::Get($tableName, $searchKey, $success);
+        $items = \Common\Base\Cache::Get($searchKey, $success);
 
         if ($success)
         {
@@ -830,7 +834,7 @@ class BaseModel
             {
                 $globalCache[$searchKey] = $cache;
 
-                \Common\Base\Cache::Set($tableName, $searchKey, $cache);
+                \Common\Base\Cache::Set($searchKey, $cache);
             }
         }
     }
@@ -868,7 +872,7 @@ class BaseModel
 
         $success = false;
 
-        $count = \Common\Base\Cache::Get($tableName, $searchKey, $success);
+        $count = \Common\Base\Cache::Get($searchKey, $success);
 
         if ($success)
         {
@@ -906,7 +910,7 @@ class BaseModel
 
         $globalCache[$searchKey] = $tot;
 
-        \Common\Base\Cache::Set($tableName, $searchKey, $tot);
+        \Common\Base\Cache::Set($searchKey, $tot);
 
         return $tot;
     }

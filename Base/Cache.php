@@ -15,7 +15,7 @@ class Cache
 
         $isT = true;
 
-        $nameValues = [];
+        $remoteTableDates = [];
 
         $key = "";
 
@@ -28,103 +28,80 @@ class Cache
             }
             else
             {
-                $nameValues[] = [$key, $value->V];
+                $remoteTableDates[] = [$key, $value->V];
             }
 
             $isT = !$isT;
         }
 
+        $localTableDates = apcu_fetch("TableDates", $success);
 
-        //resetto quelle scadute
-        foreach ($nameValues as $nameValue)
-        {
-            $tableName = "Model\\" . $nameValue[0];
-            $tableTime = $nameValue[1];
-
-            $success = false;
-
-            $timeValue = apcu_fetch($tableName, $success);
-
-            if (!$success) //non c'è la tabella nella cache, la aggiungo con un array vuoto
-            {
-                $timeValue = [$tableTime, []];
-                apcu_store($tableName, $timeValue, self::TTL);
-                continue;
-            }
-
-            $timeLocal = $timeValue[0];
-
-            if ($timeLocal == $tableTime)
-            {
-                continue;
-            }
-
-            $timeValue[0] = $tableTime;
-            $timeValue[1] = [];
-            apcu_store($tableName, $timeValue, self::TTL);
-        }
-    }
-
-    static function Reset(string $tableName): bool
-    {
-        $success = false;
-
-        $timeValues = apcu_fetch($tableName, $success);
-
+        //non c'è, aggiungo
         if (!$success)
         {
-            return false;
-        }
-
-        //0 contiene la data e ora di ultimo aggiornamento
-        //1 contiene l'array key value
-        $timeValues[1] = [];
-
-        apcu_store($tableName, $timeValues, self::TTL);
-
-        return true;
-    }
-
-    static function Get(string $tableName, string $key, bool &$success): mixed
-    {
-        //orario e array della cache
-        $timeValues = apcu_fetch($tableName, $success);
-
-        if (!$success)
-        {
-            return null;
-        }
-
-        //l'array è fatto da key e valori
-        $keyValues = $timeValues[1];
-
-        if (!array_key_exists($key, $keyValues))
-        {
-            $success = false;
-            return null;
-        }
-
-        return $keyValues[$key];
-    }
-
-    static function Set(string $tableName, string $key, mixed $model): void
-    {
-        //orario e array della cache
-        $timeValues = apcu_fetch($tableName, $success);
-
-        /**
-         * c'è sempre in teoria, viene inizializzata nella @see UpdateCache()
-         */
-        if (!$success)
-        {
+            apcu_store("TableDates", $remoteTableDates, self::TTL);
             return;
         }
 
-        //0 contiene la data e ora di ultimo aggiornamento
-        //1 contiene l'array key value
-        $timeValues[1][$key] = $model;
+        //c'è ma è lunga diversa, resetto e aggiungo
+        if (count($localTableDates) != count($remoteTableDates))
+        {
+            apcu_clear_cache();
+            apcu_store("TableDates", $remoteTableDates, self::TTL);
+            return;
+        }
 
-        apcu_store($tableName, $timeValues, self::TTL);
+        $toReset = [];
+
+        for ($i = 0; $i < count($localTableDates); $i++)
+        {
+            if ($localTableDates[$i][1] !=  $remoteTableDates[$i][1])
+                $toReset[] = $localTableDates[$i][0];
+        }
+
+        if (empty($toReset))
+            return;
+
+        apcu_store("TableDates", $remoteTableDates, self::TTL);
+
+        //resetto quelle scadute
+        foreach ($toReset as $table)
+        {
+            self::Reset($table);
+        }
+    }
+
+    static function Reset(string $tableName): void
+    {
+        $tableName = str_replace("model\\", "", $tableName);
+
+        $tableName = strtolower(preg_quote($tableName . '|', '/'));
+
+        apcu_delete(new \APCUIterator('/^item\|' . $tableName . '/'));
+        apcu_delete(new \APCUIterator('/^list\|' . $tableName . '/'));
+        apcu_delete(new \APCUIterator('/^count\|' . $tableName . '/'));
+    }
+
+    static function Get(string $key, bool &$success): mixed
+    {
+        $key = str_replace("model\\", "", $key);
+
+        //orario e array della cache
+        $item = apcu_fetch($key, $success);
+
+        if (!$success)
+        {
+            return null;
+        }
+
+        return $item;
+    }
+
+    static function Set(string $key, mixed $model): void
+    {
+        $key = str_replace("model\\", "", $key);
+
+        apcu_store($key, $model, self::TTL);
     }
 }
 
