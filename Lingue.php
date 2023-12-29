@@ -12,15 +12,18 @@ class Lingue
 
     public static function GetLinguaFromUrl(): Lingue
     {
-        // Verifica se la cache è già stata inizializzata
-        if (isset($GLOBALS['linguaSelezionata']))
-        {
-            return $GLOBALS['linguaSelezionata'];
-        }
+        $iso = $_GET['iso'];
+
+        $key = "LinguaSelezionata|" . $iso;
+
+        $success = false;
+
+        $item = \Common\Cache::GetLingue($key, $success);
+
+        if ($success)
+            return $item;
 
         $lingua = new Lingue();
-
-        $iso = $_GET['iso'];
 
         $obj = PHPDOWEB();
 
@@ -35,7 +38,7 @@ class Lingue
                 $lingua->Default = filter_var($linguaDb->Default, FILTER_VALIDATE_BOOLEAN);
                 $lingua->Attiva = filter_var($linguaDb->Attiva, FILTER_VALIDATE_BOOLEAN);
 
-                $GLOBALS['linguaSelezionata'] = $lingua;
+                \Common\Cache::SetLingue($key, $lingua);
 
                 return $lingua;
             }
@@ -46,7 +49,7 @@ class Lingue
         $lingua->Attiva = true;
         $lingua->Default = true;
 
-        $GLOBALS['linguaSelezionata'] = $lingua;
+        \Common\Cache::SetLingue($key, $lingua);
 
         return $lingua;
     }
@@ -54,6 +57,16 @@ class Lingue
     /** @return Lingue[] */
     public static function GetLingueAttive(): array
     {
+        $key = "LingueElenco";
+
+        $success = false;
+
+        $item = \Common\Cache::GetLingue($key, $success);
+
+        if ($success)
+            return $item;
+
+
         $obj = PHPDOWEB();
 
         $lingueDb = $obj->LingueGetListAttive()->Lingue;
@@ -71,6 +84,8 @@ class Lingue
 
             $arr[] = $lingua;
         }
+
+        \Common\Cache::SetLingue($key, $arr);
 
         return $arr;
     }

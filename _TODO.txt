@@ -1,2 +1,2 @@
-- gli elementi in apcu cache devono avere nella key l'identificativo univoco del sito, la prendo dalla get di phpobj
-- devo fare apcu cache delle lingue (se ne vale la pena) e di tutte le chiamate fattibili
+- testare cache invalidation
+- cache per sitevars

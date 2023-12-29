@@ -167,6 +167,16 @@ class Pagine
 
     public static function GetUrl(\Code\Enum\PagineEnum $pagineEnum, string $iso, bool $includiDominio = false): string
     {
+        $success = false;
+
+        $key = $pagineEnum->name . "|" . $iso . "|" . $includiDominio;
+
+        $item = \Common\Cache::GetPagine($key, $success);
+
+        if ($success)
+            return $item;
+
+
         $phpobj = PHPDOWEB();
 
         $result = $phpobj->Pagine($pagineEnum->value, $iso);
@@ -181,6 +191,8 @@ class Pagine
 
         if ($includiDominio)
             $url = \Common\SiteVars::Value(VarsEnum::webpath) . $url;
+
+        \Common\Cache::SetPagine($key, $url);
 
         return $url;
     }

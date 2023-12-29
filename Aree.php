@@ -16,9 +16,7 @@ class Aree
 {
     public static function ValoreIso(\Code\Enum\AreeControlliEnum $identificativoEnum): string
     {
-        $iso = \Common\Lingue::GetLinguaFromUrl();
-
-        $phpobj = PHPDOWEB();
+        $iso = \Common\Lingue::GetLinguaFromUrl()->Iso;
 
         //recupero con reflection il valore dell'attributo che contiene l'identificativo
 
@@ -35,7 +33,18 @@ class Aree
         $tipoInput = $args[2];
         $decode = $args[3];
 
-        $controllo = $phpobj->AreeControlliValori($pagina, $identificativo, $iso->Iso);
+        $key = $pagina . "|" . $identificativo . "|" . $tipoInput . "|" . $decode . "|" . $iso;
+
+        $success = false;
+
+        $valore = \Common\Cache::GetAree($key, $success);
+
+        if ($success)
+            return $valore;
+
+        $phpobj = PHPDOWEB();
+
+        $controllo = $phpobj->AreeControlliValori($pagina, $identificativo, $iso);
 
         if ($decode)
             return html_entity_decode($controllo->Valore);
@@ -50,13 +59,13 @@ class Aree
             $valore = \Common\Convert::ConvertUrlsToLinks($valore);
         }
 
+        \Common\Cache::SetAree($key, $valore);
+
         return $valore;
     }
 
     public static function ControlliValori(\Code\Enum\AreeControlliEnum $identificativoEnum, string $iso = ""): Controlli\Controlli
     {
-        $phpobj = PHPDOWEB();
-
         //recupero con reflection il valore dell'attributo che contiene l'identificativo
 
         $reflection = new \ReflectionEnum($identificativoEnum);
@@ -68,12 +77,27 @@ class Aree
         $pagina = $attribute->getArguments()[0];
         $identificativo = $attribute->getArguments()[1];
 
+        $success = false;
+
+        $key = $pagina . "|" . $identificativo . "|" . $iso;
+
+        $valore = \Common\Cache::GetAree($key, $success);
+
+        if ($success)
+            return $valore;
+
+        $phpobj = PHPDOWEB();
+
         $controllo = $phpobj->AreeControlliValori($pagina, $identificativo, $iso);
 
         $areeControllo = new Controlli\Controlli();
 
         if ($controllo->Valore == "")
+        {
+            \Common\Cache::SetAree($key, $areeControllo);
+
             return $areeControllo;
+        }
 
         $areeControllo->Valore = $controllo->Valore;
         $areeControllo->PercorsoWeb = $controllo->PercorsoWeb;
@@ -82,6 +106,8 @@ class Aree
         $areeControllo->DimensioneReale = $controllo->DimensioneReale;
         $areeControllo->ImmagineAltezza = $controllo->ImmagineAltezza;
         $areeControllo->ImmagineLarghezza = $controllo->ImmagineLarghezza;
+
+        \Common\Cache::SetAree($key, $areeControllo);
 
         return $areeControllo;
     }

@@ -90,6 +90,7 @@ class Cache
             self::ResetDatiPagine();
             self::ResetEtichette();
             self::ResetAree();
+            self::ResetLingue();
 
             apcu_store($cacheKey, $remoteCache, self::TTL);
             return;
@@ -116,6 +117,7 @@ class Cache
         $pagine = $siteName . "|P";
         $aree = $siteName . "|A";
         $etichette = $siteName . "|E";
+        $lingue = $siteName . "|L";
 
         //resetto quelle scadute
         foreach ($toReset as $key)
@@ -145,6 +147,12 @@ class Cache
                 continue;
             }
 
+            if ($key == $lingue)
+            {
+                self::ResetLingue();
+                continue;
+            }
+
             if ($key == $etichette)
             {
                 self::ResetEtichette();
@@ -152,17 +160,191 @@ class Cache
         }
     }
 
-    private static function ResetDatiPagine(): void
+    #region Lingue
+
+    private static function ResetLingue(): void
     {
         $siteName = $_SERVER['PIPENAME'];
-        apcu_delete(new \APCUIterator('/^' . $siteName . '\|DP\|/'));
+        apcu_delete(new \APCUIterator('/^' . $siteName . '\|L\|/'));
     }
+
+    static function GetLingue(string $key, bool &$success): mixed
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|L|" . $key;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheLingue']))
+            $GLOBALS['CacheLingue'] = [];
+
+        $globalCache = &$GLOBALS['CacheLingue'];
+
+        if (array_key_exists($key, $globalCache))
+        {
+            //echo "localcache<br>";
+            $success = true;
+            return $globalCache[$key];
+        }
+
+        //orario e array della cache
+        $item = apcu_fetch($key, $success);
+
+        if (!$success)
+        {
+            //echo "nocache<br>";
+            return null;
+        }
+
+        $globalCache[$key] = $item;
+
+        //echo "apcucache<br>";
+        return $item;
+    }
+
+    static function SetLingue(string $key, mixed $value): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|L|" . $key;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheLingue']))
+            $GLOBALS['CacheLingue'] = [];
+
+        $globalCache = &$GLOBALS['CacheLingue'];
+
+        //orario e array della cache
+        apcu_store($key, $value, self::TTL);
+
+        $globalCache[$key] = $value;
+    }
+
+    #endregion
+
+    #region Aree
 
     private static function ResetAree(): void
     {
         $siteName = $_SERVER['PIPENAME'];
         apcu_delete(new \APCUIterator('/^' . $siteName . '\|A\|/'));
     }
+
+    static function GetAree(string $key, bool &$success): mixed
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|A|" . $key;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheAree']))
+            $GLOBALS['CacheAree'] = [];
+
+        $globalCache = &$GLOBALS['CacheAree'];
+
+        if (array_key_exists($key, $globalCache))
+        {
+            //echo "localcache<br>";
+            $success = true;
+            return $globalCache[$key];
+        }
+
+        //orario e array della cache
+        $item = apcu_fetch($key, $success);
+
+        if (!$success)
+        {
+            //echo "nocache<br>";
+            return null;
+        }
+
+        $globalCache[$key] = $item;
+
+        //echo "apcucache<br>";
+        return $item;
+    }
+
+    static function SetAree(string $key, mixed $value): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|A|" . $key;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheAree']))
+            $GLOBALS['CacheAree'] = [];
+
+        $globalCache = &$GLOBALS['CacheAree'];
+
+        //orario e array della cache
+        apcu_store($key, $value, self::TTL);
+
+        $globalCache[$key] = $value;
+    }
+
+    #endregion
+
+    #region PagineDati
+
+    private static function ResetDatiPagine(): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+        apcu_delete(new \APCUIterator('/^' . $siteName . '\|DP\|/'));
+    }
+
+    static function GetDatiPagine(string $key, bool &$success): mixed
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|DP|" . $key;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheDatiPagine']))
+            $GLOBALS['CacheDatiPagine'] = [];
+
+        $globalCache = &$GLOBALS['CacheDatiPagine'];
+
+        if (array_key_exists($key, $globalCache))
+        {
+            //echo "localcache<br>";
+            $success = true;
+            return $globalCache[$key];
+        }
+
+        //orario e array della cache
+        $item = apcu_fetch($key, $success);
+
+        if (!$success)
+        {
+            //echo "nocache<br>";
+            return null;
+        }
+
+        $globalCache[$key] = $item;
+
+        //echo "apcucache<br>";
+        return $item;
+    }
+
+    static function SetDatiPagine(string $key, mixed $value): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|DP|" . $key;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheDatiPagine']))
+            $GLOBALS['CacheDatiPagine'] = [];
+
+        $globalCache = &$GLOBALS['CacheDatiPagine'];
+
+        //orario e array della cache
+        apcu_store($key, $value, self::TTL);
+
+        $globalCache[$key] = $value;
+    }
+
+    #endregion
 
     #region Pagine
 
@@ -186,7 +368,8 @@ class Cache
 
         if (array_key_exists($key, $globalCache))
         {
-            echo "localcache<br>";
+            //echo "localcache<br>";
+            $success = true;
             return $globalCache[$key];
         }
 
@@ -195,13 +378,13 @@ class Cache
 
         if (!$success)
         {
-            echo "nocache<br>";
+            //echo "nocache<br>";
             return null;
         }
 
         $globalCache[$key] = $item;
 
-        echo "apcucache<br>";
+        //echo "apcucache<br>";
         return $item;
     }
 
@@ -249,7 +432,8 @@ class Cache
 
         if (array_key_exists($key, $globalCache))
         {
-            echo "localcache<br>";
+            //echo "localcache<br>";
+            $success = true;
             return $globalCache[$key];
         }
 
@@ -258,13 +442,13 @@ class Cache
 
         if (!$success)
         {
-            echo "nocache<br>";
+            //echo "nocache<br>";
             return null;
         }
 
         $globalCache[$key] = $item;
 
-        echo "apcucache<br>";
+        //echo "apcucache<br>";
         return $item;
     }
 
@@ -301,7 +485,7 @@ class Cache
             $tableName = str_replace("model\\", "", strtolower($tableName));
             $tableName = strtolower(preg_quote($tableName . '|', '/'));
 
-            echo "Reset: " . $tableName . "<br>";
+            //echo "Reset: " . $tableName . "<br>";
 
             apcu_delete(new \APCUIterator('/^' . $siteName . '\|item\|' . $tableName . '/'));
             apcu_delete(new \APCUIterator('/^' . $siteName . '\|list\|' . $tableName . '/'));
@@ -327,7 +511,8 @@ class Cache
 
         if (array_key_exists($key, $globalCache))
         {
-            echo "localcache<br>";
+            //echo "localcache<br>";
+            $success = true;
             return $globalCache[$key];
         }
 
@@ -335,13 +520,13 @@ class Cache
 
         if (!$success)
         {
-            echo "nocache<br>";
+            //echo "nocache<br>";
             return null;
         }
 
         $globalCache[$key] = $item;
 
-        echo "apcu<br>";
+        //echo "apcu<br>";
 
         return $item;
     }

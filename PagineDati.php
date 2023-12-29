@@ -7,9 +7,7 @@ class PagineDati
 {
     public static function ValoreIso(\Code\Enum\PagineDatiControlliEnum $identificativoEnum): string
     {
-        $iso = \Common\Lingue::GetLinguaFromUrl();
-
-        $phpobj = PHPDOWEB();
+        $iso = \Common\Lingue::GetLinguaFromUrl()->Iso;
 
         //recupero con reflection il valore dell'attributo che contiene l'identificativo
 
@@ -26,7 +24,18 @@ class PagineDati
         $tipoInput = $args[2];
         $decode = $args[3];
 
-        $controllo = $phpobj->PagineDatiControlliValori($pagina, $identificativo, $iso->Iso);
+        $success = false;
+
+        $key = $identificativoEnum->name . "|" . $iso;
+
+        $item = \Common\Cache::GetDatiPagine($key, $success);
+
+        if ($success)
+            return $item;
+
+        $phpobj = PHPDOWEB();
+
+        $controllo = $phpobj->PagineDatiControlliValori($pagina, $identificativo, $iso);
 
         if ($decode)
             return html_entity_decode($controllo->Valore);
@@ -41,11 +50,22 @@ class PagineDati
             $valore = \Common\Convert::ConvertUrlsToLinks($valore);
         }
 
+        \Common\Cache::SetDatiPagine($key, $valore);
+
         return $valore;
     }
 
     public static function ControlliValori(\Code\Enum\PagineDatiControlliEnum $identificativoEnum, string $iso = ""): Controlli\Controlli
     {
+        $success = false;
+
+        $key = "V|" . $identificativoEnum->name . "|" . $iso;
+
+        $item = \Common\Cache::GetDatiPagine($key, $success);
+
+        if ($success)
+            return $item;
+
         $phpobj = PHPDOWEB();
 
         $reflection = new \ReflectionEnum($identificativoEnum);
@@ -63,6 +83,8 @@ class PagineDati
 
         if ($controllo->Valore == "")
         {
+            \Common\Cache::SetDatiPagine($key, $paginaControllo);
+
             return $paginaControllo;
         }
 
@@ -74,11 +96,22 @@ class PagineDati
         $paginaControllo->ImmagineAltezza = $controllo->ImmagineAltezza;
         $paginaControllo->ImmagineLarghezza = $controllo->ImmagineLarghezza;
 
+        \Common\Cache::SetDatiPagine($key, $paginaControllo);
+
         return $paginaControllo;
     }
 
     public static function GetUrlElenco(\Code\Enum\PagineDatiEnum $pagineDatiEnum, int $idElemento = 0, string $iso = "", bool $includiDominio = false): string
     {
+        $success = false;
+
+        $key = "I|" .$pagineDatiEnum->name . "|" . $idElemento . "|" . $iso . "|" . $includiDominio;
+
+        $item = \Common\Cache::GetDatiPagine($key, $success);
+
+        if ($success)
+            return $item;
+
         $phpobj = PHPDOWEB();
 
         $result = $phpobj->PagineDatiGetUrlElenco($pagineDatiEnum->value, $idElemento, $iso);
@@ -94,11 +127,22 @@ class PagineDati
         if ($includiDominio)
             $url = \Common\SiteVars::Value(VarsEnum::webpath) . $url;
 
+        \Common\Cache::SetDatiPagine($key, $url);
+
         return $url;
     }
 
     public static function GetUrlElemento(\Code\Enum\PagineDatiEnum $pagineDatiEnum, int $idElemento = 0, string $iso = "", bool $includiDominio = false): string
     {
+        $success = false;
+
+        $key = "E|" . $pagineDatiEnum->name . "|" . $idElemento . "|" . $iso . "|" . $includiDominio;
+
+        $item = \Common\Cache::GetDatiPagine($key, $success);
+
+        if ($success)
+            return $item;
+
         $phpobj = PHPDOWEB();
 
         $result = $phpobj->PagineDatiGetUrlElemento($pagineDatiEnum->name, $idElemento, $iso);
@@ -113,6 +157,8 @@ class PagineDati
 
         if ($includiDominio)
             $url = \Common\SiteVars::Value(VarsEnum::webpath) . $url;
+
+        \Common\Cache::SetDatiPagine($key, $url);
 
         return $url;
     }
