@@ -4,11 +4,10 @@ declare(strict_types=1);
 namespace Common\Base;
 
 use Attribute;
+use Common\Response\SaveResponse;
 use DateTime;
-use Exception;
 use ReflectionClass;
 use ReflectionProperty;
-use \Common\Response\SaveResponse;
 
 #[Attribute]
 class PropertyAttribute
@@ -161,7 +160,7 @@ class BaseModel
 
         $success = false;
 
-        $value = \Common\Base\Cache::Get($searchKey,$success);
+        $value = \Common\Cache::GetDati($searchKey, $success);
 
         if ($success)
         {
@@ -254,7 +253,7 @@ class BaseModel
         {
             $globalCache[$searchKey] = null;
 
-            \Common\Base\Cache::Set($searchKey, null);
+            \Common\Cache::SetDati($searchKey, null);
 
             return null;
         }
@@ -434,7 +433,7 @@ class BaseModel
 
             $globalCache[$searchKey] = $tableObj;
 
-            \Common\Base\Cache::Set($searchKey, $tableObj);
+            \Common\Cache::SetDati($searchKey, $tableObj);
         }
     }
 
@@ -446,7 +445,7 @@ class BaseModel
 
         $tableName = get_class($this);
 
-        \Common\Base\Cache::Reset($tableName);
+        \Common\Cache::ResetDati($tableName);
 
         $reflection = new ReflectionClass($tableName);
 
@@ -630,7 +629,7 @@ class BaseModel
     {
         $tableName = get_class($this);
 
-        \Common\Base\Cache::Reset($tableName);
+        \Common\Cache::ResetDati($tableName);
 
         self::ClearCache();
 
@@ -703,7 +702,7 @@ class BaseModel
 
         $success = false;
 
-        $items = \Common\Base\Cache::Get($searchKey, $success);
+        $items = \Common\Cache::GetDati($searchKey, $success);
 
         if ($success)
         {
@@ -834,7 +833,7 @@ class BaseModel
             {
                 $globalCache[$searchKey] = $cache;
 
-                \Common\Base\Cache::Set($searchKey, $cache);
+                \Common\Cache::SetDati($searchKey, $cache);
             }
         }
     }
@@ -872,7 +871,7 @@ class BaseModel
 
         $success = false;
 
-        $count = \Common\Base\Cache::Get($searchKey, $success);
+        $count = \Common\Cache::GetDati($searchKey, $success);
 
         if ($success)
         {
@@ -910,7 +909,7 @@ class BaseModel
 
         $globalCache[$searchKey] = $tot;
 
-        \Common\Base\Cache::Set($searchKey, $tot);
+        \Common\Cache::SetDati($searchKey, $tot);
 
         return $tot;
     }

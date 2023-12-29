@@ -120,26 +120,11 @@ class Pagine
 
     public static function GetUrlIso(\Code\Enum\PagineEnum $pagineEnum, bool $includiDominio = false): string
     {
-        $phpobj = PHPDOWEB();
-
         $lingua = \Common\Lingue::GetLinguaFromUrl();
 
         $iso = $lingua->Iso;
 
-        $result = $phpobj->Pagine($pagineEnum->value, $iso);
-
-        if (\Common\Convert::ToBool($result->Errore))
-        {
-            \Common\Log::Error("\Common\Pagine->GetUrlIso(" . $pagineEnum->name . "), " . $result->Avviso);
-            return "";
-        }
-
-        $url = $result->FullUrl;
-
-        if ($includiDominio)
-            $url = \Common\SiteVars::Value(VarsEnum::webpath) . $url;
-
-        return $url;
+        return self::GetUrl($pagineEnum, $iso, $includiDominio);
     }
 
     public static function GetUrl(\Code\Enum\PagineEnum $pagineEnum, string $iso, bool $includiDominio = false): string
