@@ -9,25 +9,18 @@ class Etichette
     {
         $iso = \Common\Lingue::GetLinguaFromUrl()->Iso;
 
-        $result = PHPDOWEB()->SitoEtichetteGetItem($etichetta->name, $encode, $iso);
-
-        if (\Common\Convert::ToBool($result->Errore))
-        {
-            //probabilmente l'errore è che l'etichetta non c'è, la aggiungo
-
-            $result = PHPDOWEB()->SitoEtichetteSave($etichetta->name, $encode, $iso !== "", $iso, $etichetta->name);
-
-            if (\Common\Convert::ToBool($result->Errore))
-                \Common\Log::Error("Etichette->SitoEtichetteSave(" . $etichetta->name . ", " . $encode . ")");
-
-            $result = PHPDOWEB()->SitoEtichetteGetItem($etichetta->name, $encode, $iso);
-        }
-
-        return $result->Valore;
+        return self::GetValore($etichetta, $iso, $encode);
     }
 
     public static function GetValore(\Code\Enum\EtichetteEnum $etichetta, string $iso, bool $encode = false): string
     {
+        $success = false;
+
+        $item = \Common\Cache::GetEtichette($etichetta, $iso, $encode, $success);
+
+        if ($success)
+            return $item;
+
         $result = PHPDOWEB()->SitoEtichetteGetItem($etichetta->name, $encode, $iso);
 
         if (\Common\Convert::ToBool($result->Errore))
@@ -42,6 +35,10 @@ class Etichette
             $result = PHPDOWEB()->SitoEtichetteGetItem($etichetta->name, $encode, $iso);
         }
 
-        return $result->Valore;
+        $valore = $result->Valore;
+
+        \Common\Cache::SetEtichette($etichetta, $iso, $encode, $valore);
+
+        return $valore;
     }
 }

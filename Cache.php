@@ -69,6 +69,10 @@ class Cache
         // sitoweb.ext|P|202303231234
         // ..
 
+        //echo "Exist 1 : " . apcu_exists($cacheKey) . "<br>";
+
+        $success = false;
+
         $localCache = apcu_fetch($cacheKey, $success);
 
         //non c'è, aggiungo
@@ -104,6 +108,9 @@ class Cache
 
         apcu_store($cacheKey, $remoteCache, self::TTL);
 
+        //echo "Exist 2 : " . apcu_exists($cacheKey) . "<br>";
+
+
         $dati = $siteName . "|D|";
         $datiPagine = $siteName . "|DP";
         $pagine = $siteName . "|P";
@@ -115,7 +122,8 @@ class Cache
         {
             if (str_starts_with($key, $dati))
             {
-                self::ResetDati($key);
+                $table = str_replace($dati,"", $key);
+                self::ResetDati($table);
                 continue;
             }
 
@@ -147,35 +155,153 @@ class Cache
     private static function ResetDatiPagine(): void
     {
         $siteName = $_SERVER['PIPENAME'];
-        apcu_delete(new \APCUIterator('/^' . $siteName . '\|DP|/'));
-    }
-
-    private static function ResetPagine(): void
-    {
-        $siteName = $_SERVER['PIPENAME'];
-        apcu_delete(new \APCUIterator('/^' . $siteName . '\|P|/'));
+        apcu_delete(new \APCUIterator('/^' . $siteName . '\|DP\|/'));
     }
 
     private static function ResetAree(): void
     {
         $siteName = $_SERVER['PIPENAME'];
-        apcu_delete(new \APCUIterator('/^' . $siteName . '\|A|/'));
+        apcu_delete(new \APCUIterator('/^' . $siteName . '\|A\|/'));
     }
+
+    #region Pagine
+
+    private static function ResetPagine(): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+        apcu_delete(new \APCUIterator('/^' . $siteName . '\|P\|/'));
+    }
+
+    static function GetPagine(string $key, bool &$success): mixed
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|P|" . $key;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CachePagine']))
+            $GLOBALS['CachePagine'] = [];
+
+        $globalCache = &$GLOBALS['CachePagine'];
+
+        if (array_key_exists($key, $globalCache))
+        {
+            echo "localcache<br>";
+            return $globalCache[$key];
+        }
+
+        //orario e array della cache
+        $item = apcu_fetch($key, $success);
+
+        if (!$success)
+        {
+            echo "nocache<br>";
+            return null;
+        }
+
+        $globalCache[$key] = $item;
+
+        echo "apcucache<br>";
+        return $item;
+    }
+
+    static function SetPagine(string $key, mixed $value): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|P|" . $key;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CachePagine']))
+            $GLOBALS['CachePagine'] = [];
+
+        $globalCache = &$GLOBALS['CachePagine'];
+
+        //orario e array della cache
+        apcu_store($key, $value, self::TTL);
+
+        $globalCache[$key] = $value;
+    }
+
+    #endregion
+
+    #region Etichette
 
     private static function ResetEtichette(): void
     {
         $siteName = $_SERVER['PIPENAME'];
-        apcu_delete(new \APCUIterator('/^' . $siteName . '\|E|/'));
+        apcu_delete(new \APCUIterator('/^' . $siteName . '\|E\|/'));
     }
+
+    static function GetEtichette(\Code\Enum\EtichetteEnum $etichetteEnum, string $iso, bool $encode, bool &$success): mixed
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|E|" . $etichetteEnum->name . "|" . $encode . "|" . $iso;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheEtichette']))
+        {
+            $GLOBALS['CacheEtichette'] = [];
+        }
+
+        $globalCache = &$GLOBALS['CacheEtichette'];
+
+        if (array_key_exists($key, $globalCache))
+        {
+            echo "localcache<br>";
+            return $globalCache[$key];
+        }
+
+        //orario e array della cache
+        $item = apcu_fetch($key, $success);
+
+        if (!$success)
+        {
+            echo "nocache<br>";
+            return null;
+        }
+
+        $globalCache[$key] = $item;
+
+        echo "apcucache<br>";
+        return $item;
+    }
+
+    static function SetEtichette(\Code\Enum\EtichetteEnum $etichetteEnum, string $iso, bool $encode, mixed $value): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|E|" . $etichetteEnum->name . "|" . $encode . "|" . $iso;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheEtichette']))
+            $GLOBALS['CacheEtichette'] = [];
+
+        $globalCache = &$GLOBALS['CacheEtichette'];
+
+        $globalCache[$key] = $value;
+
+        apcu_store($key, $value, self::TTL);
+    }
+
+    #endregion
+
+    #region Dati
 
     static function ResetDati(string $tableName = null): void
     {
+        if (isset($GLOBALS['CacheDati']))
+            unset($GLOBALS['CacheDati']);
+
         $siteName = $_SERVER['PIPENAME'];
 
         if (!empty($tableName))
         {
-            $tableName = str_replace("model\\", "", $tableName);
+            $tableName = str_replace("model\\", "", strtolower($tableName));
             $tableName = strtolower(preg_quote($tableName . '|', '/'));
+
+            echo "Reset: " . $tableName . "<br>";
 
             apcu_delete(new \APCUIterator('/^' . $siteName . '\|item\|' . $tableName . '/'));
             apcu_delete(new \APCUIterator('/^' . $siteName . '\|list\|' . $tableName . '/'));
@@ -191,29 +317,51 @@ class Cache
 
     static function GetDati(string $key, bool &$success): mixed
     {
-        $siteName = $_SERVER['PIPENAME'];
+        $key = $_SERVER['PIPENAME'] . "|" . str_replace("model\\", "", $key);
 
-        $key = $siteName . "|" . str_replace("model\\", "", $key);
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheDati']))
+            $GLOBALS['CacheDati'] = [];
 
-        //orario e array della cache
+        $globalCache = &$GLOBALS['CacheDati'];
+
+        if (array_key_exists($key, $globalCache))
+        {
+            echo "localcache<br>";
+            return $globalCache[$key];
+        }
+
         $item = apcu_fetch($key, $success);
 
         if (!$success)
         {
+            echo "nocache<br>";
             return null;
         }
+
+        $globalCache[$key] = $item;
+
+        echo "apcu<br>";
 
         return $item;
     }
 
     static function SetDati(string $key, mixed $model): void
     {
-        $siteName = $_SERVER['PIPENAME'];
+        $key = $_SERVER['PIPENAME'] . "|" . str_replace("model\\", "", $key);
 
-        $key = $siteName . "|" . str_replace("model\\", "", $key);
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheDati']))
+            $GLOBALS['CacheDati'] = [];
+
+        $globalCache = &$GLOBALS['CacheDati'];
+
+        $globalCache[$key] = $model;
 
         apcu_store($key, $model, self::TTL);
     }
+
+    #endregion
 }
 
 

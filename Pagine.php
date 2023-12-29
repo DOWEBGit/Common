@@ -20,9 +20,7 @@ class Pagine
 {
     public static function ValoreIso(\Code\Enum\PagineControlliEnum $identificativoEnum): string
     {
-        $iso = \Common\Lingue::GetLinguaFromUrl();
-
-        $phpobj = PHPDOWEB();
+        $iso = \Common\Lingue::GetLinguaFromUrl()->Iso;
 
         //recupero con reflection il valore dell'attributo che contiene l'identificativo
 
@@ -39,7 +37,18 @@ class Pagine
         $tipoInput = $args[2];
         $decode = $args[3];
 
-        $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso->Iso);
+        $key = $pagina . "|" . $identificativo . "|" . $tipoInput . "|" . $decode . "|" . $iso;
+
+        $success = false;
+
+        $valore = \Common\Cache::GetPagine($key, $success);
+
+        if ($success)
+            return $valore;
+
+        $phpobj = PHPDOWEB();
+
+        $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso);
 
         if ($decode)
             return html_entity_decode($controllo->Valore);
@@ -54,13 +63,13 @@ class Pagine
             $valore = \Common\Convert::ConvertUrlsToLinks($valore);
         }
 
+        \Common\Cache::SetPagine($key, $valore);
+
         return $valore;
     }
 
     public static function ControlliValori(\Code\Enum\PagineControlliEnum $identificativoEnum, string $iso = ""): Controlli\Controlli
     {
-        $phpobj = PHPDOWEB();
-
         //recupero con reflection il valore dell'attributo che contiene l'identificativo
 
         $reflection = new \ReflectionEnum($identificativoEnum);
@@ -72,12 +81,28 @@ class Pagine
         $pagina = $attribute->getArguments()[0];
         $identificativo = $attribute->getArguments()[1];
 
+        $success = false;
+
+        $key = $pagina . "|" . $identificativo . "|" . $iso;
+
+        $valore = \Common\Cache::GetPagine($key, $success);
+
+        if ($success)
+            return $valore;
+
+
+        $phpobj = PHPDOWEB();
+
         $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso);
 
         $paginaControllo = new Controlli\Controlli();
 
         if ($controllo->Valore == "")
+        {
+            \Common\Cache::SetPagine($key, $paginaControllo);
+
             return $paginaControllo;
+        }
 
         $paginaControllo->Valore = $controllo->Valore;
         $paginaControllo->PercorsoWeb = $controllo->PercorsoWeb;
@@ -87,14 +112,25 @@ class Pagine
         $paginaControllo->ImmagineAltezza = $controllo->ImmagineAltezza;
         $paginaControllo->ImmagineLarghezza = $controllo->ImmagineLarghezza;
 
+        \Common\Cache::SetPagine($key, $paginaControllo);
+
         return $paginaControllo;
     }
 
     public static function GetPagina(\Code\Enum\PagineEnum $pagina): ?PagineResult
     {
-        $phpobj = PHPDOWEB();
-
         $lingua = \Common\Lingue::GetLinguaFromUrl();
+
+        $key = $pagina->name . "|" . $lingua->Iso;
+
+        $success = false;
+
+        $item = \Common\Cache::GetPagine($key, $success);
+
+        if ($success)
+            return $item;
+
+        $phpobj = PHPDOWEB();
 
         $result = $phpobj->Pagine($pagina->value, $lingua->Iso);
 
@@ -114,6 +150,8 @@ class Pagine
         $pagina->Sitemap = \Common\Convert::ToBool($result->Sitemap);
         $pagina->Parent = intval($result->Parent);
         $pagina->Multilingua = \Common\Convert::ToBool($result->Multilingua);
+
+        \Common\Cache::SetPagine($key, $pagina);
 
         return $pagina;
     }
