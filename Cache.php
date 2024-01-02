@@ -91,6 +91,7 @@ class Cache
             self::ResetEtichette();
             self::ResetAree();
             self::ResetLingue();
+            self::ResetSiteVars();
 
             apcu_store($cacheKey, $remoteCache, self::TTL);
             return;
@@ -118,13 +119,14 @@ class Cache
         $aree = $siteName . "|A";
         $etichette = $siteName . "|E";
         $lingue = $siteName . "|L";
+        $impostazioni = $siteName . "|I";
 
         //resetto quelle scadute
         foreach ($toReset as $key)
         {
             if (str_starts_with($key, $dati))
             {
-                $table = str_replace($dati,"", $key);
+                $table = str_replace($dati, "", $key);
                 self::ResetDati($table);
                 continue;
             }
@@ -156,6 +158,11 @@ class Cache
             if ($key == $etichette)
             {
                 self::ResetEtichette();
+            }
+
+            if ($key == $impostazioni)
+            {
+                self::ResetSiteVars();
             }
         }
     }
@@ -404,6 +411,67 @@ class Cache
         apcu_store($key, $value, self::TTL);
 
         $globalCache[$key] = $value;
+    }
+
+    #endregion
+
+    #region Impostazioni
+
+    private static function ResetSiteVars(): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+        apcu_delete(new \APCUIterator('/^' . $siteName . '\|SV\|/'));
+    }
+
+    static function GetSiteVars(\Common\VarsEnum $impostazioniEnum): ?string
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|SV|" . $impostazioniEnum->name;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheSiteVars']))
+            $GLOBALS['CacheSiteVars'] = [];
+
+        $globalCache = &$GLOBALS['CacheSiteVars'];
+
+        if (array_key_exists($key, $globalCache))
+        {
+            //echo "localcache<br>";
+            $success = true;
+            return $globalCache[$key];
+        }
+
+        //orario e array della cache
+        $item = apcu_fetch($key, $success);
+
+        if (!$success)
+        {
+            //echo "nocache<br>";
+            return null;
+        }
+
+        $globalCache[$key] = $item;
+
+        //echo "apcucache<br>";
+        return $item;
+    }
+
+    static function SetSiteVars(\Common\VarsEnum $impostazioniEnum, string $value): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|SV|" . $impostazioniEnum->name;
+
+        // Verifica se la cache è già stata inizializzata
+        if (!isset($GLOBALS['CacheSiteVars']))
+            $GLOBALS['CacheSiteVars'] = [];
+
+        $globalCache = &$GLOBALS['CacheSiteVars'];
+
+        $globalCache[$key] = $value;
+
+        apcu_store($key, $value, self::TTL);
     }
 
     #endregion

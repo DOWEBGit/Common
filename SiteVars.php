@@ -33,18 +33,17 @@ class SiteVars
 {
     public static function Value(VarsEnum $varsEnum): string
     {
-        $name = $varsEnum->name;
+        $value = \Common\Cache::GetSiteVars($varsEnum);
 
-        // Verifica se la cache è già stata inizializzata
-        if (isset($GLOBALS['SiteVars' . $name]))
-        {
-            return $GLOBALS['SiteVars' . $name];
-        }
+        if ($value != null)
+            return $value;
 
         $phpobj = PHPDOWEB();
 
-        $GLOBALS['SiteVars' . $name] = $phpobj->InfoSito($varsEnum->name)->Valore;
+        $value = $phpobj->InfoSito($varsEnum->name)->Valore;
 
-        return $GLOBALS['SiteVars' . $name];
+        \Common\Cache::SetSiteVars($varsEnum, $value);
+
+        return $value;
     }
 }
