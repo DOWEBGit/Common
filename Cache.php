@@ -5,7 +5,7 @@ namespace Common;
 
 class Cache
 {
-    const TTL = 60 * 10; //10 minuti
+    const int TTL = 60 * 10; //10 minuti
 
     //https://www.php.net/manual/en/book.apcu.php
 
