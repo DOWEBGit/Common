@@ -27,6 +27,7 @@ enum VarsEnum
     case spaziooccupatodisco;
     case spaziooccupato;
     case datiinmenu;
+    case siteserverurl;
 }
 
 class SiteVars
