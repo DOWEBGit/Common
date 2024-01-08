@@ -1,11 +1,10 @@
-
 <style>
     .loaderContainer {
         position: fixed;
         top: 0;
         bottom: 0;
         width: 100%;
-        background-color:rgba(0, 0, 0, 0.2);
+        background-color: rgba(0, 0, 0, 0.2);
         z-index: 1000;
     }
 
@@ -64,7 +63,7 @@
     {
         ReloadViewBefore();
 
-        showLoader();
+        ShowLoader();
 
         var elementi = document.querySelectorAll('[id^="View"]');
         globalReload = elementi.length;
@@ -110,9 +109,9 @@
                 try
                 {
                     array.push(hidden.value);
+                } catch (e)
+                {
                 }
-                catch (e)
-                {}
             }
 
             const response = await fetch('/Public/Php/Common/View/Client.php?view=' + viewTag,
@@ -129,17 +128,21 @@
             if (globalReload <= 0)
             {
                 ReloadViewCompleted();
-                hideLoader();
+                HideLoader();
             }
         }
         call();
     }
 
-    function showLoader() {
-        var loaderContainer = document.createElement("div");
+    function ShowLoader()
+    {
+        if (loaderContainer != null || loader != null)
+            return;
+
+        loaderContainer = document.createElement("div");
         loaderContainer.classList.add("loaderContainer");
 
-        var loader = document.createElement("div");
+        loader = document.createElement("div");
         loader.classList.add("loader");
 
         loaderContainer.appendChild(loader);
@@ -147,11 +150,15 @@
     }
 
 
-    function hideLoader() {
-        var loaderContainer = document.querySelector(".loaderContainer");
-        if (loaderContainer) {
-            loaderContainer.remove();
-        }
+    function HideLoader()
+    {
+        if (loaderContainer == null || loader == null)
+            return;
+
+        loaderContainer.remove();
+
+        loaderContainer = null;
+        loader = null;
     }
 
     function Action(controller, action, result)
@@ -165,9 +172,9 @@
             try
             {
                 windowJson = windowState.value;
+            } catch (e)
+            {
             }
-            catch (e)
-            {}
         }
         var tempState = document.getElementById("TempState");
         var tempJson = "";
@@ -176,9 +183,9 @@
             try
             {
                 tempJson = tempState.value;
+            } catch (e)
+            {
             }
-            catch (e)
-            {}
         }
         let finalArray = [tempJson, windowJson];
         fetch('/Public/Php/Common/View/Client.php?controller=' + controller + '&action=' + action,
@@ -190,21 +197,21 @@
                     },
                 body: JSON.stringify(finalArray)
             })
-        .then(data =>
-        {
-            data.text().then(output =>
+            .then(data =>
             {
-                let jsonArray = JSON.parse(output);
-                document.getElementById("TempState").value = jsonArray[0];
-                document.getElementById("WindowState").value = jsonArray[1];
-                lock.release();
-                result();
+                data.text().then(output =>
+                {
+                    let jsonArray = JSON.parse(output);
+                    document.getElementById("TempState").value = jsonArray[0];
+                    document.getElementById("WindowState").value = jsonArray[1];
+                    lock.release();
+                    result();
+                });
+            })
+            .catch(error =>
+            {
+                console.log('Network error:', error);
             });
-        })
-        .catch(error =>
-        {
-            console.log('Network error:', error);
-        });
     }
 
     function WindowWrite(name, value)
@@ -230,9 +237,9 @@
             {
                 json = decodeURIComponent(escape(atob(json)));
                 jsonArray = JSON.parse(json);
+            } catch (e)
+            {
             }
-            catch (e)
-            {}
         }
         jsonArray[name] = value.toString();
         json = JSON.stringify(jsonArray);
@@ -255,9 +262,9 @@
             {
                 json = decodeURIComponent(escape(atob(json)));
                 jsonArray = JSON.parse(json);
+            } catch (e)
+            {
             }
-            catch (e)
-            {}
         }
         let res = jsonArray[name];
         if (typeof res === 'undefined')
@@ -291,8 +298,7 @@
             {
                 json = decodeURIComponent(escape(atob(json)));
                 jsonArray = JSON.parse(json);
-            }
-            catch (e)
+            } catch (e)
             {
                 console.log(e);
             }
@@ -319,8 +325,7 @@
             {
                 json = decodeURIComponent(escape(atob(json)));
                 jsonArray = JSON.parse(json);
-            }
-            catch (e)
+            } catch (e)
             {
                 return e;
             }
@@ -334,20 +339,18 @@
     function TempWriteAllId()
     {
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
-        postInputs.forEach(function(input)
+        postInputs.forEach(function (input)
         {
             var id = input.id;
             var value;
             if (input.type === 'checkbox')
             {
                 value = input.checked ? 'true' : 'false';
-            }
-            else if (input.tagName.toLowerCase() === 'select')
+            } else if (input.tagName.toLowerCase() === 'select')
             {
                 var selectedOption = input.options[input.selectedIndex];
                 value = selectedOption.value;
-            }
-            else
+            } else
             {
                 value = input.value;
             }
@@ -358,7 +361,7 @@
     function TempReadAllId(message)
     {
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
-        postInputs.forEach(function(input)
+        postInputs.forEach(function (input)
         {
             let id = input.id;
             let value = TempRead(id);
@@ -373,8 +376,7 @@
                     input.parentNode.insertBefore(label, input.nextSibling);
                 }
                 label.innerHTML = value;
-            }
-            else if (label)
+            } else if (label)
             {
                 label.parentNode.removeChild(label);
             }
@@ -390,20 +392,18 @@
     function WindowWriteAllId()
     {
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
-        postInputs.forEach(function(input)
+        postInputs.forEach(function (input)
         {
             var id = input.id;
             var value;
             if (input.type === 'checkbox')
             {
                 value = input.checked ? 'true' : 'false';
-            }
-            else if (input.tagName.toLowerCase() === 'select')
+            } else if (input.tagName.toLowerCase() === 'select')
             {
                 var selectedOption = input.options[input.selectedIndex];
                 value = selectedOption.value;
-            }
-            else
+            } else
             {
                 value = input.value;
             }
