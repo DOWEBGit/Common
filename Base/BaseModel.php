@@ -143,7 +143,12 @@ class BaseModel
         $value = \Common\Cache::GetDati($searchKey, $success);
 
         if ($success)
-            return $value;
+        {
+            if (!$value)
+                return null;
+
+            return clone $value;
+        }
 
         $reflection = new \ReflectionClass($tableName);
 
@@ -640,7 +645,7 @@ class BaseModel
         if ($success)
         {
             foreach ($items as $item)
-                yield $item;
+                yield clone $item;
 
             return;
         }
