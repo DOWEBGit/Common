@@ -550,6 +550,8 @@ class Cache
 
         if (!empty($tableName))
         {
+            $tableName = str_replace(" ", "_", $tableName);
+
             $tableName = str_replace("model\\", "", strtolower($tableName));
             $tableName = strtolower(preg_quote($tableName . '|', '/'));
 
