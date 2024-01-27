@@ -5,6 +5,7 @@ declare(strict_types=1);
  TYPE HINT
 /** @var ClassName $object */
 
+
 /*
  * 
  * VIEW
