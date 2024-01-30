@@ -129,7 +129,7 @@ class State
                     return "";
             }
 
-            if (isset($windowState[$name]) && !empty($windowState[$name]))
+            if (isset($windowState[$name]) && $windowState[$name] != "")
                 return $windowState[$name];
         }
         
