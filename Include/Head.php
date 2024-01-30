@@ -33,6 +33,7 @@
     }
 </style>
 
+<!--suppress JSDeprecatedSymbols -->
 <script>
     const createLock = () =>
     {

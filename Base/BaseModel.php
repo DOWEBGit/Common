@@ -98,15 +98,17 @@ class BaseModel
     {
         $externalFields = get_object_vars($external);
         unset($externalFields["Id"]);
-        unset($externalFields["Visible"]);
-        unset($externalFields["_Visible"]);
+        unset($externalFields["Visibile"]);
+        unset($externalFields["_Visibile"]);
+        unset($externalFields["_ParentId"]);
         unset($externalFields["Aggiornamento"]);
         unset($externalFields["Inserimento"]);
 
         $thisFields = get_object_vars($this);
         unset($thisFields["Id"]);
-        unset($thisFields["Visible"]);
-        unset($thisFields["_Visible"]);
+        unset($thisFields["Visibile"]);
+        unset($thisFields["_Visibile"]);
+        unset($thisFields["_ParentId"]);
         unset($thisFields["Aggiornamento"]);
         unset($thisFields["Inserimento"]);
 
@@ -790,8 +792,8 @@ class BaseModel
 
         $count = \Common\Cache::GetDati($searchKey, $success);
 
-        if ($success)
-            return $count;
+        //if ($success)
+          //  return $count;
 
         //del nome Model\Tipo, prendo solo l'ultimo pezzo: Tipo
         $parts = explode("\\", $tableName);

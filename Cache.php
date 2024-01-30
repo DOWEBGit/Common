@@ -438,7 +438,6 @@ class Cache
         if (array_key_exists($key, $globalCache))
         {
             //echo "localcache<br>";
-            $success = true;
             return $globalCache[$key];
         }
 

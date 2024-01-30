@@ -78,6 +78,7 @@ foreach ($dati as $index => $dato)
     $code = "";
 
     $code .= "<?php\n";
+    $code .= "/** @noinspection ALL */\n";
     $code .= "declare(strict_types=1);\n\n";
     $code .= "namespace Model;\n";
 
