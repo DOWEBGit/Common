@@ -45,7 +45,20 @@ $code .= "{\n";
 
   */
 
-
+$code .=
+    $tab . "private static function GetTokens(array \$models): string\n" .
+    $tab . "{\n" .
+    $tab . $tab . "\$qs = \"\";\n" .
+    $tab . $tab . "\$token = \"?\";\n" .
+    $tab .$tab .  "foreach (\$models as \$model)\n" .
+    $tab . $tab . "{\n" .
+    $tab . $tab . $tab . "\$tableName = get_class(\$model);\n" .
+    $tab . $tab . $tab . "\$tableName = str_replace(\"Model\\\\\", \"\", \$tableName);\n" .
+    $tab . $tab . $tab . "\$qs .= \$token . \$tableName . \"Id=\" . \$model->Id;\n" .
+    $tab . $tab . $tab . "\$token = \"&\";\n" .
+    $tab . $tab . "}\n" .
+    $tab . $tab .  "return \$qs;\n" .
+    $tab . "}\n\n";
 
 foreach ($pagine as $pagina)
 {
@@ -75,9 +88,9 @@ foreach ($pagine as $pagina)
     $url = str_replace(" ", "_", $url);
 
     $code .=
-        $tab . "public static function " . $url . "() : string\n" .
+        $tab . "public static function " . $url . "(array \$model) : string\n" .
         $tab . "{\n" .
-        $tab . $tab . "return \Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::". $pagina->Nome .");\n" .
+        $tab . $tab . "return \Common\Convert::GetEncodedLink(\Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::" . $pagina->Nome . ") . self::GetTokens(\$model));\n" .
         $tab . "}\n\n";
 }
 
@@ -101,15 +114,11 @@ fclose($myfile);
 echo "Scritto file " . $file . "<br>";
 
 
-
-
-
-
 $code = "<?php\n";
 $code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code;\n\n";
 
-$code .= "class GetLinkQuery\n";
+$code .= "class ObjectFromQuery\n";
 $code .= "{\n";
 
 $arr = $obj->DatiGetList();
@@ -123,68 +132,18 @@ foreach ($dati as $dato)
     $nome = str_replace(" ", "_", $nome);
 
     $code .=
-        $tab . "Get" . $nome . "() : ".$dato->Nome."\n" .
+        $tab . "static public function Get" . $nome . "() : ?\Model\\" . $dato->Nome . "\n" .
         $tab . "{\n" .
-        $tab . $tab . "\$url = \Common\Convert::GetDecodedQueryString(\$_GET['url']);\n" .
-        $tab . $tab . "\$url = \Common\Convert::GetDecodedQueryString(\$_GET['url']);\n" .
-        $tab . "}\n" .
-
-    $parent = $dato->Nome;
+        $tab . $tab . "\$keyValue = \Common\Convert::GetDecodedQueryString(\$_SERVER['QUERY_STRING']);\n" .
+        $tab . $tab . "if (!isset(\$keyValue[\"{$nome}Id\"]))\n" .
+        $tab . $tab . $tab . "return null;\n" .
+        $tab . $tab . "return \Model\\" . $dato->Nome . "::GetItemById(intval(\$keyValue[\"{$nome}Id\"]));\n" .
+        $tab . "}\n";
 }
 
+$code .= "}\n";
 
-
-
-foreach ($pagine as $pagina)
-{
-    //$val = $pagina->FullUrl;
-
-    $localPagina = $pagina;
-
-    $url = $localPagina->Nome;
-
-    while ($localPagina->Parent != 0)
-    {
-        foreach ($pagine as $paginaTmp)
-        {
-            if ($paginaTmp->Id == $localPagina->Parent)
-            {
-                $localPagina = $paginaTmp;
-                break;
-            }
-        }
-
-        $url = $localPagina->Nome . "_" . $url;
-    }
-
-    if (str_ends_with($url, "_"))
-        $url = substr($url, 0, -1);
-
-    $url = str_replace(" ", "_", $url);
-
-    $code .=
-        $tab . "public static function " . $url . "() : string\n" .
-        $tab . "{\n" .
-        $tab . $tab . "return \Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::". $pagina->Nome .");\n" .
-        $tab . "}\n\n";
-}
-
-$code .= "}";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-$file = $enumPath . "\\GetLinkQuery.php";
+$file = $enumPath . "\\ObjectFromQuery.php";
 
 if (is_file($file))
 {
@@ -199,32 +158,3 @@ fwrite($myfile, $code);
 fclose($myfile);
 
 echo "Scritto file " . $file . "<br>";
-
-
-
-
-
-
-
-
-
-$file = $enumPath . "\\GetLinkParams.php";
-
-if (is_file($file))
-    return;
-
-$code = "<?php\n";
-$code .= "declare(strict_types=1);\n\n";
-$code .= "namespace Code;\n\n";
-$code .= "class GetLinkParams\n";
-$code .= "{\n\n";
-$code .= "}";
-
-$myfile = fopen($file, 'w');
-
-fwrite($myfile, $code);
-fclose($myfile);
-
-echo "Scritto file " . $file . "<br>";
-
-
