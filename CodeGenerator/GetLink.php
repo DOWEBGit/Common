@@ -62,6 +62,9 @@ $code .=
 
 foreach ($pagine as $pagina)
 {
+    if (!$pagina->Attiva)
+        return;
+
     //$val = $pagina->FullUrl;
 
     $localPagina = $pagina;
