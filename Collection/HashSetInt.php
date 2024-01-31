@@ -8,7 +8,7 @@ namespace Common\Collection;
  */
 class HashSetInt implements \IteratorAggregate, \ArrayAccess
 {
-    private $internalArray;
+    private array $internalArray;
 
     public function __construct()
     {

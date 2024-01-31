@@ -8,7 +8,7 @@ namespace Common\Collection;
  */
 class DictionaryIntInt implements \IteratorAggregate, \ArrayAccess
 {
-    public $dictionary;
+    public array $dictionary;
 
     public function __construct()
     {

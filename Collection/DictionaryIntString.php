@@ -8,7 +8,7 @@ namespace Common\Collection;
  */
 class DictionaryIntString implements \IteratorAggregate
 {
-    private $dictionary;
+    private array $dictionary;
 
     public function __construct()
     {

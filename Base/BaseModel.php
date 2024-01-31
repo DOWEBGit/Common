@@ -725,7 +725,7 @@ class BaseModel
             $trace = $e->getTraceAsString();
 
             //viene già loggata da doweb
-            throw new \Exception("Errore nella GetList " . $trace . ", " . $result->Avviso);
+            throw new \Exception("Errore nella GetList, controlla il log error, " . $trace . ", " . $result->Avviso);
         }
 
         $cache = [];
@@ -816,7 +816,7 @@ class BaseModel
             $trace = $e->getTraceAsString();
 
             //viene già loggata da doweb
-            throw new \Exception("Errore nella GetCount " . $trace . ", " . $result->Avviso);
+            throw new \Exception("Errore nella GetCount, controlla il log error, " . $trace . ", " . $result->Avviso);
 
         }
 

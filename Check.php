@@ -112,7 +112,7 @@ class Check
         return true;
     }
 
-    public static function IsEmail($email)
+    public static function IsEmail($email): bool
     {
         // Utilizza la funzione filter_var per verificare se la stringa è un indirizzo email valido
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;

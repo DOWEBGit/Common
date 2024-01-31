@@ -46,24 +46,26 @@ $code .= "{\n";
   */
 
 $code .=
-    $tab . "private static function GetTokens(array \$models): string\n" .
+    $tab . "private static function GetTokens(array \$models = null): string\n" .
     $tab . "{\n" .
+    $tab . $tab . "if (!\$models)\n" .
+    $tab . $tab . $tab . "return \"\";\n" .
     $tab . $tab . "\$qs = \"\";\n" .
     $tab . $tab . "\$token = \"?\";\n" .
-    $tab .$tab .  "foreach (\$models as \$model)\n" .
+    $tab . $tab . "foreach (\$models as \$model)\n" .
     $tab . $tab . "{\n" .
     $tab . $tab . $tab . "\$tableName = get_class(\$model);\n" .
     $tab . $tab . $tab . "\$tableName = str_replace(\"Model\\\\\", \"\", \$tableName);\n" .
     $tab . $tab . $tab . "\$qs .= \$token . \$tableName . \"Id=\" . \$model->Id;\n" .
     $tab . $tab . $tab . "\$token = \"&\";\n" .
     $tab . $tab . "}\n" .
-    $tab . $tab .  "return \$qs;\n" .
+    $tab . $tab . "return \$qs;\n" .
     $tab . "}\n\n";
 
 foreach ($pagine as $pagina)
 {
     if (!$pagina->Attiva)
-        return;
+        continue;
 
     //$val = $pagina->FullUrl;
 
@@ -91,7 +93,7 @@ foreach ($pagine as $pagina)
     $url = str_replace(" ", "_", $url);
 
     $code .=
-        $tab . "public static function " . $url . "(array \$model) : string\n" .
+        $tab . "public static function " . $url . "(array \$model = null) : string\n" .
         $tab . "{\n" .
         $tab . $tab . "return \Common\Convert::GetEncodedLink(\Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::" . $pagina->Nome . ") . self::GetTokens(\$model));\n" .
         $tab . "}\n\n";
@@ -135,12 +137,12 @@ foreach ($dati as $dato)
     $nome = str_replace(" ", "_", $nome);
 
     $code .=
-        $tab . "static public function Get" . $nome . "() : ?\Model\\" . $dato->Nome . "\n" .
+        $tab . "static public function Get" . $nome . "(string \$iso = '', array \$selectColumns = []) : ?\Model\\" . $dato->Nome . "\n" .
         $tab . "{\n" .
         $tab . $tab . "\$keyValue = \Common\Convert::GetDecodedQueryString(\$_SERVER['QUERY_STRING']);\n" .
         $tab . $tab . "if (!isset(\$keyValue[\"{$nome}Id\"]))\n" .
         $tab . $tab . $tab . "return null;\n" .
-        $tab . $tab . "return \Model\\" . $dato->Nome . "::GetItemById(intval(\$keyValue[\"{$nome}Id\"]));\n" .
+        $tab . $tab . "return \Model\\" . $dato->Nome . "::GetItemById(intval(\$keyValue[\"{$nome}Id\"]), \$iso, \$selectColumns);\n" .
         $tab . "}\n";
 }
 
