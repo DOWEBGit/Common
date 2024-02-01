@@ -3,6 +3,9 @@ declare(strict_types=1);
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("expires: -1");
 
+
+//https://stackoverflow.com/questions/33632621/handling-php-properties-like-those-in-c-sharp-getter-setter
+
 $basePath = $_SERVER["DOCUMENT_ROOT"] . "\\Public\\Php";
 
 

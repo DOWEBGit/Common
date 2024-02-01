@@ -36,7 +36,7 @@ foreach ($dati as $index => $dato)
 
     $nomeClasse = str_replace(" ", "_", $dato->Nome);
 
-    $code .= "class " . $nomeClasse . " extends BaseController\n";
+    $code .= "class " . $nomeClasse . " extends \Common\Base\BaseController\n";
     $code .= "{" . "\n";
 
     $lowerClass = strtolower($nomeClasse);
@@ -46,7 +46,7 @@ foreach ($dati as $index => $dato)
         $tab . "* @var \Model\\$nomeClasse \$$lowerClass\n" .
         $tab . "* @noinspection PhpUnused\n" .
         $tab . "*/\n" .
-        $tab . "public static function OnSave(\Model\\$nomeClasse \$$lowerClass = null): string\n" .
+        $tab . "public static function OnSave(\Common\Base\BaseModel \$$lowerClass = null): string\n" .
         $tab . "{\n" .
         $tab . $tab . "return \"\";\n" .
         $tab . "}\n\n" .

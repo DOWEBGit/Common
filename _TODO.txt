@@ -1,1 +1,2 @@
-
+implementare getter e setter, poi bool per capire dove ho scritto
+https://stackoverflow.com/questions/33632621/handling-php-properties-like-those-in-c-sharp-getter-setter
