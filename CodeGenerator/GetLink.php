@@ -54,6 +54,8 @@ $code .=
     $tab . $tab . "\$token = \"?\";\n" .
     $tab . $tab . "foreach (\$models as \$model)\n" .
     $tab . $tab . "{\n" .
+    $tab . $tab . $tab . "if (!\$model)\n" .
+    $tab . $tab . $tab . $tab . "continue;\n" .
     $tab . $tab . $tab . "\$tableName = get_class(\$model);\n" .
     $tab . $tab . $tab . "\$tableName = str_replace(\"Model\\\\\", \"\", \$tableName);\n" .
     $tab . $tab . $tab . "\$qs .= \$token . \$tableName . \"Id=\" . \$model->Id;\n" .

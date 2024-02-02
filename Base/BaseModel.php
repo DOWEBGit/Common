@@ -181,7 +181,7 @@ class BaseModel
 
                 if ($filterColumns)
                 {
-                    $found = array_search($nome, $selectColumns);
+                    $found = array_search($arguments['0'], $selectColumns);
 
                     if ($found !== false)
                     {
@@ -680,7 +680,7 @@ class BaseModel
 
                 if ($filterColumns) //se sto recuperando solo alcune colonne
                 {
-                    $found = array_search($nome, $selectColumns);
+                    $found = array_search($arguments['0'], $selectColumns);
 
                     if ($found !== false)
                     {
