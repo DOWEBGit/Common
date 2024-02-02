@@ -92,10 +92,12 @@ foreach ($pagine as $pagina)
 
     $url = str_replace(" ", "_", $url);
 
+    $paginaNome = str_replace(" ", "_", $pagina->Nome);
+
     $code .=
         $tab . "public static function " . $url . "(array \$model = null) : string\n" .
         $tab . "{\n" .
-        $tab . $tab . "return \Common\Convert::GetEncodedLink(\Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::" . $pagina->Nome . ") . self::GetTokens(\$model));\n" .
+        $tab . $tab . "return \Common\Convert::GetEncodedLink(\Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::" . $paginaNome . ") . self::GetTokens(\$model));\n" .
         $tab . "}\n\n";
 }
 
@@ -137,12 +139,12 @@ foreach ($dati as $dato)
     $nome = str_replace(" ", "_", $nome);
 
     $code .=
-        $tab . "static public function Get" . $nome . "(string \$iso = '', array \$selectColumns = []) : ?\Model\\" . $dato->Nome . "\n" .
+        $tab . "static public function Get" . $nome . "(string \$iso = '', array \$selectColumns = []) : ?\Model\\" . $nome . "\n" .
         $tab . "{\n" .
         $tab . $tab . "\$keyValue = \Common\Convert::GetDecodedQueryString(\$_SERVER['QUERY_STRING']);\n" .
         $tab . $tab . "if (!isset(\$keyValue[\"{$nome}Id\"]))\n" .
         $tab . $tab . $tab . "return null;\n" .
-        $tab . $tab . "return \Model\\" . $dato->Nome . "::GetItemById(intval(\$keyValue[\"{$nome}Id\"]), \$iso, \$selectColumns);\n" .
+        $tab . $tab . "return \Model\\" . $nome . "::GetItemById(intval(\$keyValue[\"{$nome}Id\"]), \$iso, \$selectColumns);\n" .
         $tab . "}\n";
 }
 
