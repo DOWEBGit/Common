@@ -60,18 +60,18 @@
     var loader = null;
     var loaderContainer = null;
 
-    function ReloadViewAll()
+    function ReloadViewAll(preload = 200)
     {
         ReloadViewBefore();
 
-        ShowLoader();
+        ShowLoader(preload);
 
         var elementi = document.querySelectorAll('[id^="View"]');
         globalReload = elementi.length;
         for (var i = 0; i < elementi.length; i++)
         {
-            var viewName = elementi[i].id.replace(/view/gi, ""); //case sensitive
-            ReloadView(viewName);
+            let viewId = elementi[i].id.replace(/view/gi, ""); //case sensitive
+            ReloadViewInternal(viewId);
         }
     }
 
@@ -85,11 +85,48 @@
 
     }
 
-    function ReloadView(viewName)
+    function ReloadView(viewName, preload = 200)
+    {
+        ReloadViewBefore();
+
+        ShowLoader(preload);
+
+        let fullName = "View\\" + viewName;
+
+        let view;
+
+        var elementi = document.querySelectorAll('[id^="View"]');
+
+        for (var i = 0; i < elementi.length; i++)
+        {
+            let viewTmp = elementi[i];
+
+            let name = viewTmp.getAttribute("view");
+
+            if (name !== fullName)
+                continue;
+
+            view = viewTmp;
+
+            break;
+        }
+
+        if (typeof view === 'undefined')
+        {
+            console.log("Non trovo la view con nome " + viewName);
+            return;
+        }
+
+        let viewId = elementi[i].id.replace(/view/gi, ""); //case sensitive
+
+        ReloadViewInternal(viewId);
+    }
+
+    function ReloadViewInternal(viewId)
     {
         const call = async () =>
         {
-            var divName = "View" + viewName;
+            var divName = "View" + viewId;
             var div = document.getElementById(divName);
             if (div == null)
             {
@@ -135,24 +172,37 @@
         call();
     }
 
-    function ShowLoader()
+    let timeoutPreloader;
+
+    function ShowLoader(preload)
     {
         if (loaderContainer != null || loader != null)
             return;
 
-        loaderContainer = document.createElement("div");
-        loaderContainer.classList.add("loaderContainer");
+        if (preload < 0)
+            preload = 0;
 
-        loader = document.createElement("div");
-        loader.classList.add("loader");
+        clearTimeout(timeoutPreloader);
 
-        loaderContainer.appendChild(loader);
-        document.body.appendChild(loaderContainer);
+        timeoutPreloader = setTimeout(function ()
+        {
+            loaderContainer = document.createElement("div");
+            loaderContainer.classList.add("loaderContainer");
+
+            loader = document.createElement("div");
+            loader.classList.add("loader");
+
+            loaderContainer.appendChild(loader);
+
+            document.body.appendChild(loaderContainer);
+
+        }, preload);
     }
-
 
     function HideLoader()
     {
+        clearTimeout(timeoutPreloader);
+
         if (loaderContainer == null || loader == null)
             return;
 
