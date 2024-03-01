@@ -172,6 +172,36 @@
         call();
     }
 
+    function Push(nome, valore)
+    {
+        console.log(nome);
+        console.log(valore);
+
+        if (typeof window[nome] === "function") {
+            if (valore === undefined || valore === null)
+            {
+                window[nome]();
+            }
+            else
+            {
+                try {
+                    // Prova a convertire la stringa JSON in un array
+                    var arrayValore = JSON.parse(valore);
+
+                    if (Array.isArray(arrayValore)) {
+                        window[nome].apply(null, arrayValore);
+                    } else {
+                        window[nome](valore); // Se non è un array, passa come singolo parametro
+                    }
+                } catch (error) {
+                    window[nome](valore); // Se c'è un errore, passa come singolo parametro
+                }
+            }
+        } else {
+            console.error("PUSH: La funzione " + nome + " non esiste o non è una funzione.");
+        }
+    }
+
     let timeoutPreloader;
 
     function ShowLoader(preload)
