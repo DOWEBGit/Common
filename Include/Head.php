@@ -174,30 +174,32 @@
 
     function Push(nome, valore)
     {
-        console.log(nome);
-        console.log(valore);
-
-        if (typeof window[nome] === "function") {
+        if (typeof window[nome] === "function")
+        {
             if (valore === undefined || valore === null)
             {
                 window[nome]();
-            }
-            else
+            } else
             {
-                try {
+                try
+                {
                     // Prova a convertire la stringa JSON in un array
                     var arrayValore = JSON.parse(valore);
 
-                    if (Array.isArray(arrayValore)) {
+                    if (Array.isArray(arrayValore))
+                    {
                         window[nome].apply(null, arrayValore);
-                    } else {
+                    } else
+                    {
                         window[nome](valore); // Se non è un array, passa come singolo parametro
                     }
-                } catch (error) {
+                } catch (error)
+                {
                     window[nome](valore); // Se c'è un errore, passa come singolo parametro
                 }
             }
-        } else {
+        } else
+        {
             console.error("PUSH: La funzione " + nome + " non esiste o non è una funzione.");
         }
     }
@@ -286,7 +288,9 @@
                     document.getElementById("TempState").value = jsonArray[0];
                     document.getElementById("WindowState").value = jsonArray[1];
                     lock.release();
-                    result();
+
+                    if (typeof result === "function")
+                        result();
                 });
             })
             .catch(error =>
