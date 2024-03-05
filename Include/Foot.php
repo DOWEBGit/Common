@@ -15,7 +15,7 @@ if ($asyncArray && count($asyncArray) > 0)
         {
         ?>
 
-        ReloadView(<?=$id?>);
+        ReloadViewInternal(<?=$id?>);
 
         <?php
 
