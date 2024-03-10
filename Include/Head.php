@@ -4,7 +4,7 @@
         top: 0;
         bottom: 0;
         width: 100%;
-        background-color: rgba(0, 0, 0, 0.2);
+        background-color: rgba(0, 0, 0, 0.05);
         z-index: 1000;
     }
 
