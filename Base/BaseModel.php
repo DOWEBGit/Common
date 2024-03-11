@@ -65,8 +65,8 @@ class BaseModel
                     break;
                 case 'integer':
                 case 'string':
-                $output .= $value;
-                break;
+                    $output .= $value;
+                    break;
                 case 'boolean':
                     $output .= $value ? "true" : "false";
                     break;
@@ -389,7 +389,7 @@ class BaseModel
             $uniqueValue = $tableObj->$propertyName;
 
             // verifica se $uniqueValue è un istanza di DateTime
-            if($uniqueValue instanceof DateTime)
+            if ($uniqueValue instanceof DateTime)
             {
                 // se lo è, lo formatta come stringa
                 $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
@@ -581,6 +581,26 @@ class BaseModel
             return $saveRespone;
         }
 
+
+        //aggiorno i campi privati, così una eventuale successiva save funziona
+
+        foreach ($properties as $property)
+        {
+            $name = $property->name;
+
+            if (!str_starts_with($name, "_"))
+                continue;
+
+            $namePublic = substr($name, 1);
+
+            $ptrPublic = $reflection->getProperty($namePublic);
+
+            $newValue = $ptrPublic->getValue($this);
+
+            $property->setValue($this, $newValue);
+        }
+
+
         $this->Id = $result->Id;
 
         $saveRespone->Success = true;
@@ -647,7 +667,9 @@ class BaseModel
         if ($success)
         {
             foreach ($items as $item)
+            {
                 yield clone $item;
+            }
 
             return;
         }
@@ -793,7 +815,7 @@ class BaseModel
         $count = \Common\Cache::GetDati($searchKey, $success);
 
         //if ($success)
-          //  return $count;
+        //  return $count;
 
         //del nome Model\Tipo, prendo solo l'ultimo pezzo: Tipo
         $parts = explode("\\", $tableName);
