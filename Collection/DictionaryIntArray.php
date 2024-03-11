@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace Common\Collection;
 
 /**
- * array con integer univoci e int
+ * array con integer univoci e array
  */
-class DictionaryIntInt implements \IteratorAggregate, \ArrayAccess
+class DictionaryIntArray implements \IteratorAggregate, \ArrayAccess
 {
     public array $dictionary;
 
@@ -15,7 +15,7 @@ class DictionaryIntInt implements \IteratorAggregate, \ArrayAccess
         $this->dictionary = array();
     }
 
-    public function Add(int $key, int $value): bool
+    public function Add(int $key, [] $value): bool
     {
         if ($this->ContainsKey($key))
         {
@@ -62,7 +62,7 @@ class DictionaryIntInt implements \IteratorAggregate, \ArrayAccess
         return $this->dictionary[$offset] ?? null;
     }
 
-    public function offsetSet(mixed $offset, mixed $value): void
+    public function offsetSet(mixed $offset, [] $value): void
     {
         if (is_null($offset))
         {
