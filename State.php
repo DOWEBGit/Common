@@ -195,9 +195,6 @@ class State
         if (!is_array($stateArray) || count($stateArray) != 2)
             return;
 
-        if ($stateArray[0] == null || $stateArray[1] == null)
-            return;
-
         $GLOBALS['_TempStateRead'] = $stateArray[0];
         $GLOBALS['_WindowState'] = $stateArray[1];
     }

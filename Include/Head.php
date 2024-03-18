@@ -426,6 +426,8 @@
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
         postInputs.forEach(function (input)
         {
+            console.log(input);
+
             var id = input.id;
             var value;
             if (input.type === 'checkbox')
@@ -439,6 +441,10 @@
             {
                 value = input.value;
             }
+
+            console.log(value);
+            console.log(id);
+
             TempWrite(id, value);
         });
     }
