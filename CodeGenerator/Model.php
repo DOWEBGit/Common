@@ -78,6 +78,11 @@ foreach ($dati as $index => $dato)
 
     $parent = $dato->ParentNome;
 
+    $parentName = "";
+
+    if ($parent !== "")
+        $parentName = str_replace(" ", "_", $parent);
+
     $code = "";
 
     $code .= "<?php\n";
@@ -114,9 +119,9 @@ foreach ($dati as $index => $dato)
 
     $getItemUnivoche = "\n";
     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
-    $getItemUnivoche .= $tab . "static function GetItemById(int $" . "Id, string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+    $getItemUnivoche .= $tab . "static function GetItemById(int $" . "id, string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
     $getItemUnivoche .= $tab . "{\n";
-    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), 'Id', $" . "Id, $" . "iso, selectColumns: $" . "selectColumns);\n";
+    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: 'Id', uniqueValue: $" . "id, iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
     $getItemUnivoche .= $tab . "}\n";
 
     foreach ($colonneDettagliate as $colonna)
@@ -127,9 +132,31 @@ foreach ($dati as $index => $dato)
         {
             case "Dato":
             {
+                $identificativoRef = str_replace(" ", "_", $colonna->DatiRefNome);
+
+                if ($colonna->Univoco === "true" && $colonna->Obbligatorio === "true")
+                {
+                    $getItemUnivoche .= "\n";
+                    $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
+
+                    if ($parentName !== "")
+                    {
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, \Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "{\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $identificativo . "', uniqueValue: $" . lcfirst($identificativo) . "->Id, iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . "}\n";
+                    }
+                    else
+                    {
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "{\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $identificativoRef . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . "}\n";
+                    }
+                }
+
                 if ($colonna->DatiRefNome !== "")
                 {
-                    $identificativoRef = str_replace(" ", "_", $colonna->DatiRefNome);
                     $code .= $tab . $tab . "$" . "this->" . $identificativo . " = 0;\n";
                     $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = 0;\n";
                 }
@@ -143,10 +170,21 @@ foreach ($dati as $index => $dato)
                     $getItemUnivoche .= "\n";
 
                     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
-                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\DateTime $" . $identificativo . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
-                    $getItemUnivoche .= $tab . "{\n";
-                    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
-                    $getItemUnivoche .= $tab . "}\n";
+
+                    if ($parentName !== "")
+                    {
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, \DateTime $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "{\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . "}\n";
+                    }
+                    else
+                    {
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\DateTime $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "{\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . lcfirst($identificativo) . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . "}\n";
+                    }
                 }
 
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new \DateTime();\n";
@@ -161,10 +199,21 @@ foreach ($dati as $index => $dato)
                     $getItemUnivoche .= "\n";
 
                     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
-                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(int $" . $identificativo . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
-                    $getItemUnivoche .= $tab . "{\n";
-                    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
-                    $getItemUnivoche .= $tab . "}\n";
+
+                    if ($parentName !== "")
+                    {
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, int $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "{\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . "}\n";
+                    }
+                    else
+                    {
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(int $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "{\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . lcfirst($identificativo) . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . "}\n";
+                    }
                 }
 
                 if ($colonna->TipoInput == "CheckBox")
@@ -187,10 +236,21 @@ foreach ($dati as $index => $dato)
                     $getItemUnivoche .= "\n";
 
                     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
-                    $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(string $" . $identificativo . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
-                    $getItemUnivoche .= $tab . "{\n";
-                    $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . $identificativo . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
-                    $getItemUnivoche .= $tab . "}\n";
+
+                    if ($parentName !== "")
+                    {
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, string $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "{\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . "}\n";
+                    }
+                    else
+                    {
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(string $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "{\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . lcfirst($identificativo) . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . "}\n";
+                    }
                 }
 
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = '';\n";
@@ -329,10 +389,8 @@ foreach ($dati as $index => $dato)
         }
     }
 
-    if ($parent !== "")
+    if ($parentName !== "")
     {
-        $parentName = str_replace(" ", "_", $parent);
-
         $code .= $tab . "public function Parent_get($" . "iso = '', array $" . "selectColumns = []) : ?" . $parentName . "\n";
         $code .= $tab . "{ return " . $parentName . "::GetItemById($" . "this->ParentId, $" . "iso, $" . "selectColumns); }\n";
         $code .= $tab . "public function Parent_set(?" . $parentName . " $" . "value) : void\n";

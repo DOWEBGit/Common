@@ -134,11 +134,18 @@ class BaseModel
 
     /** @noinspection PhpIncompatibleReturnTypeInspection */
     //    non ci sono i tipi anonimi in PHP quindi passo l'oggetto come parametro
-    static function GetItem(object $tableObj, string $uniqueColumn = "Id", $uniqueValue = "", string $iso = "", bool $webP = true, array $selectColumns = []): ?BaseModel
+    static function GetItem(object $tableObj, int $parent = 0, string $uniqueColumn = "Id", $uniqueValue = "", string $iso = "", bool $webP = true, array $selectColumns = []): ?BaseModel
     {
         $tableName = get_class($tableObj);
 
-        $searchKey = strtolower("item|" . $tableName . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
+        // verifica se $uniqueValue è un istanza di DateTime
+        if ($uniqueValue instanceof DateTime)
+        {
+            // se lo è, lo formatta come stringa
+            $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
+        }
+
+        $searchKey = strtolower("item|" . $tableName . "|" . $parent . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
 
         $success = false;
 
@@ -219,14 +226,14 @@ class BaseModel
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
-        $result = $obj->DatiElencoGetItem($partialName, $uniqueColumn, (string)$uniqueValue, $iso, $colonne, (string)$webP);
+        $result = $obj->DatiElencoGetItem($partialName, $uniqueColumn, (string)$uniqueValue, $iso, $colonne, (string)$webP, parent: $parent);
 
         if (\Common\Convert::ToBool($result->Errore))
         {
             $e = new \Exception();
             $trace = $e->getTraceAsString();
 
-            $obj->LogError("BaseModel->GetItem({$tableName}, {$uniqueColumn}) " . $result->Avviso . " -> " . $trace);
+            $obj->LogError("BaseModel->GetItem({$tableName}, {$uniqueColumn}, {$parent}) " . $result->Avviso . " -> " . $trace);
             return null;
         }
 
@@ -240,7 +247,7 @@ class BaseModel
         }
 
         //imposto i valori nella istanza di classe
-        self::ImpostoIValoriNellaIstanzaDiClasse($iso, !$filterColumns, $properties, $tipi, $univoci, $tableObj, $valori, $reflection);
+        self::ImpostoIValoriNellaIstanzaDiClasse($parent, $iso, !$filterColumns, $properties, $tipi, $univoci, $tableObj, $valori, $reflection);
 
         return $tableObj;
     }
@@ -254,7 +261,7 @@ class BaseModel
      * @return void
      * @throws \ReflectionException
      */
-    private static function ImpostoIValoriNellaIstanzaDiClasse(string $iso, bool $cache, array $properties, array $tipi, array $univoci, object &$tableObj, $valori, \ReflectionClass $reflection): void
+    private static function ImpostoIValoriNellaIstanzaDiClasse(int $parent, string $iso, bool $cache, array $properties, array $tipi, array $univoci, object &$tableObj, $valori, \ReflectionClass $reflection): void
     {
         //in questo modo se salvo questa istanza a cui rimane l'id a -1, ovvero non viene recuperato l'id, mi tira un'errore
         $tableObj->Id = -1;
@@ -382,9 +389,9 @@ class BaseModel
         $tableName = get_class($tableObj);
 
         //salvo in cache ogni valore univoco
-        foreach ($univoci as $univoco)
+        foreach ($univoci as $uniqueColumn)
         {
-            $propertyName = str_replace(" ", "_", $univoco);
+            $propertyName = str_replace(" ", "_", $uniqueColumn);
 
             $uniqueValue = $tableObj->$propertyName;
 
@@ -395,7 +402,7 @@ class BaseModel
                 $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
             }
 
-            $searchKey = strtolower("item|" . $tableName . "|" . $univoco . "|" . $uniqueValue . "|" . $iso);
+            $searchKey = strtolower("item|" . $tableName . "|" . $parent . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
 
             \Common\Cache::SetDati($searchKey, $tableObj);
         }
@@ -774,7 +781,7 @@ class BaseModel
                 $tableObj = $reflection->newInstance();
 
                 //imposto i valori nella istanza di classe
-                self::ImpostoIValoriNellaIstanzaDiClasse($iso, !$filterColumns, $properties, $tipi, $univoci, $tableObj, $valori, $reflection);
+                self::ImpostoIValoriNellaIstanzaDiClasse($parentId, $iso, !$filterColumns, $properties, $tipi, $univoci, $tableObj, $valori, $reflection);
 
                 $cache[] = $tableObj;
 
