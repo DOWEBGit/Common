@@ -142,7 +142,7 @@ class BaseModel
         if ($uniqueValue instanceof DateTime)
         {
             // se lo è, lo formatta come stringa
-            $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
+            $uniqueValue = $uniqueValue->format('d-m-Y H:i:s');  //nel named pipe viene letto in questo formato
         }
 
         $searchKey = strtolower("item|" . $tableName . "|" . $parent . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
@@ -399,7 +399,7 @@ class BaseModel
             if ($uniqueValue instanceof DateTime)
             {
                 // se lo è, lo formatta come stringa
-                $uniqueValue = $uniqueValue->format('Y-m-d H:i:s');
+                $uniqueValue = $uniqueValue->format('d-m-Y H:i:s'); //nel named pipe viene letto in questo formato
             }
 
             $searchKey = strtolower("item|" . $tableName . "|" . $parent . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
