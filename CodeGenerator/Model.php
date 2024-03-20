@@ -148,7 +148,7 @@ foreach ($dati as $index => $dato)
                     }
                     else
                     {
-                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $identificativoRef . ", $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
                         $getItemUnivoche .= $tab . "{\n";
                         $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $identificativoRef . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
                         $getItemUnivoche .= $tab . "}\n";
@@ -182,7 +182,7 @@ foreach ($dati as $index => $dato)
                     {
                         $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\DateTime $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
                         $getItemUnivoche .= $tab . "{\n";
-                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . lcfirst($identificativo) . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
                         $getItemUnivoche .= $tab . "}\n";
                     }
                 }
@@ -211,7 +211,7 @@ foreach ($dati as $index => $dato)
                     {
                         $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(int $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
                         $getItemUnivoche .= $tab . "{\n";
-                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . lcfirst($identificativo) . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
                         $getItemUnivoche .= $tab . "}\n";
                     }
                 }
@@ -248,7 +248,7 @@ foreach ($dati as $index => $dato)
                     {
                         $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(string $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
                         $getItemUnivoche .= $tab . "{\n";
-                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), '" . $colonna->Identificativo . "', $" . lcfirst($identificativo) . ", $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
                         $getItemUnivoche .= $tab . "}\n";
                     }
                 }
