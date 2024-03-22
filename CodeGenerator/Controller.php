@@ -22,7 +22,7 @@ foreach ($dati as $index => $dato)
     $parent = str_replace(" ", "_", $parent);
 
     if ($parent == "")
-        $parent = "ModelBase";
+        $parent = "baseModel";
 
     $code = "";
 
@@ -43,8 +43,9 @@ foreach ($dati as $index => $dato)
 
     $code .=
         $tab . "/**\n" .
-        $tab . "* @var \Model\\$nomeClasse \$$lowerClass\n" .
+        $tab . "* @var \Model\\$nomeClasse | null \$$lowerClass\n" .
         $tab . "* @noinspection PhpUnused\n" .
+        $tab . "* @noinspection PhpParameterNameChangedDuringInheritanceInspection\n" .
         $tab . "*/\n" .
         $tab . "public static function OnSave(\Common\Base\BaseModel \$$lowerClass = null): string\n" .
         $tab . "{\n" .
@@ -53,10 +54,8 @@ foreach ($dati as $index => $dato)
 
         $tab . "/**\n";
 
-    if ($parent != "ModelBase")
-        $code .= $tab . "* @var \Model\\$parent \$$parent\n";
-
-    $parent = strtolower($parent);
+    if ($parent != "baseModel")
+        $code .= $tab . "* @var \Model\\$parent | null \$$parent\n";
 
     $code .= $tab . "* @noinspection PhpUnused\n" .
         $tab . "*/\n" .
