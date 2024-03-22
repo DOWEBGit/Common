@@ -148,9 +148,9 @@ foreach ($dati as $index => $dato)
                     }
                     else
                     {
-                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $identificativoRef . ", $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
                         $getItemUnivoche .= $tab . "{\n";
-                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $identificativoRef . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $identificativo . "', uniqueValue: $" . lcfirst($identificativo) . "->Id, iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
                         $getItemUnivoche .= $tab . "}\n";
                     }
                 }
