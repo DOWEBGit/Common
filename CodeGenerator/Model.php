@@ -141,17 +141,37 @@ foreach ($dati as $index => $dato)
 
                     if ($parentName !== "")
                     {
-                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, \Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
-                        $getItemUnivoche .= $tab . "{\n";
-                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $identificativo . "', uniqueValue: $" . lcfirst($identificativo) . "->Id, iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
-                        $getItemUnivoche .= $tab . "}\n";
+                        if (strtolower($identificativo) == "iso")
+                        {
+                            $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, \Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                            $getItemUnivoche .= $tab . "{\n";
+                            $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $identificativo . "', uniqueValue: $" . lcfirst($identificativo) . "->Id, iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                            $getItemUnivoche .= $tab . "}\n";
+                        }
+                        else
+                        {
+                            $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, \Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$_iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                            $getItemUnivoche .= $tab . "{\n";
+                            $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $identificativo . "', uniqueValue: $" . lcfirst($identificativo) . "->Id, iso: $" . "_iso, selectColumns: $" . "selectColumns);\n";
+                            $getItemUnivoche .= $tab . "}\n";
+                        }
                     }
                     else
                     {
-                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
-                        $getItemUnivoche .= $tab . "{\n";
-                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $identificativo . "', uniqueValue: $" . lcfirst($identificativo) . "->Id, iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
-                        $getItemUnivoche .= $tab . "}\n";
+                        if (strtolower($identificativo) == "iso")
+                        {
+                            $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$_iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                            $getItemUnivoche .= $tab . "{\n";
+                            $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $identificativo . "', uniqueValue: $" . lcfirst($identificativo) . "->Id, iso: $" . "_iso, selectColumns: $" . "selectColumns);\n";
+                            $getItemUnivoche .= $tab . "}\n";
+                        }
+                        else
+                        {
+                            $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $identificativoRef . " $" . lcfirst($identificativo) . ", string \$iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                            $getItemUnivoche .= $tab . "{\n";
+                            $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $identificativo . "', uniqueValue: $" . lcfirst($identificativo) . "->Id, iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                            $getItemUnivoche .= $tab . "}\n";
+                        }
                     }
                 }
 
@@ -237,19 +257,39 @@ foreach ($dati as $index => $dato)
 
                     $getItemUnivoche .= $tab . "/** @noinspection PhpIncompatibleReturnTypeInspection */\n";
 
-                    if ($parentName !== "")
+                    if (strtolower($identificativo) == "iso")
                     {
-                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, string $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
-                        $getItemUnivoche .= $tab . "{\n";
-                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
-                        $getItemUnivoche .= $tab . "}\n";
+                        if ($parentName !== "")
+                        {
+                            $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, string $" . lcfirst($identificativo) . ", string $" . "_iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                            $getItemUnivoche .= $tab . "{\n";
+                            $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "_iso, selectColumns: $" . "selectColumns);\n";
+                            $getItemUnivoche .= $tab . "}\n";
+                        }
+                        else
+                        {
+                            $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(string $" . lcfirst($identificativo) . ", string $" . "_iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                            $getItemUnivoche .= $tab . "{\n";
+                            $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "_iso, selectColumns: $" . "selectColumns);\n";
+                            $getItemUnivoche .= $tab . "}\n";
+                        }
                     }
                     else
                     {
-                        $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(string $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
-                        $getItemUnivoche .= $tab . "{\n";
-                        $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
-                        $getItemUnivoche .= $tab . "}\n";
+                        if ($parentName !== "")
+                        {
+                            $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(\Model\\" . $parentName . " \$parent, string $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                            $getItemUnivoche .= $tab . "{\n";
+                            $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), parent: \$parent->Id, uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                            $getItemUnivoche .= $tab . "}\n";
+                        }
+                        else
+                        {
+                            $getItemUnivoche .= $tab . "public static function GetItemBy" . $identificativo . "(string $" . lcfirst($identificativo) . ", string $" . "iso = '', array $" . "selectColumns = []) : ?" . $nomeClasse . "\n";
+                            $getItemUnivoche .= $tab . "{\n";
+                            $getItemUnivoche .= $tab . $tab . "return BaseModel::GetItem(new " . $nomeClasse . "(), uniqueColumn: '" . $colonna->Identificativo . "', uniqueValue: $" . lcfirst($identificativo) . ", iso: $" . "iso, selectColumns: $" . "selectColumns);\n";
+                            $getItemUnivoche .= $tab . "}\n";
+                        }
                     }
                 }
 
