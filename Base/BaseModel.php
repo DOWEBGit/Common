@@ -246,7 +246,6 @@ class BaseModel
             return null;
         }
 
-        //imposto i valori nella istanza di classe
         self::ImpostoIValoriNellaIstanzaDiClasse($parent, $iso, !$filterColumns, $properties, $tipi, $univoci, $tableObj, $valori, $reflection);
 
         return $tableObj;
@@ -342,10 +341,10 @@ class BaseModel
                     }
                     break;
 
+                case "DataOra":
                 case "Data":
                     {
                         $old = '_' . $prop->name;
-
 
                         $len = strlen($valori[$i]);
 
@@ -354,6 +353,17 @@ class BaseModel
                         if ($len == 10)
                         {
                             $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' . "00:00:00";
+
+                            $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
+
+                            $propertyOld = $reflection->getProperty($old);
+                            $propertyOld->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
+                        }
+
+                        if ($len == 16)
+                        {
+                            $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' .
+                                $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':00';
 
                             $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
 
@@ -483,6 +493,36 @@ class BaseModel
 
                         break;
                     }
+
+                    case "DataOra":
+                    {
+                        if ($property->name == "Aggiornamento" || $property->name == "Inserimento")
+                        {
+                            break;
+                        }
+
+                        $dateNew = $propertyValue->format('d/m/Y H:i:s');
+
+                        if ($nuovo)
+                        {
+                            $colonne[] = [$nome, $dateNew];
+                        }
+                        else
+                        {
+                            $propertyOld = $reflection->getProperty("_" . $property->name);
+                            $oldValue = $propertyOld->getValue($this);
+                            $dateOld = $oldValue->format('d/m/Y H:i:s');
+
+                            //salvo solo se il valore è stato modificato
+                            if ($dateOld != $dateNew)
+                            {
+                                $colonne[] = [$nome, $dateNew];
+                            }
+                        }
+
+                        break;
+                    }
+
 
                     case "Data":
                     {

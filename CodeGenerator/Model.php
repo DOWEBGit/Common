@@ -183,6 +183,7 @@ foreach ($dati as $index => $dato)
                 break;
             }
 
+            case "DataOra":
             case "Data":
             {
                 if ($colonna->Univoco === "true" && $colonna->Obbligatorio === "true")
@@ -345,6 +346,14 @@ foreach ($dati as $index => $dato)
             case "Data":
             {
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Data', " . $colonnaDettagliata->Univoco . ")]\n";
+                $code .= $tab . "public \DateTime $" . $identificativo . ";\n";
+                $code .= $tab . "private \DateTime $" . "_" . $identificativo . ";\n\n";
+                break;
+            }
+
+            case "DataOra":
+            {
+                $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'DataOra', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "public \DateTime $" . $identificativo . ";\n";
                 $code .= $tab . "private \DateTime $" . "_" . $identificativo . ";\n\n";
                 break;
