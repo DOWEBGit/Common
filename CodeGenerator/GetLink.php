@@ -97,9 +97,9 @@ foreach ($pagine as $pagina)
     $paginaNome = str_replace(" ", "_", $pagina->Nome);
 
     $code .=
-        $tab . "public static function " . $url . "(array \$model = null) : string\n" .
+        $tab . "public static function " . $url . "(array \$model = null, bool \$includiDominio = false) : string\n" .
         $tab . "{\n" .
-        $tab . $tab . "return \Common\Convert::GetEncodedLink(\Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::" . $paginaNome . ") . self::GetTokens(\$model));\n" .
+        $tab . $tab . "return \Common\Convert::GetEncodedLink(\Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::" . $paginaNome . ", \$includiDominio) . self::GetTokens(\$model));\n" .
         $tab . "}\n\n";
 }
 
