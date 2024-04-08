@@ -113,7 +113,7 @@ class Check
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 
-    public static function IsTCellulare($phone): bool
+    public static function IsCellulare($phone): bool
     {
         //l'ho usato per Danzi per inviare gli SMS delle visite e mi pare fungere bene, chiaro che servirebbe un check magari
         //dei prefissi 'veri'
