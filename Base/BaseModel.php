@@ -693,6 +693,15 @@ class BaseModel
         bool   $encode = false,
         array  $selectColumns = [])
     {
+        for ($i = 0; $i < count($whereValues); $i++)
+        {
+            if ($whereValues[$i] instanceof \DateTime)
+                $whereValues[$i] = $whereValues[$i]->format("d/m/Y H:i");
+
+            if ($whereValues[$i] instanceof \DateTimeImmutable)
+                $whereValues[$i] = $whereValues[$i]->format("d/m/Y H:i");
+        }
+
         $searchKey = strtolower("list|" .
                                 $tableName . "|" .
                                 $item4page . "|" .
