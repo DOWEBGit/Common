@@ -627,9 +627,20 @@
         });
     }
 
+    function getOffset(el) {
+        const rect = el.getBoundingClientRect();
+        return {
+            left: rect.left + window.scrollX,
+            top: rect.top + window.scrollY
+        };
+    }
+
     function TempReadAllId(message)
     {
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
+
+        var labelDanger = []
+
         postInputs.forEach(function (input)
         {
             let id = input.id;
@@ -643,18 +654,39 @@
                     label.setAttribute('for', id);
                     label.classList.add('danger');
                     input.parentNode.insertBefore(label, input.nextSibling);
+
                 }
                 label.innerHTML = value;
+
+                labelDanger.push(label);
+
             } else if (label)
             {
                 label.parentNode.removeChild(label);
             }
         });
+
         if (message !== '')
         {
             let parser = new DOMParser();
             alert(parser.parseFromString(message, 'text/html').documentElement.textContent);
         }
+
+        //altezza di default, non faccio una mazza se quando arrivo in fondo il valore è ancora questo
+        let labelHeight = -1;
+
+        labelDanger.forEach(function (label)
+        {
+            let input = document.getElementById(label.attributes.getNamedItem("for").value);
+
+            let top = getOffset(input).top - 10;
+
+            if ((labelHeight == -1) || (labelHeight > top))
+                labelHeight = top;
+        });
+
+        if (labelHeight !== -1)
+            window.scrollTo(0, labelHeight);
     }
 
     // Funzione per salvare lo stato dei valori degli input
