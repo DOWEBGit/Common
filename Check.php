@@ -112,4 +112,94 @@ class Check
         // Utilizza la funzione filter_var per verificare se la stringa è un indirizzo email valido
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
+
+    public static function IsCellulare(string $phone): bool
+    {
+        //l'ho usato per Danzi per inviare gli SMS delle visite e mi pare fungere bene, chiaro che servirebbe un check magari
+        //dei prefissi 'veri'
+
+        //tolgo il +39 o +039 se c'è
+
+        if (str_starts_with($phone, "+39"))
+            $phone = substr($phone, 3);
+        else if (str_starts_with($phone, "+039"))
+            $phone = substr($phone, 4);
+
+        //non voglio spazi
+        $phone = str_replace(" ", "", $phone);
+
+        $filtered_phone_number = filter_var($phone, FILTER_SANITIZE_NUMBER_INT);
+        $phone_to_check = str_replace("-", "", $filtered_phone_number);
+
+        $arrayPrefissi = array();
+
+        #region Fastweb
+        $arrayPrefissi[] = "373";
+        $arrayPrefissi[] = "375";
+        #endregion
+
+        #region Iliad
+        $arrayPrefissi[] = "351";
+        $arrayPrefissi[] = "352";
+        #endregion
+
+        #region Rete Ferroviaria Italiana
+        $arrayPrefissi[] = "313";
+        #endregion
+
+        #region TIM
+        $arrayPrefissi[] = "330";
+        $arrayPrefissi[] = "331";
+        $arrayPrefissi[] = "333";
+        $arrayPrefissi[] = "334";
+        $arrayPrefissi[] = "335";
+        $arrayPrefissi[] = "336";
+        $arrayPrefissi[] = "337";
+        $arrayPrefissi[] = "338";
+        $arrayPrefissi[] = "339";
+        $arrayPrefissi[] = "360";
+        $arrayPrefissi[] = "366";
+        $arrayPrefissi[] = "368";
+        #endregion
+
+        #region Vodafone Italia
+        $arrayPrefissi[] = "340";
+        $arrayPrefissi[] = "342";
+        $arrayPrefissi[] = "344";
+        $arrayPrefissi[] = "345";
+        $arrayPrefissi[] = "346";
+        $arrayPrefissi[] = "347";
+        $arrayPrefissi[] = "348";
+        $arrayPrefissi[] = "349";
+        #endregion
+
+        #region Wind Tre
+        $arrayPrefissi[] = "320";
+        $arrayPrefissi[] = "322";
+        $arrayPrefissi[] = "323";
+        $arrayPrefissi[] = "324";
+        $arrayPrefissi[] = "327";
+        $arrayPrefissi[] = "328";
+        $arrayPrefissi[] = "329";
+        $arrayPrefissi[] = "380";
+        $arrayPrefissi[] = "388";
+        $arrayPrefissi[] = "389";
+        $arrayPrefissi[] = "390";
+        $arrayPrefissi[] = "391";
+        $arrayPrefissi[] = "392";
+        $arrayPrefissi[] = "393";
+        $arrayPrefissi[] = "397";
+        #endregion
+
+        //piglio le prime tre cifre del numero
+        $prefisso = substr($phone, 0, 3);
+
+        if (!in_array($prefisso, $arrayPrefissi))
+            return false;
+
+        if (strlen($phone_to_check) < 9 || strlen($phone_to_check) > 14)
+            return false;
+        else
+            return true;
+    }
 }
