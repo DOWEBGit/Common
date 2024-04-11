@@ -7,4 +7,6 @@ include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/Pagi
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/PagineDatiControlliEnum.php');
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/PagineDatiEnum.php');
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/PagineEnum.php');
+include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/ModelEnum.php');
+include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/PagineInterneEnum.php');
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/Model.php');

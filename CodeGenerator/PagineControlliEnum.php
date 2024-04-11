@@ -24,7 +24,7 @@ $code = "<?php\n";
 $code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code\\Enum;\n\n";
 
-$code .= "use Common\Attribute\EnumAttribute as EnumAttribute;\n\n";
+$code .= "use Common\Attribute\ControlliAttribute as ControlliAttribute;\n\n";
 
 $pagine = [];
 
@@ -62,7 +62,7 @@ foreach ($pagineObj as $index => $pagina)
 
         $valCon = $val . str_replace(" ", "_", $controllo->Identificativo);
 
-        $code .= $tab . "#[EnumAttribute(\"" . $pagina . "\", \"" . $controllo->Identificativo . "\", \"" . $tipoInput . "\", " . ($decode ? "true" : "false") . ")]\n";
+        $code .= $tab . "#[ControlliAttribute(\"" . $pagina . "\", \"" . $controllo->Identificativo . "\", \"" . $tipoInput . "\", " . ($decode ? "true" : "false") . ")]\n";
         $code .= $tab . "case " . $valCon . ";\n";
     }
 }

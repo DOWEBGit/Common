@@ -42,6 +42,24 @@ class DictionaryIntInt implements \IteratorAggregate, \ArrayAccess
         return array_key_exists($key, $this->dictionary);
     }
 
+    /**
+     * Tenta di ottenere il valore associato a una chiave specifica.
+     *
+     * @param int $key La chiave dell'elemento da cercare.
+     * @param string|null $value La stringa in cui memorizzare il valore, se trovato.
+     * @return bool True se l'elemento è stato trovato, altrimenti false.
+     */
+    public function TryGet(int $key, ?int &$value): bool
+    {
+        if ($this->ContainsKey($key)) {
+            $value = $this->dictionary[$key]->value;
+            return true;
+        }
+
+        $value = null;
+        return false;
+    }
+
     public function getIterator(): \Iterator
     {
         return new \ArrayIterator($this->dictionary);

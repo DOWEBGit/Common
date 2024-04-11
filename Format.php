@@ -43,6 +43,28 @@ class Format
     }
 
     /**
+     * @param int $meseNumero <p>Il numero del mese dal quale il nome viene 'estratto'</p>
+     * @param string $locale <p>Il locale del nome del mese da ritornare</p>
+     * @return string <p>Ritorna il nome del mese in base a <b>$meseNumero</b> e <b>$locale</b>, se $locale non viene specificato, allora di default viene usato l'italiano o
+     * <b>$_GET['iso']</b> se presente</p>
+     * <br/>
+     * <p>Ritorna <b>stringa vuota</b> se <b>$meseNumero</b> non è un mese valido (<1 o >12)</p>
+     */
+    public static function DataMeseNome(int $meseNumero, string $locale = "it_IT"): string
+    {
+        if (($meseNumero < 1) || ($meseNumero > 12))
+            return "";
+
+        if (isset($_GET['iso']))
+            $locale = $_GET['iso'].'_'.strtoupper($_GET['iso']);
+
+        $formatter = new \IntlDateFormatter($locale);
+        $formatter->setPattern('MMMM');
+
+        return ucfirst($formatter->format(mktime(0, 0, 0, $meseNumero)));
+    }
+
+    /**
      * Converte un oggetto DateTime in un numero intero lungo per il database.
      * È un metodo super ottimizzato che in genere è 3 o 4 volte più veloce di .ToString("yyyyMMddHHmmss").
      *

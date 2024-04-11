@@ -3,7 +3,6 @@ declare(strict_types=1);
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("expires: -1");
 
-//CREO L'ENUM PER LE ETICHETTE CHE FINISCE DENTRO CODE/ENUM/ETICHETTEENUM.PHP
 
 $obj = PHPDOWEB();
 
@@ -16,33 +15,34 @@ $enumPath = $basePath . '\\Code\\Enum';
 if (!is_dir($enumPath))
     mkdir($enumPath, 0777, true);
 
-$pagine = [];
-
-$pagineObj = $obj->PagineDatiGetList()->Pagine;
-
 $code = "<?php\n";
 $code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code\\Enum;\n\n";
 
-$code .= "use Common\Attribute\ControlliAttribute as ControlliAttribute;\n\n";
+$code .= "use Common\Attribute\ModelAttribute as ModelAttribute;\n\n";
 
-$code .= "enum PagineDatiEnum : string\n";
+$pagine = [];
+
+$code .= "enum ModelEnum\n";
 $code .= "{\n";
 
-foreach ($pagineObj as $index => $pagina)
+
+$arr = $obj->DatiGetList();
+
+$dati = $arr->Dati;
+
+foreach ($dati as $index => $dato)
 {
-    $val = $pagina->Nome;
+    $nomeClasse = str_replace(" ", "_", $dato->Nome);
 
-    $pagine[] = $pagina->Nome;
 
-    $val = str_replace(" ", "_", $val);
-
-    $code .= $tab . "case " . $val . " = \"" . $pagina->Nome . "\";\n";
+        $code .= $tab . "#[ModelAttribute(\"" . $dato->Nome . "\")]\n";
+        $code .= $tab . "case " . $nomeClasse . ";\n";
 }
 
 $code .= "}";
 
-$file = $enumPath . "\\PagineDatiEnum.php";
+$file = $enumPath . "\\ModelEnum.php";
 
 if (is_file($file))
 {

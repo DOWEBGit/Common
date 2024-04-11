@@ -8,7 +8,7 @@ use Attribute;
 //la uso per mettere il valore originale in stringa sopra all'enum
 
 #[Attribute]
-class EnumAttribute
+class ControlliAttribute
 {
     public string $pagina = "";
     public string $identificativo = "";

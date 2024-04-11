@@ -3,7 +3,8 @@ declare(strict_types=1);
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("expires: -1");
 
-//CREO L'ENUM PER LE ETICHETTE CHE FINISCE DENTRO CODE/ENUM/ETICHETTEENUM.PHP
+
+//CREO L'ENUM PER LE PAGINE INTERNE, DA COMPLETATE, FINISCE DENTRO CODE/ENUM/PAGINEINTERNEENUM.PHP
 
 $obj = PHPDOWEB();
 
@@ -14,19 +15,21 @@ $tab = "    ";
 $enumPath = $basePath . '\\Code\\Enum';
 
 if (!is_dir($enumPath))
+{
     mkdir($enumPath, 0777, true);
+}
 
-$pagine = [];
-
-$pagineObj = $obj->PagineDatiGetList()->Pagine;
+$pagineObj = $obj->AdminPagineInterneGetList()->Pagine;
 
 $code = "<?php\n";
 $code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code\\Enum;\n\n";
 
-$code .= "use Common\Attribute\ControlliAttribute as ControlliAttribute;\n\n";
+$code .= "use Common\Attribute\PagineInterneAttribute as PagineInterneAttribute;\n\n";
 
-$code .= "enum PagineDatiEnum : string\n";
+$pagine = [];
+
+$code .= "enum PagineInterneEnum : string\n";
 $code .= "{\n";
 
 foreach ($pagineObj as $index => $pagina)
@@ -37,12 +40,13 @@ foreach ($pagineObj as $index => $pagina)
 
     $val = str_replace(" ", "_", $val);
 
+    $code .= $tab . "#[PagineInterneAttribute(" . $pagina->Id . ")]\n";
     $code .= $tab . "case " . $val . " = \"" . $pagina->Nome . "\";\n";
 }
 
 $code .= "}";
 
-$file = $enumPath . "\\PagineDatiEnum.php";
+$file = $enumPath . "\\PagineInterneEnum.php";
 
 if (is_file($file))
 {

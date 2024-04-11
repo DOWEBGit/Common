@@ -15,7 +15,7 @@ class DictionaryIntArray implements \IteratorAggregate, \ArrayAccess
         $this->dictionary = array();
     }
 
-    public function Add(int $key, [] $value): bool
+    public function Add(int $key, array $value): bool
     {
         if ($this->ContainsKey($key))
         {
@@ -26,11 +26,27 @@ class DictionaryIntArray implements \IteratorAggregate, \ArrayAccess
         return true;
     }
 
+    public function AddOrUpdate(int $key, array $value): void
+    {
+        $this->dictionary[$key] = $value;
+    }
+
     public function Remove(int $key): bool
     {
         if ($this->ContainsKey($key))
         {
             unset($this->dictionary[$key]);
+            return true;
+        }
+
+        return false;
+    }
+
+    public function TryGet(int $key, array &$value): bool
+    {
+        if ($this->ContainsKey($key))
+        {
+            $value = $this->dictionary[$key];
             return true;
         }
 
@@ -62,11 +78,11 @@ class DictionaryIntArray implements \IteratorAggregate, \ArrayAccess
         return $this->dictionary[$offset] ?? null;
     }
 
-    public function offsetSet(mixed $offset, [] $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         if (is_null($offset))
         {
-            $this->Add($value, 0);
+            $this->Add(0, $value);
         }
         else
         {

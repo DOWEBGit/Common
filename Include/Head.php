@@ -134,14 +134,14 @@
         const call = async () =>
         {
             var divName = "View" + viewId;
-            var div = document.getElementById(divName);
-            if (div == null)
+            var oldObj = document.getElementById(divName);
+            if (oldObj == null)
             {
                 console.log("Non trovo la view nel div " + divName);
                 return;
             }
 
-            let viewTag = div.getAttribute("view");
+            let viewTag = oldObj.getAttribute("view");
 
             if (viewTag == null)
             {
@@ -175,16 +175,36 @@
                 body: JSON.stringify(array)
             });
 
-            let nuovo = div.cloneNode(false);
-            nuovo.innerHTML = await response.text();
+            //oldObj.innerHTML = await response.text();
+
+            //console.log(oldObj);
+
+            let newOjb = oldObj.cloneNode(false);
+            newOjb.innerHTML = await response.text();
 
             let dd = new diffDOM.DiffDOM({
                 valueDiffing: false,
             });
 
-            let diff = dd.diff(div, nuovo);
+            let diff = dd.diff(oldObj, newOjb);
 
-            dd.apply(div, diff);
+            //console.log(diff);
+
+            dd.apply(oldObj, diff);
+
+            //let result = dd.apply(oldObj, diff);
+
+            // if (result)
+            // {
+            //     console.log("no problem!")
+            // }
+            // else
+            // {
+            //     console.log("diff could not be applied")
+            // }
+
+            //console.log(newOjb);
+
 
             //KeepRestore(div);
 

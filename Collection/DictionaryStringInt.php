@@ -5,7 +5,7 @@ namespace Common\Collection;
 
 /*
  *  esempio type hint
- *  @var $servizi \Common\Collection\IntStringValue[]
+ *  @var $servizi \Common\Collection\StringIntValue[]
     foreach ($servizi as $servizio)
     {
         $servizio->value;
@@ -16,10 +16,10 @@ namespace Common\Collection;
  * @property-read int $key
  * @property-read string $value
  */
-class DictionaryIntString implements \IteratorAggregate
+class DictionaryStringInt implements \IteratorAggregate
 {
     /**
-     * @var IntStringValue[]
+     * @var StringIntValue[]
      */
     private array $dictionary;
 
@@ -34,17 +34,17 @@ class DictionaryIntString implements \IteratorAggregate
     /**
      * Aggiunge un elemento al dizionario.
      *
-     * @param int $key La chiave dell'elemento da aggiungere.
-     * @param string $value Il valore dell'elemento da aggiungere.
+     * @param string $key La chiave dell'elemento da aggiungere.
+     * @param int $value Il valore dell'elemento da aggiungere.
      * @return bool True se l'elemento è stato aggiunto con successo, altrimenti false.
      */
-    public function Add(int $key, string $value): bool
+    public function Add(string $key, int $value): bool
     {
         if ($this->ContainsKey($key)) {
             return false;
         }
 
-        $this->dictionary[$key] = new IntStringValue($key, $value);
+        $this->dictionary[$key] = new StringIntValue($key, $value);
         return true;
     }
 
@@ -54,7 +54,7 @@ class DictionaryIntString implements \IteratorAggregate
      * @param int $key La chiave dell'elemento da rimuovere.
      * @return bool True se l'elemento è stato rimosso con successo, altrimenti false.
      */
-    public function Remove(int $key): bool
+    public function Remove(string $key): bool
     {
         if ($this->ContainsKey($key)) {
             unset($this->dictionary[$key]);
@@ -67,11 +67,11 @@ class DictionaryIntString implements \IteratorAggregate
     /**
      * Tenta di ottenere il valore associato a una chiave specifica.
      *
-     * @param int $key La chiave dell'elemento da cercare.
-     * @param string|null $value La stringa in cui memorizzare il valore, se trovato.
+     * @param string $key La chiave dell'elemento da cercare.
+     * @param int|null $value Il numero in cui memorizzare il valore, se trovato.
      * @return bool True se l'elemento è stato trovato, altrimenti false.
      */
-    public function TryGet(int $key, ?string &$value): bool
+    public function TryGet(string $key, ?int &$value): bool
     {
         if ($this->ContainsKey($key)) {
             $value = $this->dictionary[$key]->value;
@@ -88,7 +88,7 @@ class DictionaryIntString implements \IteratorAggregate
      * @return \ArrayIterator
      */
 
-    /** @var $servizi \Common\Collection\IntStringValue[] */
+    /** @var $servizi \Common\Collection\StringIntValue[] */
     public function getIterator(): \Iterator
     {
         return new \ArrayIterator($this->dictionary);
@@ -110,7 +110,7 @@ class DictionaryIntString implements \IteratorAggregate
     public function SortValueAsc(): void
     {
         usort($this->dictionary, function ($a, $b) {
-            return strcmp($a->value, $b->value);
+            return strcmp($a->key, $b->key);
         });
     }
 
@@ -120,7 +120,7 @@ class DictionaryIntString implements \IteratorAggregate
     public function SortValueDesc(): void
     {
         usort($this->dictionary, function ($a, $b) {
-            return strcmp($b->value, $a->value);
+            return strcmp($b->key, $a->key);
         });
     }
 
@@ -130,7 +130,7 @@ class DictionaryIntString implements \IteratorAggregate
      * @param int $key La chiave da controllare.
      * @return bool True se la chiave è presente, altrimenti false.
      */
-    private function ContainsKey(int $key): bool
+    private function ContainsKey(string $key): bool
     {
         return array_key_exists($key, $this->dictionary);
     }
