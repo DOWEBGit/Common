@@ -655,7 +655,7 @@
         };
     }
 
-    function TempReadAllId(message)
+    function TempReadAllId(message, scroll = false)
     {
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
 
@@ -692,21 +692,24 @@
             alert(parser.parseFromString(message, 'text/html').documentElement.textContent);
         }
 
-        //altezza di default, non faccio una mazza se quando arrivo in fondo il valore è ancora questo
-        let labelHeight = -1;
-
-        labelDanger.forEach(function (label)
+        if (scroll)
         {
-            let input = document.getElementById(label.attributes.getNamedItem("for").value);
+            //altezza di default, non faccio una mazza se quando arrivo in fondo il valore è ancora questo
+            let labelHeight = -1;
 
-            let top = getOffset(input).top - 10;
+            labelDanger.forEach(function (label)
+            {
+                let input = document.getElementById(label.attributes.getNamedItem("for").value);
 
-            if ((labelHeight == -1) || (labelHeight > top))
-                labelHeight = top;
-        });
+                let top = getOffset(input).top - 10;
 
-        if (labelHeight !== -1)
-            window.scrollTo(0, labelHeight);
+                if ((labelHeight == -1) || (labelHeight > top))
+                    labelHeight = top;
+            });
+
+            if (labelHeight !== -1)
+                window.scrollTo(0, labelHeight);
+        }
     }
 
     // Funzione per salvare lo stato dei valori degli input
