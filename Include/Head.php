@@ -487,7 +487,18 @@
             {
                 data.text().then(output =>
                 {
-                    let jsonArray = JSON.parse(output);
+                    let jsonArray = "";
+
+                    try
+                    {
+                        jsonArray = JSON.parse(output);
+                    }
+                    catch
+                    {
+                        console.log(output);
+                        return;
+                    }
+
                     document.getElementById("TempState").value = jsonArray[0];
                     document.getElementById("WindowState").value = jsonArray[1];
                     lock.release();
