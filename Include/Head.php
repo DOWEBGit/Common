@@ -536,7 +536,8 @@
             {
                 json = decodeURIComponent(escape(atob(json)));
                 jsonArray = JSON.parse(json);
-            } catch (e)
+            }
+            catch (e)
             {
             }
         }
