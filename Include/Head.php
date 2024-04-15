@@ -67,7 +67,7 @@
     var loader = null;
     var loaderContainer = null;
 
-    function ReloadViewAll(preload = 200)
+    function ReloadViewAll(preload = 200, optimize = false)
     {
         ReloadViewBefore();
 
@@ -92,7 +92,7 @@
 
     }
 
-    function ReloadView(viewName, preload = 200)
+    function ReloadView(viewName, preload = 200, optimize = false)
     {
         ReloadViewBefore();
 
@@ -126,10 +126,10 @@
 
         let viewId = elementi[i].id.replace(/view/gi, ""); //case sensitive
 
-        ReloadViewInternal(viewId);
+        ReloadViewInternal(viewId, optimize);
     }
 
-    function ReloadViewInternal(viewId)
+    function ReloadViewInternal(viewId, optimize)
     {
         const call = async () =>
         {
@@ -175,36 +175,23 @@
                 body: JSON.stringify(array)
             });
 
-            //oldObj.innerHTML = await response.text();
+            if (optimize)
+            {
+                let newOjb = oldObj.cloneNode(false);
+                newOjb.innerHTML = await response.text();
 
-            //console.log(oldObj);
+                let dd = new diffDOM.DiffDOM({
+                    valueDiffing: false,
+                });
 
-            let newOjb = oldObj.cloneNode(false);
-            newOjb.innerHTML = await response.text();
+                let diff = dd.diff(oldObj, newOjb);
 
-            let dd = new diffDOM.DiffDOM({
-                valueDiffing: false,
-            });
-
-            let diff = dd.diff(oldObj, newOjb);
-
-            //console.log(diff);
-
-            dd.apply(oldObj, diff);
-
-            //let result = dd.apply(oldObj, diff);
-
-            // if (result)
-            // {
-            //     console.log("no problem!")
-            // }
-            // else
-            // {
-            //     console.log("diff could not be applied")
-            // }
-
-            //console.log(newOjb);
-
+                dd.apply(oldObj, diff);
+            }
+            else
+            {
+                oldObj.innerHTML = await response.text();
+            }
 
             //KeepRestore(div);
 
@@ -667,7 +654,7 @@
         };
     }
 
-    function TempReadAllId(message, scroll = false)
+    function TempReadAllId(message = "", scroll = false)
     {
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
 
@@ -745,5 +732,62 @@
             }
             WindowWrite(id, value);
         });
+    }
+
+    function WindowReadAllId(message = "", scroll = false)
+    {
+        var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
+
+        var labelDanger = []
+
+        postInputs.forEach(function (input)
+        {
+            let id = input.id;
+            let value = TempRead(id);
+            let label = document.querySelector('label[for="' + id + '"]');
+            if (value.trim() !== '')
+            {
+                if (!label)
+                {
+                    label = document.createElement('label');
+                    label.setAttribute('for', id);
+                    label.classList.add('danger');
+                    input.parentNode.insertBefore(label, input.nextSibling);
+
+                }
+                label.innerHTML = value;
+
+                labelDanger.push(label);
+
+            } else if (label)
+            {
+                label.parentNode.removeChild(label);
+            }
+        });
+
+        if (message !== '')
+        {
+            let parser = new DOMParser();
+            alert(parser.parseFromString(message, 'text/html').documentElement.textContent);
+        }
+
+        if (scroll)
+        {
+            //altezza di default, non faccio una mazza se quando arrivo in fondo il valore è ancora questo
+            let labelHeight = -1;
+
+            labelDanger.forEach(function (label)
+            {
+                let input = document.getElementById(label.attributes.getNamedItem("for").value);
+
+                let top = getOffset(input).top - 10;
+
+                if ((labelHeight == -1) || (labelHeight > top))
+                    labelHeight = top;
+            });
+
+            if (labelHeight !== -1)
+                window.scrollTo(0, labelHeight);
+        }
     }
 </script>
