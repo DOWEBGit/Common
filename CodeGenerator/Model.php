@@ -208,8 +208,8 @@ foreach ($dati as $index => $dato)
                     }
                 }
 
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . " = new \DateTime();\n";
-                $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = new \DateTime();\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . " = \DateTime::createFromFormat('Y-m-d H:i:s', '0001-01-01 00:00:00');\n";
+                $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = \DateTime::createFromFormat('Y-m-d H:i:s', '0001-01-01 00:00:00');\n";
                 break;
             }
 

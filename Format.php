@@ -55,7 +55,7 @@ class Format
         if (($meseNumero < 1) || ($meseNumero > 12))
             return "";
 
-        if (isset($_GET['iso']))
+        if (isset($_GET['iso']) && $_GET['iso'] != "zz")
             $locale = $_GET['iso'].'_'.strtoupper($_GET['iso']);
 
         $formatter = new \IntlDateFormatter($locale);

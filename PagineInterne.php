@@ -10,7 +10,7 @@ class PagineInterne
      * @param array $queryString
      * @return string
      */
-    public static function GetUrl(\Code\Enum\PagineInterneEnum $pagineInternaEnum, array $queryString) : string
+    public static function GetUrl(\Code\Enum\PagineInterneEnum $pagineInternaEnum, array $queryString = []) : string
     {
         //recupero con reflection il valore dell'attributo che contiene l'identificativo
 

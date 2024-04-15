@@ -9,7 +9,7 @@ namespace Common\Collection;
 
 class DictionaryIntHashSet implements \IteratorAggregate
 {
-    private array $dictionary;
+    public array $dictionary;
 
     public function __construct()
     {
