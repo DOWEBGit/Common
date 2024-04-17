@@ -17,7 +17,7 @@ class Convert
 
     public static function ForInputValueBr(string $value): string
     {
-        return self::br2nl(self::ForInputValueBr($value));
+        return self::br2nl(self::ForInputValue($value));
     }
 
     public static function br2nl(string $inputString): string
