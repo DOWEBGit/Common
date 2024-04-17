@@ -65,6 +65,22 @@ class Format
     }
 
     /**
+     * @param string $nomeMese <p>Nome del mese in Italiano da cui estrarre il numero: <b>case insensitive</b></p>
+     * @return int <p>-1 se non trova nulla, altrimenti va da 1 a 12</p>
+     */
+    public static function NumeroMeseDaNomeIT(string $nomeMese): int
+    {
+        $array = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+
+        $result = array_search(strtolower($nomeMese), $array);
+
+        if ($result === false)
+            return -1;
+
+        return $result+1;
+    }
+
+    /**
      * Converte un oggetto DateTime in un numero intero lungo per il database.
      * È un metodo super ottimizzato che in genere è 3 o 4 volte più veloce di .ToString("yyyyMMddHHmmss").
      *
