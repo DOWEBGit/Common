@@ -67,7 +67,7 @@
     var loader = null;
     var loaderContainer = null;
 
-    function ReloadViewAll(preload = 200, optimize = false)
+    function ReloadViewAll(preload = 200)
     {
         ReloadViewBefore();
 
@@ -92,7 +92,7 @@
 
     }
 
-    function ReloadView(viewName, preload = 200, optimize = false)
+    function ReloadView(viewName, preload = 200)
     {
         ReloadViewBefore();
 
@@ -126,10 +126,10 @@
 
         let viewId = elementi[i].id.replace(/view/gi, ""); //case sensitive
 
-        ReloadViewInternal(viewId, optimize);
+        ReloadViewInternal(viewId);
     }
 
-    function ReloadViewInternal(viewId, optimize)
+    function ReloadViewInternal(viewId)
     {
         const call = async () =>
         {
@@ -175,23 +175,7 @@
                 body: JSON.stringify(array)
             });
 
-            if (optimize)
-            {
-                let newOjb = oldObj.cloneNode(false);
-                newOjb.innerHTML = await response.text();
-
-                let dd = new diffDOM.DiffDOM({
-                    valueDiffing: false,
-                });
-
-                let diff = dd.diff(oldObj, newOjb);
-
-                dd.apply(oldObj, diff);
-            }
-            else
-            {
-                oldObj.innerHTML = await response.text();
-            }
+            oldObj.innerHTML = await response.text();
 
             //KeepRestore(div);
 
