@@ -15,6 +15,18 @@ class Convert
         return str_replace("\"", "&quot;", html_entity_decode($value, ENT_QUOTES));
     }
 
+    public static function ForInputValueBr(string $value): string
+    {
+        return self::br2nl(self::ForInputValueBr($value));
+    }
+
+    public static function br2nl(string $inputString): string
+    {
+        $inputString = str_replace("<br />", PHP_EOL, $inputString);
+        $inputString = str_replace("<br/>", PHP_EOL, $inputString);
+        return str_replace("<br>", PHP_EOL, $inputString);
+    }
+
     public static function UrlCompatible(string $input): string
     {
         $input = html_entity_decode($input); //può arrivare encodato da database es.: asddjn&ampklsdmklds
