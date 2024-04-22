@@ -64,6 +64,21 @@ class Format
         return ucfirst($formatter->format(mktime(0, 0, 0, $meseNumero)));
     }
 
+    public static function DataGiornoNome(int $giornoNumero, string $locale = "it_IT"): string
+    {
+        if ($giornoNumero < 0 || $giornoNumero > 6)
+            return "";
+
+        if (isset($_GET['iso']) && $_GET['iso'] !== "zz") {
+            $locale = $_GET['iso'] . '_' . strtoupper($_GET['iso']);
+        }
+
+        $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::FULL, \IntlDateFormatter::NONE);
+        $formatter->setPattern('EEEE');
+
+        return ucfirst($formatter->format(mktime(0, 0, 0, (int)date('n'), $giornoNumero, (int)date('Y'))));
+    }
+
     /**
      * @param string $nomeMese <p>Nome del mese in Italiano da cui estrarre il numero: <b>case insensitive</b></p>
      * @return int <p>-1 se non trova nulla, altrimenti va da 1 a 12</p>
