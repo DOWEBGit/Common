@@ -41,6 +41,21 @@ class PagineInterne
         return $result->NameValues;
     }
 
+    /**uso self::GetQuery, ma formatto l'array come key => value
+     * @return array
+     */
+    public static function FormatQueryString() : array
+    {
+        $result = [];
+
+        $raw = self::GetQuery();
+
+        foreach($raw as $item)
+            $result[$item[0]] = $item[1];
+
+        return $result;
+    }
+
     /**
      * porta alla pagina admin dell'elenco
      * @param \Code\Enum\ModelEnum $modelEnum il nome del dato
