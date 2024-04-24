@@ -168,7 +168,26 @@
                 body: JSON.stringify(array)
             });
 
-            oldObj.innerHTML = await response.text();
+            let json = await response.text();
+            let htmlState = JSON.parse(json);
+
+            //prendo l'html
+            oldObj.innerHTML = htmlState[0];
+
+            let jsonArray = "";
+
+            try
+            {
+                jsonArray = JSON.parse(htmlState[1]);
+            }
+            catch
+            {
+                console.log(htmlState[1]);
+                return;
+            }
+
+            document.getElementById("TempState").value = jsonArray[0];
+            document.getElementById("WindowState").value = jsonArray[1];
 
             //KeepRestore(div);
 

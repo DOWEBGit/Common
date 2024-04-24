@@ -199,7 +199,7 @@ class State
         $GLOBALS['_WindowState'] = $stateArray[1];
     }
 
-    public static function StateToBody() : void
+    public static function StateToBody() : string
     {
         if (!isset($GLOBALS['_TempStateWrite']))
             $resultArray[] = "";
@@ -211,6 +211,6 @@ class State
         else
             $resultArray[] = $GLOBALS['_WindowState'];
 
-        echo json_encode($resultArray);
+        return json_encode($resultArray);
     }
 }

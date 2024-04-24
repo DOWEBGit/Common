@@ -42,8 +42,21 @@ if (!empty($view))
         $reflectionClass = new ReflectionClass($className);
         $obj = $reflectionClass->newInstance();
 
-        // Utilizzo dell'oggetto
+        //salvo l'output del metodo client
+        ob_start();
+
         $obj->Client();
+
+        //prendo l'html
+        $response = ob_get_contents();
+
+        ob_end_clean();
+
+        $result = [];
+        $result[] = $response;
+        $result[] = \Common\State::StateToBody(); //prendo lo state
+
+        echo json_encode($result);
     }
     else
     {
@@ -67,7 +80,7 @@ if (method_exists($className, $action))
     $v = call_user_func(array($obj, $action));
 
     //invia lo stato a javascript, tempState e windowState
-    \Common\State::StateToBody();
+    echo \Common\State::StateToBody();
 }
 else
 {
