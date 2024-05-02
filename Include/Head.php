@@ -430,7 +430,7 @@
         loader = null;
     }
 
-    function Action(controller, action, result)
+    function Action(controller, action, result, keepAlive = false)
     {
         if (!lock.acuire()) // acuired a lock
             return;
@@ -460,7 +460,7 @@
         fetch('/Public/Php/Common/View/Client.php?controller=' + controller + '&action=' + action,
             {
                 method: 'POST',
-                keepalive: true, //The keepalive option can be used to allow the request to outlive the page.
+                keepalive: keepAlive, //The keepalive option can be used to allow the request to outlive the page.
                 headers:
                     {
                         'Content-Type': 'application/json'
