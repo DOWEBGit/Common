@@ -70,9 +70,9 @@ class PagineDati
 
         $reflection = new \ReflectionEnum($identificativoEnum);
 
-        $case =  $reflection->getCase($identificativoEnum->name);
+        $case = $reflection->getCase($identificativoEnum->name);
 
-        $attribute =  $case->getAttributes()[0];
+        $attribute = $case->getAttributes()[0];
 
         $pagina = $attribute->getArguments()[0];
         $identificativo = $attribute->getArguments()[1];
@@ -105,7 +105,7 @@ class PagineDati
     {
         $success = false;
 
-        $key = "I|" .$pagineDatiEnum->name . "|" . $idElemento . "|" . $iso . "|" . $includiDominio;
+        $key = "I|" . $pagineDatiEnum->name . "|" . $idElemento . "|" . $iso . "|" . $includiDominio;
 
         $item = \Common\Cache::GetDatiPagine($key, $success);
 
@@ -161,5 +161,23 @@ class PagineDati
         \Common\Cache::SetDatiPagine($key, $url);
 
         return $url;
+    }
+
+    public static function GetNumeroDaURL(): int
+    {
+        $url = $_GET['url'];
+
+        // Pattern per cercare "-x" nell'URL
+        $pattern = '/-(\d+)/';
+
+        // Cerca "-x" nell'URL utilizzando il pattern
+        if (preg_match($pattern, $url, $matches))
+        {
+            // Se trova il numero, restituiscilo
+            return intval($matches[1]);
+        }
+
+        // Se non trova il numero, restituisci null o un valore di default
+        return 0;
     }
 }

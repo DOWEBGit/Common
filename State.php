@@ -192,11 +192,14 @@ class State
 
         $stateArray = json_decode($json, true);
 
-        if (!is_array($stateArray) || count($stateArray) != 2)
+        if (!is_array($stateArray))
             return;
 
-        $GLOBALS['_TempStateRead'] = $stateArray[0];
-        $GLOBALS['_WindowState'] = $stateArray[1];
+        if (isset($stateArray[0]))
+            $GLOBALS['_TempStateRead'] = $stateArray[0];
+
+        if (isset($stateArray[1]))
+            $GLOBALS['_WindowState'] = $stateArray[1];
     }
 
     public static function StateToBody() : string

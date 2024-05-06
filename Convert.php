@@ -17,10 +17,10 @@ class Convert
 
     public static function ForInputValueBr(string $value): string
     {
-        return self::br2nl(self::ForInputValue($value));
+        return self::BRToNewLine(self::ForInputValue($value));
     }
 
-    public static function br2nl(string $inputString): string
+    public static function BRToNewLine(string $inputString): string
     {
         $inputString = str_replace("<br />", PHP_EOL, $inputString);
         $inputString = str_replace("<br/>", PHP_EOL, $inputString);
