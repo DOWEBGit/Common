@@ -12,8 +12,8 @@
         position: fixed;
         z-index: 1000;
         margin: auto;
-        border: 5px solid #EAF0F6;
-        border-radius: 50%;
+        border: 5px solid #EAF0F6 !important;
+        border-radius: 50% !important;
         border-top: 5px solid #FF7A59;
         width: 100px;
         height: 100px;
