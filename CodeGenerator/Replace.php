@@ -49,6 +49,9 @@ $code .= $tab."public static function VarsReplace(string \$$contenuto): string\n
 
 $path = $basePath . '\\Replace.php';
 
+if (is_file($path))
+    die();
+
 $myfile = fopen($path, 'w');
 
 fwrite($myfile, $code);
