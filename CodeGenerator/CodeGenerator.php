@@ -10,3 +10,4 @@ include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/Pagi
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/ModelEnum.php');
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/PagineInterneEnum.php');
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/Model.php');
+include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/Replace.php');
