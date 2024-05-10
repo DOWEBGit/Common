@@ -700,6 +700,9 @@ class BaseModel
 
             if ($whereValues[$i] instanceof \DateTimeImmutable)
                 $whereValues[$i] = $whereValues[$i]->format("d/m/Y H:i");
+
+            if (is_bool($whereValues[$i]))
+                $whereValues[$i] = $whereValues[$i] ? 1 : 0;
         }
 
         $searchKey = strtolower("list|" .
@@ -865,6 +868,9 @@ class BaseModel
 
             if ($whereValues[$i] instanceof \DateTimeImmutable)
                 $whereValues[$i] = $whereValues[$i]->format("d/m/Y H:i");
+
+            if (is_bool($whereValues[$i]))
+                $whereValues[$i] = $whereValues[$i] ? 1 : 0;
         }
 
 

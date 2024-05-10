@@ -73,10 +73,13 @@ class Format
             $locale = $_GET['iso'] . '_' . strtoupper($_GET['iso']);
         }
 
+        $dateTime = new \DateTime('now', new \DateTimeZone('UTC'));
+        $dateTime->setISODate((int)date('Y'), (int)date('W'), $giornoNumero);
+
         $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::FULL, \IntlDateFormatter::NONE);
         $formatter->setPattern('EEEE');
 
-        return ucfirst($formatter->format(mktime(0, 0, 0, (int)date('n'), $giornoNumero, (int)date('Y'))));
+        return ucfirst($formatter->format($dateTime));
     }
 
     /**
