@@ -64,9 +64,16 @@ class Format
         return ucfirst($formatter->format(mktime(0, 0, 0, $meseNumero)));
     }
 
+    /**
+     * <p>Ritorna il nome del giorno della settimana, dato il numero da 1 a 7</p>
+     * @param int $giornoNumero
+     * @param string $locale
+     * @return string
+     * @throws \Exception
+     */
     public static function DataGiornoNome(int $giornoNumero, string $locale = "it_IT"): string
     {
-        if ($giornoNumero < 0 || $giornoNumero > 6)
+        if ($giornoNumero < 1 || $giornoNumero > 7)
             return "";
 
         if (isset($_GET['iso']) && $_GET['iso'] !== "zz") {
