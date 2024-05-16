@@ -65,7 +65,8 @@ class Format
     }
 
     /**
-     * <p>Ritorna il nome del giorno della settimana, dato il numero da 1 a 7</p>
+     * <p>Ritorna il nome del giorno della settimana, dato il numero da 0 a 7</p>
+     * <p>usa ->format("w")</p>
      * @param int $giornoNumero
      * @param string $locale
      * @return string
@@ -73,7 +74,7 @@ class Format
      */
     public static function DataGiornoNome(int $giornoNumero, string $locale = "it_IT"): string
     {
-        if ($giornoNumero < 1 || $giornoNumero > 7)
+        if ($giornoNumero < 0 || $giornoNumero > 6)
             return "";
 
         if (isset($_GET['iso']) && $_GET['iso'] !== "zz") {
