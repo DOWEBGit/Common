@@ -46,7 +46,7 @@ $code .= "{\n";
   */
 
 $code .=
-    $tab . "private static function GetTokens(array \$models = null): string\n" .
+    $tab . "public static function GetTokens(array \$models = null): string\n" .
     $tab . "{\n" .
     $tab . $tab . "if (!\$models)\n" .
     $tab . $tab . $tab . "return \"\";\n" .
