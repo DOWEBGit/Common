@@ -28,7 +28,7 @@ class StringGenerator
      * @param bool $specialChars Se includere caratteri speciali.
      * @return string La password complessa generata.
      */
-    public static function GetComplexPassword($length = 8, $specialChars = true): string
+    public static function GetComplexPassword(int $length = 8, bool $specialChars = true): string
     {
         $lowerCase = str_split('abcdefghilmnopqrstuvzxywjk');
         $upperCase = str_split('ABCDEFGHILMNOPQRSTUVZXYWJK');
@@ -102,7 +102,7 @@ class StringGenerator
      * @param int $length La lunghezza della stringa da generare. Default è 8.
      * @return string La stringa casuale generata.
      */
-    public static function GetRandomString($length = 8): string
+    public static function GetRandomString(int $length = 8): string
     {
         $lowerCase = 'abcdefghijklmnopqrstuvwxyz';
         $upperCase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
