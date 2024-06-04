@@ -61,7 +61,9 @@ class Format
         $formatter = new \IntlDateFormatter($locale);
         $formatter->setPattern('MMMM');
 
-        return ucfirst($formatter->format(mktime(0, 0, 0, $meseNumero)));
+        $meseNome = ucfirst($formatter->format(mktime(0, 0, 0, $meseNumero, 1)));
+
+        return $meseNome;
     }
 
     /**

@@ -543,6 +543,6 @@ foreach ($dati as $index => $dato)
 
     fclose($myfile);
 
-    echo "Scritto file " . $path . "<br>";
+    //echo "Scritto file " . $path . "<br>";
 }
 

@@ -2,8 +2,12 @@
 declare(strict_types=1);
 
 /* 
- TYPE HINT
+ TYPE HINT per una variabile
 /** @var ClassName $object */
+
+/* per un array
+/** @var Task[] $tasks */
+
 
 
 /*
