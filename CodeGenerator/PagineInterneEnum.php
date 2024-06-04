@@ -21,6 +21,7 @@ if (!is_dir($enumPath))
 
 $pagineObj = $obj->AdminPagineInterneGetList()->Pagine;
 
+
 $code = "<?php\n";
 $code .= "declare(strict_types=1);\n\n";
 $code .= "namespace Code\\Enum;\n\n";
@@ -29,19 +30,34 @@ $code .= "use Common\Attribute\PagineInterneAttribute as PagineInterneAttribute;
 
 $pagine = [];
 
-$code .= "enum PagineInterneEnum : string\n";
+$code .= "enum PagineInterneEnum\n";
 $code .= "{\n";
 
 foreach ($pagineObj as $index => $pagina)
 {
-    $val = $pagina->Nome;
+    $nome = $pagina->Nome;
 
-    $pagine[] = $pagina->Nome;
+    if ($pagina->Parent != 0)
+    {
+        foreach ($pagineObj as $indexInternal => $paginaInternal)
+        {
+            if ($pagina->Parent == $paginaInternal->Id)
+            {
+                $nome = $paginaInternal->Nome . "_" . $pagina->Nome;
+                break;
+
+            }
+        }
+    }
+
+    $val = $nome;
+
+    $pagine[] = $nome;
 
     $val = str_replace(" ", "_", $val);
 
     $code .= $tab . "#[PagineInterneAttribute(" . $pagina->Id . ")]\n";
-    $code .= $tab . "case " . $val . " = \"" . $pagina->Nome . "\";\n";
+    $code .= $tab . "case " . $val . ";\n";
 }
 
 $code .= "}";
