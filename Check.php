@@ -134,6 +134,7 @@ class Check
         $arrayPrefissi = array();
 
         #region Fastweb
+        $arrayPrefissi[] = "371";
         $arrayPrefissi[] = "373";
         $arrayPrefissi[] = "375";
         #endregion
