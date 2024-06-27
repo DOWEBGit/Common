@@ -691,7 +691,8 @@ class BaseModel
         bool   $visible = null,
         bool   $webP = true,
         bool   $encode = false,
-        array  $selectColumns = [])
+        array  $selectColumns = [],
+        array  $groupBy = [])
     {
         for ($i = 0; $i < count($whereValues); $i++)
         {
@@ -717,7 +718,8 @@ class BaseModel
                                 $visible . "|" .
                                 $webP . "|" .
                                 $encode . "|" .
-                                implode(",", $selectColumns));
+                                implode(",", $selectColumns) . "|" .
+                                implode(",", $groupBy));
 
         $success = false;
 
@@ -798,7 +800,7 @@ class BaseModel
 
         $obj = PHPDOWEB();
 
-        $result = $obj->FetchOpen($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $colonne, $orderPredicate, $item4page, $page, $webP, $encode);
+        $result = $obj->FetchOpen($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $colonne, $orderPredicate, $item4page, $page, $webP, $encode, $groupBy);
 
         if (\Common\Convert::ToBool($result->Errore))
         {
@@ -858,7 +860,8 @@ class BaseModel
         string $iso = '',
         int    $parentId = 0,
         bool   $visible = null,
-        bool   $encode = false): int
+        bool   $encode = false,
+        array  $groupBy = []) : int
     {
 
         for ($i = 0; $i < count($whereValues); $i++)
@@ -881,14 +884,15 @@ class BaseModel
                                 $iso . "|" .
                                 $parentId . "|" .
                                 $visible . "|" .
-                                $encode . "|");
+                                $encode . "|" .
+                                implode(",", $groupBy));
 
         $success = false;
 
         $count = \Common\Cache::GetDati($searchKey, $success);
 
-        //if ($success)
-        //  return $count;
+        if ($success)
+          return $count;
 
         //del nome Model\Tipo, prendo solo l'ultimo pezzo: Tipo
         $parts = explode("\\", $tableName);
@@ -900,7 +904,7 @@ class BaseModel
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
-        $result = $obj->DatiElencoGetCount($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $encode);
+        $result = $obj->DatiElencoGetCount($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $encode, $groupBy);
 
         if (\Common\Convert::ToBool($result->Errore))
         {

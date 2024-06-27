@@ -55,9 +55,10 @@ foreach ($dati as $index => $dato)
             $externalCollection .= $tab . $tab . "bool $" . "visible = null,\n";
             $externalCollection .= $tab . $tab . "bool $" . "webP = true,\n";
             $externalCollection .= $tab . $tab . "bool $" . "encode = false,\n";
-            $externalCollection .= $tab . $tab . "array $" . "selectColumns = []) : \Generator\n";
+            $externalCollection .= $tab . $tab . "array $" . "selectColumns = [],\n";
+            $externalCollection .= $tab . $tab . "array $" . "groupBy = []) : \Generator\n";
             $externalCollection .= $tab . $tab . "{\n";
-            $externalCollection .= $tab . $tab . $tab . "return BaseModel::BaseList('Model\\" . $nomeClasseFiglio . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "this->Id, $" . "visible, $" . "webP, $" . "encode, $" . "selectColumns);\n";
+            $externalCollection .= $tab . $tab . $tab . "return BaseModel::BaseList('Model\\" . $nomeClasseFiglio . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "this->Id, $" . "visible, $" . "webP, $" . "encode, $" . "selectColumns, $" . "groupBy);\n";
             $externalCollection .= $tab . $tab . "}\n";
 
             $externalCollection .= "\n";
@@ -67,9 +68,10 @@ foreach ($dati as $index => $dato)
             $externalCollection .= $tab . $tab . "array $" . "whereValues = [],\n";
             $externalCollection .= $tab . $tab . "string $" . "iso = '',\n";
             $externalCollection .= $tab . $tab . "bool $" . "visible = null,\n";
-            $externalCollection .= $tab . $tab . "bool $" . "encode = false) : int\n";
+            $externalCollection .= $tab . $tab . "bool $" . "encode = false, \n";
+            $externalCollection .= $tab . $tab . "array $" . "groupBy = []) : int\n";
             $externalCollection .= $tab . $tab . "{\n";
-            $externalCollection .= $tab . $tab . $tab . "return BaseModel::BaseCount('Model\\" . $nomeClasseFiglio . "', $" . "wherePredicate, $" . "whereValues, $" . "iso, $" . "this->Id, $" . "visible, $" . "encode);\n";
+            $externalCollection .= $tab . $tab . $tab . "return BaseModel::BaseCount('Model\\" . $nomeClasseFiglio . "', $" . "wherePredicate, $" . "whereValues, $" . "iso, $" . "this->Id, $" . "visible, $" . "encode, $" . "groupBy);\n";
             $externalCollection .= $tab . $tab . "}\n";
 
             $externalCollection .= "\n";
@@ -506,9 +508,10 @@ foreach ($dati as $index => $dato)
     $code .= $tab . $tab . "bool $" . "visible = null,\n";
     $code .= $tab . $tab . "bool $" . "webP = true,\n";
     $code .= $tab . $tab . "bool $" . "encode = false,\n";
-    $code .= $tab . $tab . "array $" . "selectColumns = []) : \Generator\n";
+    $code .= $tab . $tab . "array $" . "selectColumns = [], \n";
+    $code .= $tab . $tab . "array $" . "groupBy = []) : \Generator\n";
     $code .= $tab . $tab . "{\n";
-    $code .= $tab . $tab . $tab . "return BaseModel::BaseList('Model\\" . $nomeClasse . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "parentId, $" . "visible, $" . "webP, $" . "encode, $" . "selectColumns);\n";
+    $code .= $tab . $tab . $tab . "return BaseModel::BaseList('Model\\" . $nomeClasse . "', $" . "item4page, $" . "page, $" . "wherePredicate, $" . "whereValues, $" . "orderPredicate, $" . "iso, $" . "parentId, $" . "visible, $" . "webP, $" . "encode, $" . "selectColumns, $" . "groupBy);\n";
     $code .= $tab . $tab . "}\n";
 
     $code .= "\n";
@@ -519,9 +522,10 @@ foreach ($dati as $index => $dato)
     $code .= $tab . $tab . "string $" . "iso = '',\n";
     $code .= $tab . $tab . "int $" . "parentId = 0,\n";
     $code .= $tab . $tab . "bool $" . "visible = null,\n";
-    $code .= $tab . $tab . "bool $" . "encode = false) : int\n";
+    $code .= $tab . $tab . "bool $" . "encode = false, \n";
+    $code .= $tab . $tab . "array $" . "groupBy = []) : int\n";
     $code .= $tab . $tab . "{\n";
-    $code .= $tab . $tab . $tab . "return BaseModel::BaseCount('Model\\" . $nomeClasse . "', $" . "wherePredicate, $" . "whereValues, $" . "iso, $" . "parentId, $" . "visible, $" . "encode);\n";
+    $code .= $tab . $tab . $tab . "return BaseModel::BaseCount('Model\\" . $nomeClasse . "', $" . "wherePredicate, $" . "whereValues, $" . "iso, $" . "parentId, $" . "visible, $" . "encode, $" . "groupBy);\n";
     $code .= $tab . $tab . "}\n";
 
     $code .= "\n";
