@@ -142,8 +142,6 @@
                 return;
             }
 
-            //KeepSave(div);
-
             var hidden = document.getElementById("WindowState");
             let array = [];
             array.push(""); //tempState
@@ -189,8 +187,6 @@
             document.getElementById("TempState").value = jsonArray[0];
             document.getElementById("WindowState").value = jsonArray[1];
 
-            //KeepRestore(div);
-
             globalReload--;
             if (globalReload <= 0)
             {
@@ -201,162 +197,6 @@
 
         call();
     }
-
-    // function KeepRestore(view)
-    // {
-    //     var jsonMap = WindowRead("KeepView" + view.id);
-    //
-    //     if (!jsonMap)
-    //         return; // Se non c'è alcun valore, esci dalla funzione
-    //
-    //     var map = new Map(JSON.parse(jsonMap)); // Converti il JSON in una mappa
-    //
-    //     for (var [id, value] of map.entries())
-    //     {
-    //         var element = document.getElementById(id); // Ottieni l'elemento corrispondente all'ID dalla mappa
-    //
-    //         if (!element)
-    //             continue; // Se l'elemento non è trovato, continua con il prossimo
-    //
-    //         switch (element.nodeName)
-    //         {
-    //             case 'INPUT':
-    //                 switch (element.type)
-    //                 {
-    //                     case 'text':
-    //                     case 'date':
-    //                     case 'tel':
-    //                     case 'email':
-    //                     case 'hidden':
-    //                     case 'password':
-    //                     case 'button':
-    //                     case 'reset':
-    //                     case 'submit':
-    //                         element.value = value; // Imposta il valore dell'elemento
-    //                         break;
-    //                     case 'checkbox':
-    //                     case 'radio':
-    //                         if (element.value === value)
-    //                         {
-    //                             element.checked = true; // Se il valore coincide, segna l'elemento come selezionato
-    //                         }
-    //                         break;
-    //                 }
-    //                 break;
-    //             case 'TEXTAREA':
-    //                 element.value = value;
-    //                 break;
-    //             case 'SELECT':
-    //                 switch (element.type)
-    //                 {
-    //                     case 'select-one':
-    //                         // Imposta il valore solo se è presente nelle opzioni
-    //                         if ([...element.options].some(option => option.value === value)) {
-    //                             element.value = value;
-    //                         }
-    //                         break;
-    //                     case 'select-multiple':
-    //                         var selectedOptions = value;
-    //                         for (var j = 0; j < element.options.length; j++)
-    //                         {
-    //                             element.options[j].selected = selectedOptions.includes(element.options[j].value);
-    //                         }
-    //                         break;
-    //                 }
-    //                 break;
-    //             case 'BUTTON':
-    //                 switch (element.type)
-    //                 {
-    //                     case 'reset':
-    //                     case 'submit':
-    //                     case 'button':
-    //                         element.value = value;
-    //                         break;
-    //                 }
-    //                 break;
-    //         }
-    //     }
-    // }
-    //
-    // function KeepSave(view)
-    // {
-    //     var map = new Map();
-    //
-    //     var elements = view.querySelectorAll('[class*="Keep"]');
-    //
-    //     for (var i = elements.length - 1; i >= 0; i--)
-    //     {
-    //         var element = elements[i];
-    //
-    //         if (element.nodeType !== 1)
-    //             continue; // Skip non-element nodes
-    //
-    //         if (element.id)
-    //         {
-    //             var id = element.id;
-    //
-    //             switch (element.nodeName)
-    //             {
-    //                 case 'INPUT':
-    //                     switch (element.type)
-    //                     {
-    //                         case 'text':
-    //                         case 'date':
-    //                         case 'tel':
-    //                         case 'email':
-    //                         case 'hidden':
-    //                         case 'password':
-    //                         case 'button':
-    //                         case 'reset':
-    //                         case 'submit':
-    //                             map.set(id, element.value);
-    //                             break;
-    //                         case 'checkbox':
-    //                         case 'radio':
-    //                             if (element.checked)
-    //                                 map.set(id, element.value);
-    //                             break;
-    //                     }
-    //                     break;
-    //                 case 'TEXTAREA':
-    //                     map.set(id, element.value);
-    //                     break;
-    //                 case 'SELECT':
-    //                     switch (element.type)
-    //                     {
-    //                         case 'select-one':
-    //                             map.set(id, element.value);
-    //                             break;
-    //                         case 'select-multiple':
-    //                             var selectedValues = [];
-    //                             for (var j = element.options.length - 1; j >= 0; j--)
-    //                             {
-    //                                 if (element.options[j].selected)
-    //                                 {
-    //                                     selectedValues.push(element.options[j].value);
-    //                                 }
-    //                             }
-    //                             map.set(id, selectedValues);
-    //                             break;
-    //                     }
-    //                     break;
-    //                 case 'BUTTON':
-    //                     switch (element.type)
-    //                     {
-    //                         case 'reset':
-    //                         case 'submit':
-    //                         case 'button':
-    //                             map.set(id, element.value);
-    //                             break;
-    //                     }
-    //                     break;
-    //             }
-    //         }
-    //     }
-    //
-    //     var jsonMap = JSON.stringify([...map.entries()]);
-    //     WindowWrite("KeepView" + view.id, jsonMap);
-    // }
 
     function Push(nome, valore)
     {

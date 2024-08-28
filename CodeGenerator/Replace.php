@@ -1,7 +1,5 @@
 <?php
 declare(strict_types=1);
-header("Cache-Control: no-cache, no-store, must-revalidate");
-header("expires: -1");
 
 
 //CREO IL FILE REPLACE CON ETICHETTE E VARS CHE FINISCE DENTRO \Code\Replace.php

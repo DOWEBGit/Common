@@ -1,4 +1,7 @@
 <?php
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("expires: -1");
+
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/AreeControlliEnum.php');
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/Controller.php');
 include_once ($_SERVER["DOCUMENT_ROOT"] . '/public/php/Common/CodeGenerator/EtichetteEnum.php');

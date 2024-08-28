@@ -1,7 +1,5 @@
 <?php
 declare(strict_types=1);
-header("Cache-Control: no-cache, no-store, must-revalidate");
-header("expires: -1");
 
 $basePath = $_SERVER["DOCUMENT_ROOT"] . "\\Public\\Php";
 

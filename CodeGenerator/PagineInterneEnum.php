@@ -1,8 +1,5 @@
 <?php
 declare(strict_types=1);
-header("Cache-Control: no-cache, no-store, must-revalidate");
-header("expires: -1");
-
 
 //CREO L'ENUM PER LE PAGINE INTERNE, DA COMPLETATE, FINISCE DENTRO CODE/ENUM/PAGINEINTERNEENUM.PHP
 

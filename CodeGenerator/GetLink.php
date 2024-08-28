@@ -3,10 +3,6 @@ declare(strict_types=1);
 
 use Code\Enum\PagineEnum;
 
-header("Cache-Control: no-cache, no-store, must-revalidate");
-header("expires: -1");
-
-
 //CREO L'ENUM PER LE ETICHETTE CHE FINISCE DENTRO CODE/ENUM/ETICHETTEENUM.PHP
 
 $obj = PHPDOWEB();
