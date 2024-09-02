@@ -5,6 +5,90 @@ namespace Common;
 
 class Convert
 {
+    //da una stringa e una istanza di model sostituisce le occorrenze nella stringa con i valori di tutte le proprietà dell'istanza insensitive.
+    // es.: la foresta [Colore] era fredda,  [Colore] -> se model ha quella proprietà, viene inserito il valore
+    public static function ReplaceModel(\Common\Base\BaseModel $item, string $contenuto)
+    {
+        $reflection = new \ReflectionClass($item);
+        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+
+        foreach ($properties as $property)
+        {
+            $nome = "";
+            $tipo = "";
+
+            if ($property->name == "Id")
+            {
+                $nome = "Id";
+                $tipo = "Numeri";
+            }
+            else if ($property->name == "ParentId")
+            {
+                $nome = "ParentId";
+                $tipo = "Numeri";
+            }
+            else if ($property->name == "Visibile")
+            {
+                $nome = "Visibile";
+                $tipo = "Numeri";
+            }
+            else if ($property->name == "Aggiornamento")
+            {
+                $nome = "Aggiornamento";
+                $tipo = "Data";
+            }
+            else if ($property->name == "Inserimento")
+            {
+                $nome = "Inserimento";
+                $tipo = "Data";
+            }
+            else
+            {
+                $attributes = $property->getAttributes(\Common\Attribute\PropertyAttribute::class);
+
+                if (!$attributes)
+                    continue;
+
+                $args = $attributes[0]->getArguments();
+
+                if (count($args) < 2)
+                    continue;
+
+                $nome = $args['0'];
+                $tipo = $args['1'];
+            }
+
+            $propertyValue = $property->getValue($item);
+
+            switch ($tipo)
+            {
+                case 'Data':
+                    if ($propertyValue instanceof \DateTime)
+                        $propertyValue = $propertyValue->format('d/m/Y');
+                    break;
+                case 'DataOra':
+                    if ($propertyValue instanceof \DateTime)
+                        $propertyValue = $propertyValue->format('d/m/Y H:i');
+                    break;
+                case 'Numeri':
+                    if (is_bool($propertyValue))
+                        $propertyValue = $propertyValue ? 'Si' : 'No';
+                    else
+                        $propertyValue = (string)$propertyValue;
+                    break;
+                case 'Testo':
+                    $propertyValue = strval($propertyValue);
+                    break;
+                default:
+                    continue;
+            }
+            $pattern = '/\[' . preg_quote($nome, '/') . '\]/i';
+            $contenuto = preg_replace($pattern, $propertyValue, $contenuto);
+        }
+
+        return $contenuto;
+    }
+
     public static function ToBool(mixed $mixed): bool
     {
         return (bool)filter_var($mixed, FILTER_VALIDATE_BOOLEAN);

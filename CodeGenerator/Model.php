@@ -91,7 +91,7 @@ foreach ($dati as $index => $dato)
     $code .= "namespace Model;\n";
 
     $code .= "use \Common\Base\BaseModel;\n";
-    $code .= "use \Common\Base\PropertyAttribute;\n";
+    $code .= "use \Common\Attribute\PropertyAttribute;\n";
     $code .= "use \Common\Controlli\ControlloFile;\n";
     $code .= "use \Common\Controlli\ControlloImmagine;\n";
     $code .= "use \Common\Response\SaveResponse;\n\n";

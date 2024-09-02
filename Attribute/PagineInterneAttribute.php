@@ -6,7 +6,6 @@ namespace Common\Attribute;
 use Attribute;
 
 //usato per code/enum/PagineInterneEnum.php
-
 #[Attribute]
 class PagineInterneAttribute
 {

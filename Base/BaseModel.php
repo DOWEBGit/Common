@@ -3,20 +3,11 @@ declare(strict_types=1);
 
 namespace Common\Base;
 
-use Attribute;
+use Common\Attribute;
 use Common\Response\SaveResponse;
 use DateTime;
 use ReflectionClass;
 use ReflectionProperty;
-
-#[Attribute]
-class PropertyAttribute
-{
-    function __construct(string $nomeColonna, string $tipoDato, bool $univoco)
-    {
-
-    }
-}
 
 class BaseModel
 {
