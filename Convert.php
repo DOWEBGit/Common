@@ -80,6 +80,7 @@ class Convert
                     $propertyValue = strval($propertyValue);
                     break;
                 default:
+                    continue 2;
                     break;
             }
             $pattern = '/\[' . preg_quote($nome, '/') . '\]/i';
