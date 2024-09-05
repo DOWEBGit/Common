@@ -144,6 +144,32 @@ class State
         return session_id();
     }
 
+    public static function CookieRead(string $name) : string
+    {
+        if ($name == "") {
+            return "";
+        }
+
+        // Controlla se il cookie esiste e restituisce il suo valore
+        if (isset($_COOKIE[$name])) {
+            return $_COOKIE[$name];
+        }
+
+        return ""; // Se il cookie non esiste, restituisci una stringa vuota
+    }
+
+    public static function CookieWrite(string $name, string $value) : void
+    {
+        if ($name == "" || $value == "") {
+            return;
+        }
+
+        $expiryTime = time() + (86400 * 30); // 86400 secondi = 30 giorni
+
+        // Imposta il cookie
+        setcookie($name, $value, $expiryTime, '/'); // '/' indica che il cookie è valido per tutto il dominio
+    }
+
     public static function SessionWrite(string $name, string $value) : void
     {
         if (session_status() == PHP_SESSION_NONE)
