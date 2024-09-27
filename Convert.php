@@ -423,6 +423,9 @@ class Convert
      * @return string
      */
     public static function FilterFilename(string $filename, bool $beautify = true) {
+        //cestina tutti i caratteri accentati
+        $filename = iconv('ISO-8859-1','ASCII//TRANSLIT', $filename);
+
         // sanitize filename
         $filename = preg_replace(
             '~
