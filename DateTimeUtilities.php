@@ -16,7 +16,7 @@ class DateTimeUtilities
         $data = new \DateTime('midnight');
         //clono se no ->modify mi modifica anche la data di inizio
         $result = new \stdClass();
-        $result->DataInizio = clone $data->setISODate($numeroSettimana, $anno);
+        $result->DataInizio = clone $data->setISODate($anno, $numeroSettimana);
         $result->DataFine = $data->modify('+6 days');
         return $result;
     }
