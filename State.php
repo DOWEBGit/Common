@@ -170,6 +170,17 @@ class State
         setcookie($name, $value, $expiryTime, '/'); // '/' indica che il cookie è valido per tutto il dominio
     }
 
+    public static function CookieDelete(string $name) : void
+    {
+        if ($name == "")
+            return;
+
+        $expiryTime = time() - 3600;
+
+        // Imposta il cookie
+        setcookie($name, '', $expiryTime, '/'); // '/' indica che il cookie è valido per tutto il dominio
+    }
+
     public static function SessionWrite(string $name, string $value) : void
     {
         if (session_status() == PHP_SESSION_NONE)
