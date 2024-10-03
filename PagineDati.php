@@ -101,6 +101,39 @@ class PagineDati
         return $paginaControllo;
     }
 
+    public static function ControlliValoriBytes(\Code\Enum\PagineDatiControlliEnum $identificativoEnum, string $iso = ""): Controlli\ControlloImmagine
+    {
+        //recupero con reflection il valore dell'attributo che contiene l'identificativo
+
+        $reflection = new \ReflectionEnum($identificativoEnum);
+
+        $case = $reflection->getCase($identificativoEnum->name);
+
+        $attribute = $case->getAttributes()[0];
+
+        $pagina = $attribute->getArguments()[0];
+        $identificativo = $attribute->getArguments()[1];
+
+        $phpobj = PHPDOWEB();
+
+        $controllo = $phpobj->DatiPagineFileInfo($pagina, $identificativo, $iso);
+
+        $paginaControllo = new Controlli\ControlloImmagine();
+
+        if ($controllo->Nome == "")
+            return $paginaControllo;
+
+        $paginaControllo->Nome = $controllo->Nome;
+        $paginaControllo->Bytes = $controllo->Bytes;
+        $paginaControllo->DimensioneReale = intval($controllo->DimensioneReale);
+        $paginaControllo->DimensioneCompressa = intval($controllo->DimensioneCompressa);
+        $paginaControllo->Base64Encoded = true;
+        $paginaControllo->ImmagineAltezza = intval($controllo->ImmagineAltezza);
+        $paginaControllo->ImmagineLarghezza = intval($controllo->ImmagineLarghezza);
+
+        return $paginaControllo;
+    }
+
     public static function GetUrlElenco(\Code\Enum\PagineDatiEnum $pagineDatiEnum, int $idElemento = 0, string $iso = "", bool $includiDominio = false): string
     {
         $success = false;
