@@ -20,4 +20,22 @@ class DateTimeUtilities
         $result->DataFine = $data->modify('+6 days');
         return $result;
     }
+
+    /**
+     * <p>Ritorna la data in \DateTime dell'ultimo giorno del mese e anno indicati, se mese e anno non sono validi ritorna false</p>
+     * @param int $mese
+     * @param int $anno
+     * @return \stdClass
+     */
+    public static function GetUltimaDataMese(int $mese, int $anno): \DateTime | bool
+    {
+        $mese = (strlen((string)$mese)== "1") ? "0".$mese : $mese;
+
+        $dataInizio = "01/".$mese."/".$anno;
+
+        $data = \DateTime::createFromFormat('d/m/Y', $dataInizio);
+        $data->modify('last day of this month');
+
+        return $data;
+    }
 }
