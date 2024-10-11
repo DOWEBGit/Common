@@ -25,7 +25,7 @@ class DateTimeUtilities
      * <p>Ritorna la data in \DateTime dell'ultimo giorno del mese e anno indicati, se mese e anno non sono validi ritorna false</p>
      * @param int $mese
      * @param int $anno
-     * @return \stdClass
+     * @return \DateTime|bool
      */
     public static function GetUltimaDataMese(int $mese, int $anno): \DateTime | bool
     {
