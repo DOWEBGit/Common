@@ -460,7 +460,7 @@
         return res;
     }
 
-    function TempWriteAllId()
+    function TempWriteAllId(separator = "-")
     {
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
         postInputs.forEach(function (input)
@@ -472,8 +472,30 @@
                 value = input.checked ? 'true' : 'false';
             } else if (input.tagName.toLowerCase() === 'select')
             {
-                var selectedOption = input.options[input.selectedIndex];
-                value = selectedOption.value;
+                if (input.multiple)
+                {
+                    value = "";
+
+                    /*acchiappo tutte i valori e ci combino un array */
+                    const selected = document.querySelectorAll('#'+input.id+' option:checked');
+                    const values = Array.from(selected).map(el => el.value);
+
+                    values.forEach((item) => {
+
+                        value += item + separator;
+                    });
+
+                    //tolgo l'ultimo '-'
+                    if (value !== "")
+                        value = value.slice(0, -1);
+
+                }
+                else
+                {
+                    var selectedOption = input.options[input.selectedIndex];
+                    value = selectedOption.value;
+                }
+
             } else
             {
                 value = input.value;
@@ -549,7 +571,7 @@
     }
 
     // Funzione per salvare lo stato dei valori degli input
-    function WindowWriteAllId()
+    function WindowWriteAllId(separator = "-")
     {
         var postInputs = document.querySelectorAll('input[class*="TempData"], textarea[class*="TempData"], input[type="checkbox"][class*="TempData"], select[class*="TempData"]');
         postInputs.forEach(function (input)
@@ -561,12 +583,35 @@
                 value = input.checked ? 'true' : 'false';
             } else if (input.tagName.toLowerCase() === 'select')
             {
-                var selectedOption = input.options[input.selectedIndex];
-                value = selectedOption.value;
+                if (input.multiple)
+                {
+                    value = "";
+
+                    /*acchiappo tutte i valori e ci combino un array */
+                    const selected = document.querySelectorAll('#'+input.id+' option:checked');
+                    const values = Array.from(selected).map(el => el.value);
+
+                    values.forEach((item) => {
+
+                        value += item + separator;
+                    });
+
+                    //tolgo l'ultimo '-'
+                    if (value !== "")
+                        value = value.slice(0, -1);
+
+                }
+                else
+                {
+                    var selectedOption = input.options[input.selectedIndex];
+                    value = selectedOption.value;
+                }
+
             } else
             {
                 value = input.value;
             }
+
             WindowWrite(id, value);
         });
     }
