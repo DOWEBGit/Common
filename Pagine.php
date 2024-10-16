@@ -95,7 +95,7 @@ class Pagine
 
         $paginaControllo->Valore = $controllo->Valore;
         $paginaControllo->PercorsoWeb = $controllo->PercorsoWeb;
-        $paginaControllo->DataUpload = \DateTime::createFromFormat("Y-m-d\TH:i:s", $controllo->DataUpload);
+        $paginaControllo->DataUpload = \DateTime::createFromFormat("Y-m-d\TH:i:s.u", $controllo->DataUpload);
         $paginaControllo->DimensioneCompressa = $controllo->DimensioneCompressa;
         $paginaControllo->DimensioneReale = $controllo->DimensioneReale;
         $paginaControllo->ImmagineAltezza = $controllo->ImmagineAltezza;
