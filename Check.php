@@ -134,14 +134,19 @@ class Check
         $arrayPrefissi = array();
 
         #region Fastweb
+        $arrayPrefissi[] = "370";
         $arrayPrefissi[] = "371";
+        $arrayPrefissi[] = "372";
         $arrayPrefissi[] = "373";
+        $arrayPrefissi[] = "374";
         $arrayPrefissi[] = "375";
         #endregion
 
         #region Iliad
+        $arrayPrefissi[] = "350";
         $arrayPrefissi[] = "351";
         $arrayPrefissi[] = "352";
+        $arrayPrefissi[] = "353";
         #endregion
 
         #region Rete Ferroviaria Italiana
@@ -151,6 +156,7 @@ class Check
         #region TIM
         $arrayPrefissi[] = "330";
         $arrayPrefissi[] = "331";
+        $arrayPrefissi[] = "332";
         $arrayPrefissi[] = "333";
         $arrayPrefissi[] = "334";
         $arrayPrefissi[] = "335";
@@ -165,6 +171,7 @@ class Check
 
         #region Vodafone Italia
         $arrayPrefissi[] = "340";
+        $arrayPrefissi[] = "341";
         $arrayPrefissi[] = "342";
         $arrayPrefissi[] = "344";
         $arrayPrefissi[] = "345";
@@ -176,6 +183,7 @@ class Check
 
         #region Wind Tre
         $arrayPrefissi[] = "320";
+        $arrayPrefissi[] = "321";
         $arrayPrefissi[] = "322";
         $arrayPrefissi[] = "323";
         $arrayPrefissi[] = "324";
