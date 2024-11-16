@@ -160,7 +160,7 @@ class State
 
     public static function CookieWrite(string $name, string $value) : void
     {
-        if ($name == "" || $value == "") {
+        if (headers_sent() || $name == "" || $value == "") {
             return;
         }
 
