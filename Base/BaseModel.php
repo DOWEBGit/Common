@@ -645,7 +645,7 @@ class BaseModel
         return $saveRespone;
     }
 
-    function Delete(): SaveResponse
+    function Delete(bool $onDelete = true): SaveResponse
     {
         $tableName = get_class($this);
 
@@ -654,7 +654,7 @@ class BaseModel
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
-        $result = $obj->DatiElencoDelete($this->Id);
+        $result = $obj->DatiElencoDelete($this->Id, $onDelete);
 
         $response = new SaveResponse();
 

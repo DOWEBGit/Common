@@ -472,16 +472,16 @@ foreach ($dati as $index => $dato)
 
     $code .= "\n";
 
-    $code .= $tab . "public function Delete() : SaveResponse\n";
+    $code .= $tab . "public function Delete(bool $" . "onDelete = true) : SaveResponse\n";
     $code .= $tab . "{\n";
-    $code .= $tab . $tab . "return parent::Delete();\n";
+    $code .= $tab . $tab . "return parent::Delete($" . "onDelete);\n";
     $code .= $tab . "}\n";
 
     $code .= "\n";
 
-    $code .= $tab . "public function DeleteLog() : SaveResponse\n";
+    $code .= $tab . "public function DeleteLog(bool $" . "onDelete = true) : SaveResponse\n";
     $code .= $tab . "{\n";
-    $code .= $tab . $tab . "$" . "result = parent::Delete();\n";
+    $code .= $tab . $tab . "$" . "result = parent::Delete($" . "onDelete);\n";
     $code .= $tab . $tab . "if (!$" . "result->Success)\n";
     $code .= $tab . $tab . "{\n";
     $code .= $tab . $tab . $tab . "$" . "e = new \Exception;\n";
