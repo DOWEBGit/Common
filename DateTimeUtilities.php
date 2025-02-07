@@ -38,4 +38,11 @@ class DateTimeUtilities
 
         return $data;
     }
+
+    public static function DifferenzaInMinuti(\DateTime $data1, \DateTime $data2): int
+    {
+        $diff = $data1->diff($data2);
+        return intval(($diff->days * 24 * 60) +
+            ($diff->h * 60) + $diff->i);
+    }
 }
