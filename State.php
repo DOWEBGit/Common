@@ -172,7 +172,7 @@ class State
 
     public static function CookieDelete(string $name) : void
     {
-        if ($name == "")
+        if ($name == "" || headers_sent())
             return;
 
         $expiryTime = time() - 3600;
