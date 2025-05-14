@@ -42,7 +42,7 @@ $code .= "{\n";
   */
 
 $code .=
-    $tab . "public static function GetTokens(array \$models = null): string\n" .
+    $tab . "public static function GetTokens(?array \$models = null): string\n" .
     $tab . "{\n" .
     $tab . $tab . "if (!\$models)\n" .
     $tab . $tab . $tab . "return \"\";\n" .
@@ -93,7 +93,7 @@ foreach ($pagine as $pagina)
     $paginaNome = str_replace(" ", "_", $pagina->Nome);
 
     $code .=
-        $tab . "public static function " . $url . "(array \$model = null, bool \$includiDominio = false) : string\n" .
+        $tab . "public static function " . $url . "(?array \$model = null, bool \$includiDominio = false) : string\n" .
         $tab . "{\n" .
         $tab . $tab . "return \Common\Convert::GetEncodedLink(\Common\Pagine::GetUrlIso(\Code\Enum\PagineEnum::" . $paginaNome . ", \$includiDominio) . self::GetTokens(\$model));\n" .
         $tab . "}\n\n";
