@@ -679,7 +679,7 @@ class BaseModel
         string $orderPredicate = '',
         string $iso = '',
         int    $parentId = 0,
-        bool   $visible = null,
+        ?bool   $visible = null,
         bool   $webP = true,
         bool   $encode = false,
         array  $selectColumns = [],
@@ -850,7 +850,7 @@ class BaseModel
         array  $whereValues = [],
         string $iso = '',
         int    $parentId = 0,
-        bool   $visible = null,
+        ?bool   $visible = null,
         bool   $encode = false,
         array  $groupBy = []) : int
     {

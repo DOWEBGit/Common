@@ -50,7 +50,7 @@ foreach ($dati as $index => $dato)
             $externalCollection .= $tab . $tab . "array $" . "whereValues = [],\n";
             $externalCollection .= $tab . $tab . "string $" . "orderPredicate = '',\n";
             $externalCollection .= $tab . $tab . "string $" . "iso = '',\n";
-            $externalCollection .= $tab . $tab . "bool $" . "visible = null,\n";
+            $externalCollection .= $tab . $tab . "?bool $" . "visible = null,\n";
             $externalCollection .= $tab . $tab . "bool $" . "webP = true,\n";
             $externalCollection .= $tab . $tab . "bool $" . "encode = false,\n";
             $externalCollection .= $tab . $tab . "array $" . "selectColumns = [],\n";
@@ -65,7 +65,7 @@ foreach ($dati as $index => $dato)
             $externalCollection .= $tab . $tab . "string $" . "wherePredicate = '',\n";
             $externalCollection .= $tab . $tab . "array $" . "whereValues = [],\n";
             $externalCollection .= $tab . $tab . "string $" . "iso = '',\n";
-            $externalCollection .= $tab . $tab . "bool $" . "visible = null,\n";
+            $externalCollection .= $tab . $tab . "?bool $" . "visible = null,\n";
             $externalCollection .= $tab . $tab . "bool $" . "encode = false, \n";
             $externalCollection .= $tab . $tab . "array $" . "groupBy = []) : int\n";
             $externalCollection .= $tab . $tab . "{\n";
@@ -503,7 +503,7 @@ foreach ($dati as $index => $dato)
     $code .= $tab . $tab . "string $" . "orderPredicate = '',\n";
     $code .= $tab . $tab . "string $" . "iso = '',\n";
     $code .= $tab . $tab . "int $" . "parentId = 0,\n";
-    $code .= $tab . $tab . "bool $" . "visible = null,\n";
+    $code .= $tab . $tab . "?bool $" . "visible = null,\n";
     $code .= $tab . $tab . "bool $" . "webP = true,\n";
     $code .= $tab . $tab . "bool $" . "encode = false,\n";
     $code .= $tab . $tab . "array $" . "selectColumns = [], \n";
@@ -519,7 +519,7 @@ foreach ($dati as $index => $dato)
     $code .= $tab . $tab . "array $" . "whereValues = [],\n";
     $code .= $tab . $tab . "string $" . "iso = '',\n";
     $code .= $tab . $tab . "int $" . "parentId = 0,\n";
-    $code .= $tab . $tab . "bool $" . "visible = null,\n";
+    $code .= $tab . $tab . "?bool $" . "visible = null,\n";
     $code .= $tab . $tab . "bool $" . "encode = false, \n";
     $code .= $tab . $tab . "array $" . "groupBy = []) : int\n";
     $code .= $tab . $tab . "{\n";

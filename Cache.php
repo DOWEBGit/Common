@@ -540,7 +540,7 @@ class Cache
 
     #region Dati
 
-    static function ResetDati(string $tableName = null): void
+    static function ResetDati(?string $tableName = null): void
     {
         if (isset($GLOBALS['CacheDati']))
             unset($GLOBALS['CacheDati']);

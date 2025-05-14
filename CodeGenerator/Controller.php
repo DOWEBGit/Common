@@ -45,7 +45,7 @@ foreach ($dati as $index => $dato)
         $tab . "* @noinspection PhpUnused\n" .
         $tab . "* @noinspection PhpParameterNameChangedDuringInheritanceInspection\n" .
         $tab . "*/\n" .
-        $tab . "public static function OnSave(\Common\Base\BaseModel \$$lowerClass = null): string\n" .
+        $tab . "public static function OnSave(?\Common\Base\BaseModel \$$lowerClass = null): string\n" .
         $tab . "{\n" .
         $tab . $tab . "return \"\";\n" .
         $tab . "}\n\n" .
@@ -57,7 +57,7 @@ foreach ($dati as $index => $dato)
 
     $code .= $tab . "* @noinspection PhpUnused\n" .
         $tab . "*/\n" .
-        $tab . "public static function OnDelete(\Common\Base\BaseModel \$$parent = null): string\n" .
+        $tab . "public static function OnDelete(?\Common\Base\BaseModel \$$parent = null): string\n" .
         $tab . "{\n" .
         $tab . $tab . "return \"\";\n" .
         $tab . "}\n" .
