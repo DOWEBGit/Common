@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Common\Base;
 
 use Common\Attribute;
+use Common\Attribute\PropertyAttribute;
 use Common\Response\SaveResponse;
 use DateTime;
 use ReflectionClass;

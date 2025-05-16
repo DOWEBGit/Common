@@ -7,7 +7,7 @@ class Convert
 {
     //da una stringa e una istanza di model sostituisce le occorrenze nella stringa con i valori di tutte le proprietà dell'istanza insensitive.
     // es.: la foresta [Colore] era fredda,  [Colore] -> se model ha quella proprietà, viene inserito il valore
-    public static function ReplaceModel(\Common\Base\BaseModel $item, string $contenuto)
+    public static function ReplaceModel(\Common\Base\BaseModel $item, string $contenuto) : string
     {
         $reflection = new \ReflectionClass($item);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
@@ -422,7 +422,8 @@ class Convert
      * @param bool $beautify
      * @return string
      */
-    public static function FilterFilename(string $filename, bool $beautify = true) {
+    public static function FilterFilename(string $filename, bool $beautify = true) : string
+    {
         //cestina tutti i caratteri accentati
         $filename = iconv('ISO-8859-1','ASCII//TRANSLIT', $filename);
 
@@ -442,7 +443,9 @@ class Convert
         if ($beautify) $filename = self::BeautifyFilename($filename);
         // maximize filename length to 255 bytes http://serverfault.com/a/9548/44086
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
+
         $filename = mb_strcut(pathinfo($filename, PATHINFO_FILENAME), 0, 255 - ($ext ? strlen($ext) + 1 : 0), mb_detect_encoding($filename)) . ($ext ? '.' . $ext : '');
+
         return $filename;
     }
 }

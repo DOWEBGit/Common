@@ -62,7 +62,7 @@ class PagineInterne
      * @param \Common\Base\BaseModel $parentModel un eventuale dato elenco padre id
      * @return string il link della pagina elenco
      */
-    public static function AdminDatiElenco(\Code\Enum\ModelEnum $modelEnum, \Common\Base\BaseModel $parentModel = null) : string
+    public static function AdminDatiElenco(\Code\Enum\ModelEnum $modelEnum, ?\Common\Base\BaseModel $parentModel = null) : string
     {
         $reflection = new \ReflectionEnum($modelEnum);
 
@@ -90,7 +90,7 @@ class PagineInterne
      * @param \Common\Base\BaseModel $model un eventuale dato elenco padre id
      * @return string il link della pagina elenco
      */
-    public static function AdminDatiEditor(\Code\Enum\ModelEnum $modelEnum, \Common\Base\BaseModel $parentModel = null, \Common\Base\BaseModel $model = null) : string
+    public static function AdminDatiEditor(\Code\Enum\ModelEnum $modelEnum, ?\Common\Base\BaseModel $parentModel = null, ?\Common\Base\BaseModel $model = null) : string
     {
         $reflection = new \ReflectionEnum($modelEnum);
 
