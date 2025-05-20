@@ -299,18 +299,14 @@ foreach ($dati as $index => $dato)
                 break;
             }
 
-            case "File":
-            {
-                $code .= $tab . $tab . "$" . "this->" . $identificativo . " = null;\n";
-                break;
-            }
-
             case "Immagini":
+            case "File":
             {
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . "_Percorso = '';\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = null;\n";
                 break;
             }
+
         }
     }
 
@@ -401,7 +397,7 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . "}\n";
                 $code .= $tab . "public function " . $identificativo . "Set(ControlloFile $" . "controlloFile) : void\n";
                 $code .= $tab . "{\n";
-                $code .= $tab . $tab . "$" . $identificativo . " = $" . "controlloFile;\n";
+                $code .= $tab . $tab . "$" . "this->" . $identificativo . " = $" . "controlloFile;\n";
                 $code .= $tab . "}\n\n";
                 break;
             }
