@@ -515,7 +515,6 @@ class BaseModel
                         break;
                     }
 
-
                     case "Data":
                     {
                         if ($property->name == "Aggiornamento" || $property->name == "Inserimento")
