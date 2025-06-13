@@ -7,7 +7,7 @@ use Common\Response\SaveResponse;
 
 class Client
 {
-    public static $enabled = false;
+    public static bool $enabled = false;
 
     public static function Enable(): void
     {
