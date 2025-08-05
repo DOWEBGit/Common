@@ -167,4 +167,14 @@ class Format
 
         return $formattedString;
     }
+
+    public static function FormatBytes(int $bytes, int $precision = 2): string
+    {
+        if ($bytes < 0) return "0 Bytes";
+
+        $units = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'];
+        $factor = floor((strlen((string)$bytes) - 1) / 3);
+
+        return sprintf("%.{$precision}f %s", $bytes / pow(1024, $factor), $units[$factor]);
+    }
 }
