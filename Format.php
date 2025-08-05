@@ -177,4 +177,5 @@ class Format
 
         return sprintf("%.{$precision}f %s", $bytes / pow(1024, $factor), $units[$factor]);
     }
+
 }
