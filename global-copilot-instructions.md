@@ -150,6 +150,52 @@ public static function InserisciProvincia(string $Titolo): \Common\Response\Save
 
 ---
 
+## 4bis. Creazione della classe Action e delle funzioni da chiamare
+
+Quando usi la funzione `Action("NomeClasse", "NomeFunzione", ...)` in JavaScript, assicurati che:
+- Esista la classe `Action\NomeClasse` (es. `Action\Province`) nel file corrispondente (es. `Action/Province.php`).
+- All'interno di questa classe esista la funzione pubblica `NomeFunzione` (es. `Inserisci`).
+- Se la classe o la funzione non esistono, vanno create.
+- La funzione Action deve leggere i dati tramite `TempRead` e passarli al controller corrispondente (es. `Controller\Province`).
+- Nel controller, assicurati che esista una funzione dedicata per l’operazione richiesta (es. `InserisciProvincia`).
+- Se la funzione nel controller non esiste, va creata.
+- Non usare OnSave e OnDelete per operazioni specifiche: crea sempre funzioni dedicate con nomi chiari.
+
+**Esempio di implementazione Action/Province.php:**
+```php
+<?php
+declare(strict_types=1);
+
+namespace Action;
+
+class Province extends \Common\Base\BodyToState
+{
+    public function Inserisci(): void
+    {
+        $Titolo = \Common\State::TempRead("Titolo");
+        $saveResponse = \Controller\Province::InserisciProvincia($Titolo);
+        // gestione risposta
+    }
+}
+```
+
+**Esempio di implementazione Controller/Province.php:**
+```php
+public static function InserisciProvincia(string $Titolo): \Common\Response\SaveResponse
+{
+    $provincia = new \Model\Province();
+    $provincia->Titolo = $Titolo;
+    return $provincia->Save();
+}
+```
+
+**Nota:**
+- Se la classe Action o la funzione non esistono, vanno create.
+- Se la funzione nel controller non esiste, va creata.
+- Non usare OnSave e OnDelete per operazioni specifiche: crea sempre funzioni dedicate con nomi chiari.
+
+---
+
 ## 5. Coerenza nomi input ↔ proprietà
 
 L’attributo id e name degli input deve corrispondere al nome della proprietà del model/controller.
@@ -186,6 +232,7 @@ JS di invio:
 function inviaProvincia()
 {
     TempWriteAllId();
+    <?php /* @see \Action\Province::Inserisci() */ ?>
     Action("Province", "Inserisci", function() {
         let message = TempRead("message");
         if (message !== '')
