@@ -148,6 +148,45 @@ public static function InserisciProvincia(string $Titolo): \Common\Response\Save
 }
 ```
 
+### Gestione del risultato di una funzione di inserimento/modific
+
+a nel Controller
+
+- Se NON serve restituire il model appena salvato (es. per semplici inserimenti/modifiche), la funzione può restituire direttamente un oggetto SaveResponse.
+- Se invece serve restituire anche il model appena salvato (es. per catene di salvataggio o logiche che richiedono l’oggetto aggiornato), la funzione deve restituire un oggetto SaveResponseModel.
+    - In questo caso, se il salvataggio ha successo ($saveResponse->Success), valorizzare la proprietà Model con il model appena salvato: `$saveResponse->Model = $model;`
+- Scegliere il tipo di risposta in base alle necessità della logica applicativa.
+
+**Esempio:**
+```php
+// Caso semplice
+public static function InserisciProvincia(string $Titolo): \Common\Response\SaveResponse
+{
+    $provincia = new \Model\Province();
+    $provincia->Titolo = $Titolo;
+    return $provincia->Save();
+}
+
+// Caso in cui serve il model risultante
+public static function Salva(string $Titolo): \Common\Response\SaveResponseModel
+{
+    $response = new \Common\Response\SaveResponseModel();
+    $provincia = \Model\Province::GetItemByTitolo($Titolo);
+    if (!$provincia) {
+        $provincia = new \Model\Province();
+        $provincia->Titolo = $Titolo;
+        $save = $provincia->Save();
+        $response->Success = $save->Success;
+        $response->InternalAvviso = $save->InternalAvviso;
+        if ($save->Success) $response->Model = $provincia;
+        return $response;
+    }
+    $response->Success = true;
+    $response->Model = $provincia;
+    return $response;
+}
+```
+
 ---
 
 ## 4bis. Creazione della classe Action e delle funzioni da chiamare
@@ -200,11 +239,65 @@ public static function InserisciProvincia(string $Titolo): \Common\Response\Save
 
 L’attributo id e name degli input deve corrispondere al nome della proprietà del model/controller.
 
+Tutti gli input (inclusi select, text, number, ecc.) che devono essere letti tramite TempRead o WindowRead devono avere sempre anche la classe `TempRead`.
+
 **Esempio:**
 Model → proprietà Titolo
 
 ```html
-<input type="text" id="Titolo" name="Titolo" />
+<input type="text" id="Titolo" name="Titolo" class="TempRead" />
+```
+
+---
+
+## 5bis. Gestione delle select popolate da un Model (GetList)
+
+- Quando una select HTML viene popolata tramite un model (es. \Model\TipiConnessione::GetList()), l’attributo value delle option deve essere l’id della riga (intero).
+- L’attributo id e name della select deve corrispondere al nome del model (es. TipiConnessione).
+- La select deve avere sempre anche la classe `TempRead` (oltre ad eventuali altre classi), per essere letta da TempRead o WindowRead.
+- In fase di invio (JS), passa l’id selezionato tramite TempWrite usando il nome del model (es. TempWrite("TipiConnessione", ...)).
+- In Action, recupera l’id con TempRead usando il nome del model, poi usa GetItemById per ottenere il model corrispondente.
+- Passa l’oggetto model (o null se non trovato) al controller, non solo l’id.
+- Nel controller, accetta come parametro il model (o null) e gestisci il caso in cui sia null.
+- Questo garantisce coerenza e permette di accedere a tutte le proprietà del model direttamente nel controller.
+
+**Esempio:**
+
+**View (PHP):**
+```php
+$tipiConnessione = \Model\TipiConnessione::GetList();
+<select id="TipiConnessione" name="TipiConnessione" class="form-control TempRead">
+    <?php foreach ($tipiConnessione as $tipo) { ?>
+        <option value="<?= $tipo->Id ?>"><?= htmlspecialchars($tipo->Titolo) ?></option>
+    <?php } ?>
+</select>
+```
+
+**JS:**
+```javascript
+TempWrite("TipiConnessione", document.getElementById("TipiConnessione").value);
+```
+
+**Action:**
+```php
+$tipiConnessioneId = (int)\Common\State::TempRead("TipiConnessione");
+$tipiConnessione = null;
+if ($tipiConnessioneId > 0) {
+    $tipiConnessione = \Model\TipiConnessione::GetItemById($tipiConnessioneId);
+}
+\Controller\Province::ImportaDaExcel($fileBytes, $tipiConnessione);
+```
+
+**Controller:**
+```php
+public static function ImportaDaExcel(string $fileBytes, ?\Model\TipiConnessione $tipiConnessione): SaveResponse
+{
+    if ($tipiConnessione) {
+        // Usa le proprietà del model
+    } else {
+        // Gestisci il caso null
+    }
+}
 ```
 
 ---
@@ -219,6 +312,30 @@ Model → proprietà Titolo
 ---
 
 ## 7. Struttura delle View
+
+**Esempio di View vuota:**
+```php
+<?php
+declare(strict_types=1);
+
+namespace View;
+
+use Common\Base\BaseView;
+use Common\Base\IView;
+
+class InserisciProvincia extends BaseView implements IView
+{
+    public function Server(): void
+    {
+
+    }
+
+    public function Client(): void
+    {
+        
+    }
+}
+```
 
 ### Parte Server (PHP + JS di supporto)
 ```php
