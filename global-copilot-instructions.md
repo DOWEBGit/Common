@@ -16,6 +16,11 @@
       ```php
       $input = $_POST["INPUTSTREAM"];
       ```
+- Prima di utilizzare librerie esterne, controllare nel file `start.php` se è presente la riga:
+  ```php
+  require_once __DIR__ . '/vendor/autoload.php';
+  ```
+  Se presente, significa che è attivo l'autoload di Composer e si possono utilizzare le librerie installate in `vendor/`. Verificare quali pacchetti sono disponibili consultando il file `composer.json`.
 
 ---
 
