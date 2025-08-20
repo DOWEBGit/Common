@@ -153,9 +153,7 @@ public static function InserisciProvincia(string $Titolo): \Common\Response\Save
 }
 ```
 
-### Gestione del risultato di una funzione di inserimento/modific
-
-a nel Controller
+### Gestione del risultato di una funzione di inserimento/modifica nel Controller
 
 - Se NON serve restituire il model appena salvato (es. per semplici inserimenti/modifiche), la funzione può restituire direttamente un oggetto SaveResponse.
 - Se invece serve restituire anche il model appena salvato (es. per catene di salvataggio o logiche che richiedono l’oggetto aggiornato), la funzione deve restituire un oggetto SaveResponseModel.
@@ -492,6 +490,7 @@ Quando si costruiscono query per i metodi dei model (es. GetList, GetItemBy...),
 - Ogni parametro deve essere rappresentato come `{N}` dove N è l'indice del parametro corrispondente nell'array `$whereValues`.
 - L'ordine dei parametri nella query deve corrispondere all'ordine dei valori in `$whereValues`.
 - Se ci sono più filtri, incrementare l'indice per ogni parametro.
+- Gli unici operatori consentiti per costruire le query sono: `AND`, `OR`, le parentesi tonde, `=`, `<>`, `>`, `<` e `LIKE`.
 
 ### Esempio con un solo filtro
 ```php
@@ -558,5 +557,3 @@ $listaProvince = \Model\Province::GetList(item4page: $item4page, page: $page, wh
 - Non usare mai `?` o altri placeholder diversi da `{N}`.
 - Se la query non ha filtri, passare stringa vuota come `$where` e array vuoto come `$whereValues`.
 - Questa sintassi è obbligatoria per tutte le query custom nei controller e nelle view che usano i metodi dei model.
-
----
