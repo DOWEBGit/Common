@@ -377,3 +377,181 @@ $provincia = \Model\Province::GetItemById((int)\Common\State::WindowRead("Id"));
 </form>
 <?php
 ```
+
+---
+
+## 7bis. Linee guida per la realizzazione degli elenchi (liste)
+
+Quando si sviluppano viste elenco (es. ElencoProvince, ElencoComuni, ecc.), seguire queste indicazioni:
+
+- Utilizzare una struttura HTML semantica:
+  - Per dati tabellari, utilizzare l'elemento <code>&lt;table&gt;</code> con intestazione (<code>&lt;thead&gt;</code>) e corpo (<code>&lt;tbody&gt;</code>).
+  - Inserire eventuali filtri direttamente all'interno delle celle <code>&lt;th&gt;</code> corrispondenti nel <code>&lt;thead&gt;</code>.
+  - Includere sempre una colonna "Azioni" per pulsanti come Modifica/Elimina.
+- Gestione filtri:
+  - I filtri devono essere visibili e allineati con la colonna che filtrano.
+  - Il valore del filtro deve essere letto/scritto tramite \Common\State::WindowRead/WindowWrite.
+- Azioni:
+  - Per l'eliminazione, chiedere conferma all'utente (es. con <code>confirm</code> JS).
+  - Per la modifica, prevedere un redirect all'editor della singola entità.
+- Sicurezza:
+  - Eseguire sempre l'escape dell'output (es. <code>htmlspecialchars</code>) per i dati mostrati.
+- Separazione logica:
+  - La funzione <code>Server()</code> deve solo includere la struttura base e gli script JS.
+  - La funzione <code>Client()</code> deve occuparsi di leggere i dati, applicare filtri e generare la tabella.
+- Riutilizzo:
+  - Se possibile, creare funzioni JS riutilizzabili per azioni comuni (es. elimina, filtra, redirect).
+
+Esempio di struttura minima aggiornata:
+
+```php
+public function Server(): void
+{
+    ?>
+    <main class="main">
+        <section class="section">
+            <div class="container" <?= self::GetViewId() ?>>
+                <?php self::Client(); ?>
+                <script type="text/javascript">
+                    function applicaFiltro() {
+                        WindowWrite("Titolo", document.getElementById("Titolo").value);
+                        ReloadViewAll();
+                    }
+
+                    function eliminaProvincia(id) {
+                        if (!confirm("Sei sicuro di voler eliminare questa provincia?")) return;
+                        TempWrite("Id", id);
+                        <?php /* @see \\Action\\Province::Elimina() */ ?>
+                        Action("Province", "Elimina", function() {
+                            let message = TempRead("message");
+                            if (message !== "")
+                                alert(message);
+                            ReloadViewAll();
+                        });
+                    }
+
+                    function redirectToProvinciaEditor(id) {
+                        window.location.href = "";
+                    }
+                </script>
+            </div>
+        </section>
+    </main>
+    <?php
+}
+
+public function Client(): void
+{
+    $filtroTitolo = \Common\State::WindowRead("Titolo", "");
+    \Common\State::WindowWrite("Titolo", $filtroTitolo);
+    $province = \Controller\Province::GetListFiltered($filtroTitolo);
+    ?>
+    <h2>Elenco Province</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>
+                    <label for="Titolo" class="form-label">Filtro per nome provincia</label><br />
+                    <input type="text" class="form-control TempRead" id="Titolo" name="Titolo" value="<?= htmlspecialchars($filtroTitolo) ?>" />
+                    <button type="button" class="btn btn-secondary mt-2" onclick="applicaFiltro()">Applica filtro</button>
+                </th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($province as $provincia) { ?>
+            <tr>
+                <td><?= htmlspecialchars($provincia->Titolo) ?></td>
+                <td>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="redirectToProvinciaEditor(<?= $provincia->Id ?>)">Modifica</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminaProvincia(<?= $provincia->Id ?>)">Elimina</button>
+                </td>
+            </tr>
+        <?php } ?>
+        </tbody>
+    </table>
+    <?php
+}
+```
+
+Adattare la struttura, i nomi delle variabili e le colonne alle esigenze specifiche della vista elenco.
+
+---
+
+## 8. Costruzione delle query con parametri: sintassi e best practice
+
+Quando si costruiscono query per i metodi dei model (es. GetList, GetItemBy...), utilizzare sempre la sintassi con i nomi degli attributi racchiusi tra parentesi quadre e i parametri come placeholder numerici tra parentesi graffe.
+
+### Regole:
+- Ogni attributo deve essere scritto come `[NomeAttributo]`.
+- Ogni parametro deve essere rappresentato come `{N}` dove N è l'indice del parametro corrispondente nell'array `$whereValues`.
+- L'ordine dei parametri nella query deve corrispondere all'ordine dei valori in `$whereValues`.
+- Se ci sono più filtri, incrementare l'indice per ogni parametro.
+
+### Esempio con un solo filtro
+```php
+$where = '[Titolo] LIKE {0}';
+$whereValues = ['%' . $filtroTitolo . '%'];
+$listaProvince = \Model\Province::GetList(wherePredicate: $where, whereValues: $whereValues);
+```
+
+### Esempio di chiamata semplice
+```php
+$where = '';
+$whereValues = [];
+if ($filtroTitolo !== '') {
+    $where = '[Titolo] LIKE {0}';
+    $whereValues[] = '%' . $filtroTitolo . '%';
+}
+$listaProvince = \Model\Province::GetList(wherePredicate: $where, whereValues: $whereValues);
+```
+
+### Esempio con paginazione
+```php
+$item4page = 20; // elementi per pagina
+$page = 2; // pagina corrente (parte da 1)
+$where = '';
+$whereValues = [];
+if ($filtroTitolo !== '') {
+    $where = '[Titolo] LIKE {0}';
+    $whereValues[] = '%' . $filtroTitolo . '%';
+}
+$listaProvince = \Model\Province::GetList(item4page: $item4page, page: $page, wherePredicate: $where, whereValues: $whereValues);
+```
+
+### Esempio con ordinamento
+```php
+$orderBy = '[Titolo] ASC';
+$where = '';
+$whereValues = [];
+if ($filtroTitolo !== '') {
+    $where = '[Titolo] LIKE {0}';
+    $whereValues[] = '%' . $filtroTitolo . '%';
+}
+$listaProvince = \Model\Province::GetList(wherePredicate: $where, whereValues: $whereValues, orderPredicate: $orderBy);
+```
+
+### Esempio con più filtri
+```php
+$where = '';
+$whereValues = [];
+if ($filtroTitolo !== '') {
+    $where = '[Titolo] LIKE {0}';
+    $whereValues[] = '%' . $filtroTitolo . '%';
+}
+if ($stato !== '') {
+    $where .= ($where ? ' AND ' : '') . '[Stato] = {' . count($whereValues) . '}';
+    $whereValues[] = $stato;
+}
+$orderBy = '[Titolo] ASC';
+$item4page = 20;
+$page = 1;
+$listaProvince = \Model\Province::GetList(item4page: $item4page, page: $page, wherePredicate: $where, whereValues: $whereValues, orderPredicate: $orderBy);
+```
+
+### Note aggiuntive
+- Non usare mai `?` o altri placeholder diversi da `{N}`.
+- Se la query non ha filtri, passare stringa vuota come `$where` e array vuoto come `$whereValues`.
+- Questa sintassi è obbligatoria per tutte le query custom nei controller e nelle view che usano i metodi dei model.
+
+---
