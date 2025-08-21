@@ -579,6 +579,7 @@
         postInputs.forEach(function (input)
         {
             let id = input.id;
+
             let value = TempRead(id);
             let label = document.querySelector('span[id="Errore' + id + '"]');
             if (value.trim() !== '')
@@ -597,7 +598,7 @@
 
             } else if (label)
             {
-                label.parentNode.removeChild(label);
+                //label.parentNode.removeChild(label);
             }
         });
 

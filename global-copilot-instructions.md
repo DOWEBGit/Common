@@ -76,10 +76,17 @@ class About extends \Common\Base\BaseController
 ## 3. Gestione input nei form
 
 ### Input standard (text, number, ecc.)
-Ogni input deve avere un id univoco.
+Ogni input deve avere un id univoco e la classe `TempData`.
 Per salvare il valore:
 ```javascript
 TempWrite("nomeInput", document.getElementById("nomeInput").value);
+```
+
+**Esempio di input per i model:**
+```html
+<label for="Nome" class="form-label">Nome</label>
+<input aria-describedby="ErroreNome" type="text" class="form-control TempData" id="Nome" name="Nome" maxlength="200">
+<span id="ErroreNome" class="danger" aria-live="assertive"></span>
 ```
 
 ### Input file (type="file")
@@ -125,7 +132,7 @@ Action("Province", "NomeFunzione", function() {
 Action("Province", "Inserisci", function() {
     let message = TempRead("message");
     if (message !== '') {
-        TempReadAllId(message);
+        TempReadAllIdWithSpan(message);
     } else {
         alert("Provincia inserita con successo!");
         ReloadViewAll();
@@ -217,6 +224,13 @@ class Province extends \Common\Base\BodyToState
         $Titolo = \Common\State::TempRead("Titolo");
         $saveResponse = \Controller\Province::InserisciProvincia($Titolo);
         // gestione risposta
+        if (!$saveResponse->Success)
+        {
+            foreach ($saveResponse->InternalAvvisi as $key => $value)
+                \Common\State::TempWrite($key, $value);
+
+            \Common\State::TempWrite("message", $saveResponse->AvvisoDecode(PHP_EOL));
+        }
     }
 }
 ```
@@ -557,3 +571,5 @@ $listaProvince = \Model\Province::GetList(item4page: $item4page, page: $page, wh
 - Non usare mai `?` o altri placeholder diversi da `{N}`.
 - Se la query non ha filtri, passare stringa vuota come `$where` e array vuoto come `$whereValues`.
 - Questa sintassi è obbligatoria per tutte le query custom nei controller e nelle view che usano i metodi dei model.
+
+---
