@@ -330,70 +330,52 @@ public static function ImportaDaExcel(string $fileBytes, ?\Model\TipiConnessione
 
 ## 7. Struttura delle View
 
-**Esempio di View vuota:**
-```php
-<?php
-declare(strict_types=1);
+### Best practice generali per le View
 
-namespace View;
+- **Gestione dei generatori**: se un metodo come `GetList()` restituisce un generatore, non usare `empty()` direttamente. Converti sempre il generatore in array con `iterator_to_array()` prima di controllare se è vuoto o di iterare più volte.
+  ```php
+  $richieste = iterator_to_array(\Model\RichiesteInterne::GetList());
+  if (empty($richieste)) { ... }
+  foreach ($richieste as $item) { ... }
+  ```
 
-use Common\Base\BaseView;
-use Common\Base\IView;
+- **Editor**:
+  - Usa sempre un campo hidden per l’ID (`<input type="hidden" ...>`).
+  - Se l’ID è > 0, modifica; se 0 o vuoto, nuovo inserimento.
+  - Precompila i campi usando `\Common\State::WindowRead()` per mantenere i dati tra reload e validazioni.
+  - Organizza i campi in righe e colonne Bootstrap per una migliore UX.
+  - Gestisci la selezione dinamica delle dipendenze tra select (es. categoria/corso) tramite `onchange` e reload della view.
 
-class InserisciProvincia extends BaseView implements IView
-{
-    public function Server(): void
-    {
+- **Elenco**:
+  - Mostra i dati in card o tabella responsive.
+  - Per le azioni (modifica/elimina):
+    - Modifica: link diretto alla view di editing, usando un helper come `\Code\GetLink::...`.
+    - Elimina: bottone che chiama una funzione JS con conferma, che invia la richiesta all’action corrispondente.
+  - Non duplicare la logica di routing: usa sempre i metodi centralizzati per generare i link.
 
-    }
+- **Mai modificare i Model**: tutta la logica di business e di manipolazione dei dati deve essere gestita nei Controller, usando solo i metodi pubblici già esistenti nei Model.
 
-    public function Client(): void
-    {
-        
-    }
-}
-```
+- **Action**:
+  - Ricevi sempre i parametri tramite `\Common\State::BodyRead()` o `\Common\State::TempRead()`.
+  - Gestisci la risposta scrivendo eventuali messaggi di errore in TempWrite.
 
-### Parte Server (PHP + JS di supporto)
-```php
-$provincia = \Code\ObjectFromQuery::GetProvince();
-if ($provincia)
-    \Common\State::WindowWrite("Id", (string)$provincia->Id);
-```
+- **Controller**:
+  - Implementa i metodi di business (es. EliminaRichiestaInterne) usando solo `GetItemById` e `Delete` del Model.
+  - Restituisci sempre un oggetto SaveResponse.
 
-JS di invio:
-```javascript
-function inviaProvincia()
-{
-    TempWriteAllId();
-    <?php /* @see \Action\Province::Inserisci() */ ?>
-    Action("Province", "Inserisci", function() {
-        let message = TempRead("message");
-        if (message !== '')
-            TempReadAllId(message);
-        else {
-            alert("Provincia inserita con successo!");
-            ReloadViewAll();
-        }
-    });
-}
-```
+- **Gestione degli ID e dei dati**:
+  - Se l’ID è > 0, modifica; se 0 o vuoto, nuovo inserimento.
+  - Passa sempre l’ID tramite campo hidden e tramite URL per le azioni di modifica.
+  - Usa sempre i dati di State per precompilare i form, così da mantenere i valori anche in caso di errore di validazione.
 
-### Parte Client (HTML form)
-```php
-$provincia = \Model\Province::GetItemById((int)\Common\State::WindowRead("Id"));
-?>
-<form id="formProvincia" onsubmit="return false;">
-    <input type="hidden" name="id" id="id" value="<?= $provincia->Id ?>" />
-    <div class="mb-3">
-        <label for="Titolo" class="form-label">Nome Provincia</label>
-        <input type="text" class="form-control" id="Titolo" name="Titolo"
-               value="<?= \Common\State::WindowRead("Titolo", $provincia ? $provincia->Titolo : "") ?>" />
-    </div>
-    <button type="button" class="btn btn-primary" onclick="inviaProvincia()">Salva</button>
-</form>
-<?php
-```
+- **JavaScript nelle View**:
+  - Usa sempre `TempWriteAllId()` prima di chiamare Action.
+  - Gestisci la risposta mostrando eventuali errori o ricaricando la view in caso di successo.
+  - Usa `ReloadViewAll()` per aggiornare la pagina dopo operazioni di salvataggio o eliminazione.
+
+- **Sicurezza e validazione**:
+  - Usa sempre `htmlspecialchars()` per l’output di dati dinamici nelle view.
+  - Gestisci la validazione lato server e mostra i messaggi di errore accanto ai campi tramite span dedicati.
 
 ---
 
@@ -573,3 +555,38 @@ $listaProvince = \Model\Province::GetList(item4page: $item4page, page: $page, wh
 - Questa sintassi è obbligatoria per tutte le query custom nei controller e nelle view che usano i metodi dei model.
 
 ---
+
+## Dinamicità delle select e reload della View
+
+- Per popolare dinamicamente una select (es. Corso) in base a un'altra (es. Categoria corso), usa l'evento `onchange` sulla select principale (Categoria corso).
+- All'interno dell'evento `onchange`, chiama `WindowWriteAllId()` (o `WindowWriteAllId()` se vuoi scrivere tutti i valori degli input con classe TempData) e poi `ReloadViewAll()` o `ReloadView()`.
+- Quando la View viene ricaricata, la funzione `Client()` può leggere i valori passati tramite `\Common\State::WindowRead()`.
+- In questo modo, puoi aggiornare il contenuto della select dipendente senza bisogno di chiamate AJAX: la logica di popolamento avviene lato server, e i valori selezionati vengono mantenuti tramite WindowRead/WindowWrite.
+- Assicurati che tutti gli input che vuoi "passare" tra reload abbiano la classe `TempData`.
+
+**Esempio pratico:**
+
+```php
+// Nella select Categoria corso
+<select id="Categorie_corsi" name="Categorie_corsi" class="form-control TempData" onchange="ChangeCategoria();">
+    ...
+</select>
+
+<script type="text/javascript">
+function ChangeCategoria() {
+    WindowWriteAllId(); // oppure WindowWriteAllId() per tutti gli input TempData
+    ReloadViewAll();
+}
+</script>
+```
+
+```php
+// Nella funzione Client della View
+$idCategoria = (int)\Common\State::WindowRead("Categorie_corsi", ...);
+$categoriaSelected = \Model\Categorie_corsi::GetItemById($idCategoria);
+if ($categoriaSelected) {
+    $listaCorsi = iterator_to_array($categoriaSelected->CorsiGetList());
+}
+```
+
+- Questo pattern permette di gestire dipendenze tra campi del form in modo semplice e senza AJAX, sfruttando il ciclo di reload della View e la persistenza temporanea dei dati tramite WindowRead/WindowWrite.
