@@ -590,3 +590,74 @@ if ($categoriaSelected) {
 ```
 
 - Questo pattern permette di gestire dipendenze tra campi del form in modo semplice e senza AJAX, sfruttando il ciclo di reload della View e la persistenza temporanea dei dati tramite WindowRead/WindowWrite.
+
+---
+
+## 9. Lettura da Model: ottimizzazione delle query
+
+Per estrarre dati dai Model in modo efficiente, utilizzare i metodi appropriati e il parametro `selectColumns` per rendere le query più leggere.
+
+### Metodi di estrazione dati
+
+- **GetList()**: per estrarre più righe (restituisce un generatore)
+- **GetItemById()**: per estrarre una singola riga tramite ID
+- **GetItemBy[NomeColonna]()**: per estrarre una singola riga tramite parametri univoci
+- **GetCount()**: per contare il numero di righe corrispondenti (restituisce un intero)
+
+### Parametro selectColumns
+
+Sia per le `GetList` che per le varie `GetItem`, è disponibile il parametro `selectColumns`: un array che permette di specificare solo le colonne che interessano, rendendo le query più leggere.
+
+**Regole importanti:**
+- Se si vuole solo controllare l'esistenza di righe, usare `GetCount()`.
+- È sempre necessario includere `"Id"` nel `selectColumns` se si prevedono operazioni di salvataggio sulle righe estratte.
+- Specificare solo le colonne effettivamente utilizzate nel codice.
+
+### Esempi pratici
+
+**Estrazione per visualizzazione (solo titolo):**
+```php
+$province = \Model\Province::GetList(selectColumns: ["Id", "Titolo"]);
+foreach ($province as $provincia) {
+    echo $provincia->Titolo; // Solo Titolo viene usato, ma Id è necessario per eventuali operazioni
+}
+```
+
+**Controllo esistenza:**
+```php
+$count = \Model\Province::GetCount(wherePredicate: '[Titolo] = {0}', whereValues: [$titolo]);
+if ($count > 0) {
+    // Esiste almeno una provincia con quel titolo
+}
+```
+
+**Estrazione completa per operazioni di salvataggio:**
+```php
+$provincia = \Model\Province::GetItemById($id); // Tutte le colonne
+$provincia->Descrizione = "Nuova descrizione";
+$provincia->Save();
+```
+
+**Estrazione ottimizzata per controlli semplici:**
+```php
+$richiesta = \Model\Richieste::GetItemById($id, selectColumns: ["Id", "Stato", "DataRichiesta"]);
+if ($richiesta && $richiesta->Stato === "Approvata") {
+    // Logica specifica
+}
+```
+
+**Nelle relazioni tra Model:**
+```php
+$richiesta = \Model\Richieste::GetItemById($idRichiesta);
+$dettagli = $richiesta->Dettagli_richiesteGetList(
+    orderPredicate: "DataOrder ASC", 
+    selectColumns: ["Data", "Ora inizio"]
+);
+```
+
+### Best practice
+- Analizzare sempre quale dato viene effettivamente utilizzato nel codice.
+- Usare `GetCount()` per semplici controlli di esistenza invece di `GetList()` o `GetItem()`.
+- Includere sempre `"Id"` se si prevedono operazioni sui dati estratti.
+- Per elenchi di visualizzazione, limitarsi ai campi mostrati all'utente.
+- Per operazioni di salvataggio, estrarre tutti i campi (non usare `selectColumns`).
