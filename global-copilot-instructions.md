@@ -661,3 +661,171 @@ $dettagli = $richiesta->Dettagli_richiesteGetList(
 - Includere sempre `"Id"` se si prevedono operazioni sui dati estratti.
 - Per elenchi di visualizzazione, limitarsi ai campi mostrati all'utente.
 - Per operazioni di salvataggio, estrarre tutti i campi (non usare `selectColumns`).
+
+---
+
+## 10. Gestione della paginazione con \Code\Html\Pager
+
+Per implementare la paginazione negli elenchi, utilizzare la classe `\Code\Html\Pager` che genera automaticamente il markup Bootstrap e gestisce la navigazione tra le pagine.
+
+### Implementazione nelle View
+
+#### 1. Funzione Server()
+Nella funzione `Server()`, leggere i parametri di paginazione dalla URL e passarli al Client tramite `WindowWrite`:
+
+```php
+public function Server(): void
+{
+    // Legge i parametri di paginazione dalla URL
+    $page = $_GET['page'] ?? '0';           // Pagina corrente (base 0)
+    $items = $_GET['items'] ?? '10';        // Elementi per pagina
+    
+    \Common\State::WindowWrite("page", $page);
+    \Common\State::WindowWrite("items", $items);
+    ?>
+    <div <?= self::GetViewId() ?>><?php self::Client() ?></div>
+    
+    <script type="text/javascript">
+        // Le tue funzioni JavaScript specifiche della view
+    </script>
+    <?php
+}
+```
+
+#### 2. Funzione Client()
+Nella funzione `Client()`, implementare la logica di paginazione:
+
+```php
+public function Client(): void
+{
+    // Legge i parametri di paginazione passati dal Server
+    $page = (int)\Common\State::WindowRead("page", "0");
+    $item4page = (int)\Common\State::WindowRead("items", "10");
+    
+    // Conta il totale degli elementi
+    $tot = \Model\NomeModel::GetCount();
+    
+    // Ottiene gli elementi paginati
+    $elementi = iterator_to_array(\Model\NomeModel::GetList(
+        item4page: $item4page,
+        page: $page
+    ));
+    
+    // Ottiene l'URL corrente per il paginatore
+    $urlCorrente = $_SERVER['REQUEST_URI'];
+    if (strpos($urlCorrente, '?') !== false) {
+        $urlCorrente = substr($urlCorrente, 0, strpos($urlCorrente, '?'));
+    }
+    ?>
+    <div class="container">
+        <h2>Titolo Elenco</h2>
+        
+        <?php if ($tot == 0): ?>
+            <div class="alert alert-info">
+                Nessun elemento trovato.
+            </div>
+        <?php else: ?>
+            <!-- Paginatore superiore -->
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="col-md-12">
+                    <?= \Code\Html\Pager::Genera($page, $item4page, $tot, $urlCorrente) ?>
+                </div>
+            </div>
+            
+            <!-- Contenuto paginato -->
+            <div class="row">
+                <?php foreach ($elementi as $elemento): ?>
+                    <!-- Il tuo markup per ogni elemento -->
+                    <div class="col-md-6">
+                        <!-- Contenuto dell'elemento -->
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            
+            <!-- Paginatore inferiore -->
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-md-12">
+                    <?= \Code\Html\Pager::Genera($page, $item4page, $tot, $urlCorrente) ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+```
+
+### Parametri della classe Pager
+
+La classe `\Code\Html\Pager::Genera()` accetta i seguenti parametri:
+
+```php
+\Code\Html\Pager::Genera(
+    int $paginaCorrente,        // Pagina corrente (base 0)
+    int $elementiPerPagina,     // Numero di elementi per pagina
+    int $totaleElementi,        // Numero totale di elementi
+    string $urlPagina,          // URL base della pagina
+    string $parametroPagina = 'page',     // Nome parametro GET per la pagina
+    string $parametroElementi = 'items',  // Nome parametro GET per elementi
+    int $maxPagineVisibili = 7             // Numero massimo di pagine visibili
+);
+```
+
+### Funzionalità automatiche del Pager
+
+- **Navigazione**: frecce precedente/successivo
+- **Numeri di pagina**: mostra fino a 7 pagine visibili per default
+- **Selettore elementi**: dropdown per 10, 30, 50, 100 elementi per pagina
+- **Contatore totale**: mostra il numero totale di elementi
+- **URL management**: mantiene automaticamente altri parametri nell'URL
+- **Layout responsive**: si adatta a dispositivi mobili con grid Bootstrap
+
+### Best practice per la paginazione
+
+- **Gestione parametri**: utilizzare sempre stringhe per `WindowWrite` e convertire in interi solo quando necessario
+- **URL corrente**: estrarre sempre l'URL base senza parametri per evitare duplicazioni
+- **Conteggio totale**: utilizzare `GetCount()` per ottenere il numero totale di elementi
+- **Doppio paginatore**: includere il paginatore sia sopra che sotto l'elenco per una migliore UX
+- **Caso vuoto**: gestire sempre il caso in cui non ci sono elementi da mostrare
+- **Generatori**: convertire sempre i generatori in array con `iterator_to_array()` prima dell'utilizzo
+
+### Integrazione con filtri
+
+Se l'elenco include filtri, gestirli insieme alla paginazione:
+
+```php
+public function Client(): void
+{
+    // Legge parametri di paginazione
+    $page = (int)\Common\State::WindowRead("page", "0");
+    $item4page = (int)\Common\State::WindowRead("items", "10");
+    
+    // Legge parametri di filtro
+    $filtroTitolo = \Common\State::WindowRead("filtroTitolo", "");
+    
+    // Costruisce where per i filtri
+    $where = '';
+    $whereValues = [];
+    if ($filtroTitolo !== '') {
+        $where = '[Titolo] LIKE {0}';
+        $whereValues[] = '%' . $filtroTitolo . '%';
+    }
+    
+    // Conta il totale con filtri applicati
+    $tot = \Model\NomeModel::GetCount(
+        wherePredicate: $where, 
+        whereValues: $whereValues
+    );
+    
+    // Ottiene elementi paginati e filtrati
+    $elementi = iterator_to_array(\Model\NomeModel::GetList(
+        item4page: $item4page,
+        page: $page,
+        wherePredicate: $where,
+        whereValues: $whereValues
+    ));
+    
+    // Il resto dell'implementazione...
+}
+```
+
+La classe `\Code\Html\Pager` gestirà automaticamente la persistenza dei parametri di filtro nell'URL durante la navigazione tra le pagine.
