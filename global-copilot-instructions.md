@@ -22,6 +22,110 @@
   ```
   Se presente, significa che è attivo l'autoload di Composer e si possono utilizzare le librerie installate in `vendor/`. Verificare quali pacchetti sono disponibili consultando il file `composer.json`.
 
+**Nota sicurezza output:**
+- Non è necessario usare `htmlspecialchars()` quando si stampano i valori letti da database nelle pagine, perché i valori vengono già salvati encodati.
+- Negli editor, o comunque quando si deve stampare un valore letto da un Model dentro un input, bisogna usare la funzione `\Common\Convert::ForInputValue($valore)`.
+
+**Nota sui link delle pagine:**
+- `$_SERVER['REQUEST_URI']` non esiste nel sistema. Per i link delle pagine utilizzare sempre i metodi della classe `\Code\GetLink` che hanno nomi simili alle View su cui si sta lavorando.
+- Se non si trova un metodo appropriato in `\Code\GetLink`, lasciare una stringa vuota con un commento `// TODO: verificare metodo GetLink` e avvisare via chat.
+
+---
+
+## 1bis. Regole generali di formattazione del codice
+
+### Blocchi di controllo (if, for, foreach, while)
+
+Per tutti i blocchi di controllo del flusso, sia in **PHP** che in **JavaScript**, seguire queste regole:
+
+#### Uso delle parentesi graffe
+- **Usare parentesi graffe `{}` solo se il blocco contiene 2 o più righe di codice**
+- **Non usare parentesi graffe per blocchi di una sola riga**
+
+#### Spaziatura
+- **Ogni blocco deve essere preceduto da una riga vuota** (per separarlo visivamente dal codice precedente)
+- **Ogni blocco deve essere seguito da una riga vuota** (per separarlo visivamente dal codice successivo)
+
+#### Esempi corretti PHP:
+```php
+// ❌ SBAGLIATO - parentesi graffe inutili per una riga
+if ($tipiConnessioneId > 0) {
+    $tipiConnessione = \Model\TipiConnessione::GetItemById($tipiConnessioneId);
+}
+
+// ✅ CORRETTO - una riga senza parentesi graffe
+if ($tipiConnessioneId > 0)
+    $tipiConnessione = \Model\TipiConnessione::GetItemById($tipiConnessioneId);
+
+// ✅ CORRETTO - più righe con parentesi graffe
+if ($tipiConnessioneId > 0) {
+    $tipiConnessione = \Model\TipiConnessione::GetItemById($tipiConnessioneId);
+    $tipoTitolo = $tipiConnessione->Titolo;
+}
+
+// ✅ CORRETTO - spaziatura con riga vuota prima e dopo
+$codice = "esempio";
+
+if ($condizione)
+    $risultato = "singola riga";
+
+$altrocodice = "continua";
+
+// ✅ CORRETTO - foreach con blocco multiplo
+foreach ($elementi as $elemento) {
+    $elemento->Aggiorna();
+    $elemento->Save();
+}
+
+// ✅ CORRETTO - foreach con singola riga
+foreach ($elementi as $elemento)
+    $elemento->Process();
+```
+
+#### Esempi corretti JavaScript:
+```javascript
+// ❌ SBAGLIATO - parentesi graffe inutili per una riga
+if (message !== '') {
+    alert(message);
+}
+
+// ✅ CORRETTO - una riga senza parentesi graffe
+if (message !== '')
+    alert(message);
+
+// ✅ CORRETTO - più righe con parentesi graffe
+if (message !== '') {
+    alert(message);
+    ReloadViewAll();
+}
+
+// ✅ CORRETTO - spaziatura con riga vuota prima e dopo
+let data = TempRead("data");
+
+if (data.length > 0)
+    processData(data);
+
+let result = "elaborazione completata";
+
+// ✅ CORRETTO - for loop con blocco multiplo
+for (let i = 0; i < items.length; i++) {
+    items[i].update();
+    items[i].save();
+}
+
+// ✅ CORRETTO - for loop con singola riga
+for (let i = 0; i < items.length; i++)
+    items[i].process();
+```
+
+#### Applicazione alle strutture principali:
+- **if/else**: seguire sempre queste regole
+- **for/foreach**: seguire sempre queste regole  
+- **while/do-while**: seguire sempre queste regole
+- **try/catch**: seguire sempre queste regole (raramente si ha un catch di una sola riga)
+
+Questa formattazione migliora la leggibilità del codice e mantiene coerenza in tutto il progetto.
+
 ---
 
 ## 2. Struttura di progetto
@@ -117,18 +221,21 @@ reader.readAsBinaryString(file);
 
 ### Chiamata AJAX
 ```javascript
+<?php /* @see \Action\Province::NomeFunzione() */ ?>
 Action("Province", "NomeFunzione", function() {
     // gestione risposta
 });
 ```
 
 - La funzione NomeFunzione deve esistere nella classe Action\Province.
-- L’action legge i dati con TempRead e li passa al controller.
+- L'action legge i dati con TempRead e li passa al controller.
+- **OBBLIGATORIO**: Prima di ogni chiamata `Action()` in JavaScript, inserire sempre un commento `@see` per permettere la navigazione diretta con Ctrl+click: `<?php /* @see \Action\NomeClasse::NomeFunzione() */ ?>`
 
 ### Esempio completo
 
 **1. View**
 ```javascript
+<?php /* @see \Action\Province::Inserisci() */ ?>
 Action("Province", "Inserisci", function() {
     let message = TempRead("message");
     if (message !== '') {
@@ -322,9 +429,24 @@ public static function ImportaDaExcel(string $fileBytes, ?\Model\TipiConnessione
 ## 6. Editor riutilizzabili (Inserimento/Modifica)
 
 - Ogni editor deve avere un campo nascosto id.
-- Se id > 0 → modifica record esistente.
+- Se id > 0 → tentare di recuperare il record con `GetItemById()`:
+  - Se il record esiste → modifica record esistente
+  - Se il record non esiste (null) → nuovo inserimento
 - Se id = 0 o vuoto → nuovo inserimento.
 - Controller e Action gestiscono entrambi i casi.
+
+**Esempio di logica corretta:**
+```php
+$model = \Model\NomeModel::GetItemById((int)\Common\State::WindowRead("Id", "0"));
+
+// Se $model è null (ID = 0, ID non valido o nuovo inserimento)
+if (!$model) {
+    $model = new \Model\NomeModel();
+    // Logica per nuovo inserimento
+} else {
+    // Logica per modifica esistente
+}
+```
 
 ---
 
@@ -332,16 +454,39 @@ public static function ImportaDaExcel(string $fileBytes, ?\Model\TipiConnessione
 
 ### Best practice generali per le View
 
-- **Gestione dei generatori**: se un metodo come `GetList()` restituisce un generatore, non usare `empty()` direttamente. Converti sempre il generatore in array con `iterator_to_array()` prima di controllare se è vuoto o di iterare più volte.
+- **Gestione dei generatori**: se un metodo come `GetList()` restituisce un generatore, non usare `empty()` direttamente. 
+  - **Per contare gli elementi**: usa `GetCount()` con gli stessi parametri (wherePredicate, whereValues, ecc.) invece di convertire in array solo per contare
+  - **Per iterare più volte**: converti in array con `iterator_to_array()` solo se necessario per iterazioni multiple
   ```php
+  // ❌ NON FARE - inefficiente
   $richieste = iterator_to_array(\Model\RichiesteInterne::GetList());
   if (empty($richieste)) { ... }
-  foreach ($richieste as $item) { ... }
+  
+  // ✅ CORRETTO - usa GetCount per verificare l'esistenza
+  $count = \Model\RichiesteInterne::GetCount();
+  if ($count == 0) { 
+      echo "Nessun elemento trovato"; 
+  } else {
+      $richieste = \Model\RichiesteInterne::GetList();
+      foreach ($richieste as $item) { ... }
+  }
+  
+  // ✅ CORRETTO - con filtri
+  $where = '[Stato] = {0}';
+  $whereValues = ['Attivo'];
+  $count = \Model\RichiesteInterne::GetCount(wherePredicate: $where, whereValues: $whereValues);
+  if ($count > 0) {
+      $richieste = \Model\RichiesteInterne::GetList(wherePredicate: $where, whereValues: $whereValues);
+      foreach ($richieste as $item) { ... }
+  }
   ```
 
 - **Editor**:
-  - Usa sempre un campo hidden per l’ID (`<input type="hidden" ...>`).
-  - Se l’ID è > 0, modifica; se 0 o vuoto, nuovo inserimento.
+  - Usa sempre un campo hidden per l'ID (`<input type="hidden" ...>`).
+  - Se l'ID è > 0, tentare di recuperare il record con `GetItemById()`:
+    - Se il record esiste → modifica record esistente
+    - Se il record non esiste (null) → nuovo inserimento
+  - Se l'ID è = 0 o vuoto → nuovo inserimento.
   - Precompila i campi usando `\Common\State::WindowRead()` per mantenere i dati tra reload e validazioni.
   - Organizza i campi in righe e colonne Bootstrap per una migliore UX.
   - Gestisci la selezione dinamica delle dipendenze tra select (es. categoria/corso) tramite `onchange` e reload della view.
