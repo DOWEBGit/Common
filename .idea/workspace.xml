@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="869fb1f9-e623-4e84-9746-0426d0a0a99e" name="Changes" comment="fix e aggiunte varie" />
+    <list default="true" id="869fb1f9-e623-4e84-9746-0426d0a0a99e" name="Changes" comment="fix e aggiunte varie">
+      <change afterPath="$PROJECT_DIR$/Dati/Controlli.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dati/Dati.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dati/Enum/TipoDatoEnum.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dati/Enum/TipoInputEnum.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -66,8 +72,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-e03c56caf84a-JavaScript-PS-252.23892.419" />
-        <option value="bundled-php-predefined-a98d8de5180a-c72577f2c82f-com.jetbrains.php.sharedIndexes-PS-252.23892.419" />
+        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-PS-252.25557.128" />
+        <option value="bundled-php-predefined-a98d8de5180a-ce40d0652d34-com.jetbrains.php.sharedIndexes-PS-252.25557.128" />
       </set>
     </attachedChunks>
   </component>
@@ -107,6 +113,8 @@
       <workItem from="1747389821488" duration="24000" />
       <workItem from="1749031643122" duration="15000" />
       <workItem from="1755014829588" duration="21000" />
+      <workItem from="1756741136485" duration="22000" />
+      <workItem from="1756742032548" duration="1000" />
     </task>
     <task id="LOCAL-00001" summary="fix e aggiunte varie">
       <option name="closed" value="true" />

@@ -57,6 +57,8 @@ class Controlli
             }
         }
 
+        $listaOpzioni = $opzioni == '' ? [] : explode(PHP_EOL, $opzioni);
+
         $arr = $obj->ControlliSave(
             $id,
             $tipoDato->value,
@@ -83,11 +85,11 @@ class Controlli
             (string)$testoMaxCaratteri,
             (string)$testoMaxParole,
             $testoRegEx,
-            ucfirst((string)$decode),
+            $decode ? "True" : "False",
             (string)$adminRighe,
             (string)$adminColonne,
-            ucfirst((string)$autoIncrement),
-            explode(PHP_EOL, $opzioni)
+            $autoIncrement ? "True" : "False",
+            $listaOpzioni
         );
 
         if (!$arr->Errore)
