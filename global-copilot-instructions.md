@@ -981,6 +981,44 @@ La classe `\Code\Html\Pager` gestirà automaticamente la persistenza dei paramet
 
 Il sistema utilizza le classi in `\Common\Dati` per creare una struttura di **Controlli** e **Dati** che servirà poi per generare automaticamente i Model utilizzati come strato di comunicazione tra PHP e database.
 
+### ⚠️ REGOLE FONDAMENTALI DA RISPETTARE
+
+**Naming Convention:**
+- **Nomi dei Dati**: devono contenere **SOLO lettere maiuscole o minuscole**. Per separare le parole usare il **TitleCase** (es. "CategorieBlog", "ArticoliBlog", "CommentiUtenti")
+- **Nomi dei Controlli**: devono contenere **SOLO lettere maiuscole o minuscole**. Mai usare spazi o underscore (es. "Titolo50", "ContenutoRich", "FkDropDown")
+- **Nomi dei campi in AgganciaControllo**: seguire la stessa regola del TitleCase (es. "NomeAutore", "EmailAutore", "SitoWeb")
+
+**Parametri tecnici:**
+- **adminColonne**: può contenere **SOLO valori da 1 a 4**
+  - 1 = col-sm-3 (25% larghezza)
+  - 2 = col-sm-6 (50% larghezza) 
+  - 3 = col-sm-9 (75% larghezza)
+  - 4 = col-sm-12 (100% larghezza)
+
+**❌ ESEMPI SBAGLIATI:**
+```php
+// NOMI SBAGLIATI
+nome: "Categorie_blog"        // underscore non ammesso
+nome: "Articoli blog"         // spazio non ammesso
+nome: "nome_utente"           // underscore non ammesso
+
+// PARAMETRI SBAGLIATI
+adminColonne: 80             // deve essere 1-4
+adminColonne: 12             // deve essere 1-4
+```
+
+**✅ ESEMPI CORRETTI:**
+```php
+// NOMI CORRETTI
+nome: "CategorieBlog"        // TitleCase senza separatori
+nome: "ArticoliBlog"         // TitleCase senza separatori
+nome: "NomeUtente"           // TitleCase senza separatori
+
+// PARAMETRI CORRETTI
+adminColonne: 4              // 100% larghezza (col-sm-12)
+adminColonne: 2              // 50% larghezza (col-sm-6)
+```
+
 ### Concetti fondamentali
 
 - **Controllo**: rappresenta un singolo input di form HTML (es. TextBox, TextArea, DropDownList). Un controllo può essere riutilizzato in più Dati e più volte anche nello stesso Dato se si adatta alle circostanze.
@@ -1265,7 +1303,6 @@ $controlloFkTextBoxId = \Common\Dati\Controlli::CreaControlloDatoTextBox(
 ##### Esempio completo: Blog con multiple Foreign Key
 
 ```php
-// Dato Blog con parent (Categorie) e foreign key aggiuntive
 $datoBlogId = \Common\Dati\Dati::CreaDato(
     id: 0,
     nome: "Blog",
