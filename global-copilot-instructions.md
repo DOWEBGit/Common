@@ -91,7 +91,7 @@ if (message !== '') {
 
 // ✅ CORRETTO - una riga senza parentesi graffe
 if (message !== '')
-    alert(message);
+    alert(message;
 
 // ✅ CORRETTO - più righe con parentesi graffe
 if (message !== '') {
@@ -974,3 +974,379 @@ public function Client(): void
 ```
 
 La classe `\Code\Html\Pager` gestirà automaticamente la persistenza dei parametri di filtro nell'URL durante la navigazione tra le pagine.
+
+---
+
+## 11. Creazione di Controlli e Dati per la generazione dei Model
+
+Il sistema utilizza le classi in `\Common\Dati` per creare una struttura di **Controlli** e **Dati** che servirà poi per generare automaticamente i Model utilizzati come strato di comunicazione tra PHP e database.
+
+### Concetti fondamentali
+
+- **Controllo**: rappresenta un singolo input di form HTML (es. TextBox, TextArea, DropDownList). Un controllo può essere riutilizzato in più Dati e più volte anche nello stesso Dato se si adatta alle circostanze.
+- **Dato**: rappresenta un'entità del dominio (es. Utenti, Blog, Province). Corrisponde concettualmente a come modelleresti un form HTML per salvare/modificare quella entità.
+
+### Tipi di Dato disponibili
+
+I tipi di dato sono definiti in `\Common\Dati\Enum\TipoDatoEnum`:
+
+- **Testo**: per contenuto testuale (stringhe, descrizioni, titoli)
+- **Numeri**: per valori numerici (ID, età, prezzi, contatori)
+- **Data/DataOra**: per date e orari
+- **File**: per allegati generici
+- **Immagini**: per file immagine
+- **Dato**: per relazioni verso altri Dati (foreign key)
+
+### Tipi di Input disponibili
+
+I tipi di input sono definiti in `\Common\Dati\Enum\TipoInputEnum`:
+
+- **TextBox**: input di testo singola riga
+- **TextArea**: input di testo multi-riga
+- **RichTextBox/RichTextBoxMini**: editor di testo formattato
+- **DropDownList**: select con singola selezione
+- **ListBox**: select con selezione multipla
+- **CheckBox**: casella di controllo
+- **FileInput**: input per file
+
+### Combinazioni valide Tipo Dato → Tipo Input
+
+- **Testo**: TextBox, TextArea, RichTextBox, RichTextBoxMini, DropDownList, ListBox
+- **Numeri**: TextBox, CheckBox
+- **Data/DataOra**: TextBox
+- **File/Immagini**: FileInput
+- **Dato**: TextBox, DropDownList, ListBox
+
+### Creazione di Controlli comuni
+
+#### Controllo TextBox generico per testi brevi
+```php
+$controlloTitoloId = \Common\Dati\Controlli::CreaControlloTestoTextBox(
+    id: 0,
+    nome: "Titolo50",
+    descrizione: "Campo titolo con massimo 50 caratteri",
+    avvisoCampoNonValido: "Il titolo non è valido",
+    avvisoCampoDuplicato: "Questo titolo è già presente",
+    avvisoCampoMancante: "Il titolo è obbligatorio",
+    testoMaxCaratteri: 50
+);
+```
+
+#### Controllo per Email con regex
+```php
+$controlloEmailId = \Common\Dati\Controlli::CreaControlloTestoTextBox(
+    id: 0,
+    nome: "Email",
+    descrizione: "Campo email con validazione",
+    avvisoCampoNonValido: "Formato email non valido",
+    avvisoCampoDuplicato: "Questa email è già registrata",
+    avvisoCampoMancante: "L'email è obbligatoria",
+    testoMaxCaratteri: 255,
+    testoRegEx: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+);
+```
+
+#### Controllo per Password complessa
+```php
+// Usa la regex per password complessa da \Common\StringGenerator::GetComplexPassword
+$controlloPasswordId = \Common\Dati\Controlli::CreaControlloTestoTextBox(
+    id: 0,
+    nome: "PasswordComplessa",
+    descrizione: "Password complessa con caratteri speciali",
+    avvisoCampoNonValido: "La password deve contenere almeno una maiuscola, una minuscola, un numero e un carattere speciale",
+    avvisoCampoDuplicato: "Password già utilizzata",
+    avvisoCampoMancante: "La password è obbligatoria",
+    testoMaxCaratteri: 255,
+    testoRegEx: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\\|!"£$%&/()=?^\'"@\[\]*;:<>,]).{8,}$'
+);
+```
+
+#### Controllo TextArea per descrizioni
+```php
+$controlloDescrizioneId = \Common\Dati\Controlli::CreaControlloTestoTextArea(
+    id: 0,
+    nome: "Descrizione500",
+    descrizione: "Campo descrizione con massimo 500 caratteri",
+    avvisoCampoNonValido: "La descrizione non è valida",
+    avvisoCampoDuplicato: "Questa descrizione è già presente",
+    avvisoCampoMancante: "La descrizione è obbligatoria",
+    testoMaxCaratteri: 500,
+    adminRighe: 5,
+    adminColonne: 80
+);
+```
+
+### Creazione di un Dato (entità)
+
+#### Esempio: Dato Utenti
+```php
+$datoUtentiId = \Common\Dati\Dati::CreaDato(
+    id: 0,
+    nome: "Utenti",
+    nomeVisualizzato: "Gestione Utenti",
+    descrizione: "Entità per la gestione degli utenti del sistema",
+    elementiMax: 10000,
+    ordinamentoASC: true,
+    parent: 0, // 0 = non ha parent
+    onSave: "", // logica custom al salvataggio
+    onDelete: "" // logica custom all'eliminazione
+);
+
+// Aggancia i controlli al dato
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloTitoloId, // Riutilizzo il controllo Titolo50 per Nome
+    idDato: $datoUtentiId,
+    nome: "Nome",
+    obbligatorio: true,
+    univoco: false,
+    nascosto: false,
+    autoIncrementante: false,
+    colonnaTabelle: true,
+    valoreDefault: '',
+    descrizione: "Nome dell'utente"
+);
+
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloTitoloId, // Riutilizzo lo stesso controllo per Cognome
+    idDato: $datoUtentiId,
+    nome: "Cognome",
+    obbligatorio: true,
+    univoco: false,
+    colonnaTabelle: true,
+    descrizione: "Cognome dell'utente"
+);
+
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloEmailId,
+    idDato: $datoUtentiId,
+    nome: "Email",
+    obbligatorio: true,
+    univoco: true, // Email deve essere univoca
+    colonnaTabelle: true,
+    descrizione: "Email dell'utente"
+);
+
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloPasswordId,
+    idDato: $datoUtentiId,
+    nome: "Password",
+    obbligatorio: true,
+    nascosto: true, // Non mostrare nelle tabelle
+    colonnaTabelle: false,
+    descrizione: "Password dell'utente"
+);
+```
+
+#### Esempio: Dato Blog
+```php
+$datoBlogId = \Common\Dati\Dati::CreaDato(
+    id: 0,
+    nome: "Blog",
+    nomeVisualizzato: "Gestione Blog",
+    descrizione: "Entità per la gestione degli articoli del blog",
+    elementiMax: 50000
+);
+
+// Riutilizzo il controllo Titolo50 per il titolo del blog
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloTitoloId,
+    idDato: $datoBlogId,
+    nome: "Titolo",
+    obbligatorio: true,
+    colonnaTabelle: true,
+    descrizione: "Titolo dell'articolo"
+);
+
+// Riutilizzo il controllo Descrizione500 per il contenuto
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloDescrizioneId,
+    idDato: $datoBlogId,
+    nome: "Contenuto",
+    obbligatorio: true,
+    colonnaTabelle: false,
+    descrizione: "Contenuto dell'articolo"
+);
+```
+
+### Best Practice per Controlli e Dati
+
+- **Riutilizzo**: creare controlli generici riutilizzabili (es. Titolo50, Email, PasswordComplessa) invece di controlli specifici per ogni campo
+- **Naming**: usare nomi descrittivi che includano le caratteristiche principali (es. "Titolo50" invece di "Titolo")
+- **Validazione**: sempre specificare regex appropriate per validazioni specifiche (email, password, etc.)
+- **Messaggi**: personalizzare sempre i messaggi di errore per migliorare UX
+- **Univocità**: marcare come univoci solo i campi che devono essere realmente unici nel database
+- **Colonne tabelle**: impostare `colonnaTabelle: true` solo per i campi che devono apparire negli elenchi
+- **Ordinamento**: usare `ordinamentoASC: true` per ordinamenti alfabetici crescenti
+
+### Generazione automatica Model
+
+Una volta definiti Controlli e Dati, il sistema genererà automaticamente:
+- Model corrispondenti in `\Model\NomeEntità`
+- Metodi di accesso ai dati (GetList, GetItemById, Save, Delete)
+- Validazioni automatiche basate sui controlli definiti
+- Interfacce di amministrazione per CRUD operations
+
+Questa struttura garantisce coerenza tra la definizione logica delle entità e la loro implementazione nel codice, automatizzando la creazione del layer di accesso ai dati.
+
+### Gestione delle relazioni tramite Foreign Key
+
+Per collegare tabelle tramite foreign key, il sistema offre due approcci diversi:
+
+#### 1. Relazioni uno-a-molti con parentId
+
+Per relazioni **uno-a-molti** (es. Blog → Immagini del blog), utilizzare il parametro `$parent` nella funzione `CreaDato`:
+
+```php
+// Dato principale (Blog)
+$datoBlogId = \Common\Dati\Dati::CreaDato(
+    id: 0,
+    nome: "Blog",
+    nomeVisualizzato: "Gestione Blog",
+    descrizione: "Entità per la gestione degli articoli del blog",
+    elementiMax: 50000,
+    parent: 0 // Nessun parent
+);
+
+// Dato figlio (Immagini del blog) - collegato tramite parentId
+$datoImmaginiId = \Common\Dati\Dati::CreaDato(
+    id: 0,
+    nome: "Immagini_blog",
+    nomeVisualizzato: "Immagini Blog",
+    descrizione: "Immagini associate agli articoli del blog",
+    elementiMax: 100000,
+    parent: $datoBlogId // Collegamento uno-a-molti tramite parentId
+);
+```
+
+**Limitazioni del parentId:**
+- Un Dato può avere **un solo parent**
+- Ideale per relazioni gerarchiche semplici (es. Categoria → Prodotti, Blog → Immagini)
+
+#### 2. Controlli di tipo Dato per altre Foreign Key
+
+Per **altre foreign key** oltre al parent, utilizzare Controlli di tipo `Dato`:
+
+##### Creazione del Controllo Foreign Key base
+
+```php
+// Controllo generico per foreign key verso Utenti
+$controlloFkUtentiId = \Common\Dati\Controlli::CreaControllo(
+    id: 0,
+    tipoDato: \Common\Dati\Enum\TipoDatoEnum::Dato,
+    tipoInput: \Common\Dati\Enum\TipoInputEnum::DropDownList,
+    nome: "FkUtenti",
+    descrizione: "Foreign key verso il dato Utenti",
+    avvisoCampoNonValido: "Selezionare un utente valido",
+    avvisoCampoDuplicato: "Relazione già esistente",
+    avvisoCampoMancante: "L'utente è obbligatorio"
+);
+```
+
+##### Esempio completo: Blog con multiple Foreign Key
+
+```php
+// Dato Blog con parent (Categorie) e foreign key aggiuntive
+$datoBlogId = \Common\Dati\Dati::CreaDato(
+    id: 0,
+    nome: "Blog",
+    nomeVisualizzato: "Gestione Blog",
+    descrizione: "Entità per la gestione degli articoli del blog",
+    elementiMax: 50000,
+    parent: $datoCategorieId // Parent: relazione uno-a-molti con Categorie
+);
+
+// Aggancia foreign key verso Utenti (autore del blog)
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkUtentiId,
+    idDato: $datoBlogId,
+    nome: "Autore",
+    obbligatorio: true,
+    univoco: false,
+    colonnaTabelle: true,
+    descrizione: "Autore dell'articolo"
+);
+
+// Controllo e foreign key verso Stato pubblicazione
+$controlloFkStatiId = \Common\Dati\Controlli::CreaControllo(
+    id: 0,
+    tipoDato: \Common\Dati\Enum\TipoDatoEnum::Dato,
+    tipoInput: \Common\Dati\Enum\TipoInputEnum::DropDownList,
+    nome: "FkStati",
+    descrizione: "Foreign key verso gli stati di pubblicazione",
+    avvisoCampoNonValido: "Selezionare uno stato valido",
+    avvisoCampoDuplicato: "Stato già assegnato",
+    avvisoCampoMancante: "Lo stato è obbligatorio"
+);
+
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkStatiId,
+    idDato: $datoBlogId,
+    nome: "Stato",
+    obbligatorio: true,
+    univoco: false,
+    colonnaTabelle: true,
+    descrizione: "Stato di pubblicazione dell'articolo"
+);
+```
+
+#### Convenzioni per le Foreign Key
+
+- **Naming Controlli FK**: sempre `"Fk" + NomeDato` (es. `FkUtenti`, `FkCategorie`, `FkStati`)
+- **Riutilizzo**: i controlli FK possono essere riutilizzati in più Dati che necessitano della stessa relazione
+- **Tipo Input**: preferire `DropDownList` per single selection, `ListBox` per multiple selection
+- **Tipo Dato**: sempre `\Common\Dati\Enum\TipoDatoEnum::Dato` per le foreign key
+
+#### Esempi di scenari tipici
+
+##### Scenario 1: E-commerce
+```php
+// Prodotti con parent Categorie + FK verso Fornitori e Marchi
+$datoProdottiId = \Common\Dati\Dati::CreaDato(
+    nome: "Prodotti",
+    parent: $datoCategorieId // Uno-a-molti: Categoria → Prodotti
+);
+
+// FK aggiuntive
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkFornitoriId, // "FkFornitori"
+    idDato: $datoProdottiId,
+    nome: "Fornitore"
+);
+
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkMarchiId, // "FkMarchi"
+    idDato: $datoProdottiId,
+    nome: "Marchio"
+);
+```
+
+##### Scenario 2: Sistema di ticketing
+```php
+// Ticket con parent Progetti + FK verso Utenti e Priorità
+$dataTicketId = \Common\Dati\Dati::CreaDato(
+    nome: "Ticket",
+    parent: $datoProgettiId // Uno-a-molti: Progetto → Ticket
+);
+
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkUtentiId, // "FkUtenti"
+    idDato: $dataTicketId,
+    nome: "Assegnato_a"
+);
+
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkPrioritaId, // "FkPriorita"
+    idDato: $dataTicketId,
+    nome: "Priorita"
+);
+```
+
+### Best Practice per le Relazioni
+
+- **Analisi delle relazioni**: identificare prima la relazione principale (parentId) e quelle secondarie (FK)
+- **Riutilizzo FK**: creare controlli FK generici riutilizzabili in più entità
+- **Naming consistente**: seguire sempre la convenzione `Fk + NomeDato`
+- **Validazione**: sempre specificare messaggi di errore appropriati per le FK
+- **Performance**: considerare l'uso di `selectColumns` quando si accede alle relazioni per ottimizzare le query
+
+Questa struttura permette di modellare relazioni complesse mantenendo la coerenza e la riutilizzabilità del codice.

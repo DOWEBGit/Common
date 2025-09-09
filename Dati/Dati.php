@@ -39,7 +39,7 @@ class Dati
             'False',
             'False',
             'False',
-            ucfirst((string)$ordinamentoASC),
+            $ordinamentoASC ? "True" : "False",
             '0',
             '0',
             $parent,
@@ -54,4 +54,70 @@ class Dati
 
         return -1;
     }
+
+    public static function AgganciaControllo(
+        int $idControllo,
+        int $idDato,
+        string $nome,
+        bool $obbligatorio = true,
+        bool $univoco = false,
+        bool $nascosto = false,
+        bool $autoIncrementante = false,
+        bool $colonnaTabelle = false,
+        string $valoreDefault = '',
+        bool $multiLingua = false,
+        int $adminColonne = 1,
+        int $adminRighe = 1,
+        bool $ordinamentoASC = true,
+        int $idFkDato = 0,
+        \Common\Dati\Enum\TipoEliminazioneFkEnum $tipoEliminazioneFk = \Common\Dati\Enum\TipoEliminazioneFkEnum::False,
+        \Common\Dati\Enum\TipoControlloInLinea $tipoControlloInLinea = \Common\Dati\Enum\TipoControlloInLinea::SolaLettura,
+        bool $mobile = false,
+        string $descrizione = '',
+        string $avvisoCampoNonValido = 'Valore non valido',
+        string $avvisoCampoDuplicato = 'Valore già presente',
+        string $avvisoCampoVuoto = 'Il campo è obbligatorio'
+
+    ): bool
+    {
+        $obj = PHPDOWEB();
+
+        $identificativo = str_replace(" ", "", $nome);
+
+        $tagReplace = "[DC:".strtoupper($identificativo)."]";
+
+        $arr = $obj->DatiControlliSave('0',
+            $idControllo,
+            $idDato,
+            $identificativo,
+            $obbligatorio ? 'True' : 'False',
+            $univoco ? 'True' : 'False',
+            $nascosto ? 'True' : 'False',
+            $autoIncrementante ? 'True' : 'False',
+            $colonnaTabelle ? 'True' : 'False',
+            $valoreDefault,
+            $multiLingua ? 'True' : 'False',
+            $tagReplace,
+            $adminColonne,
+            $adminRighe,
+            $ordinamentoASC ? 'True' : 'False',
+            $idFkDato,
+            $tipoEliminazioneFk->value,
+            $tipoControlloInLinea->value,
+            $mobile ? 'True' : 'False',
+            $nome,
+            $descrizione != '' ? $descrizione : $nome,
+            $avvisoCampoNonValido,
+            $avvisoCampoDuplicato,
+            $avvisoCampoVuoto);
+
+        if ($arr->Errore)
+        {
+            \Common\Log::Error($arr->Avviso);
+            return false;
+        }
+        else
+            return true;
+    }
+
 }
