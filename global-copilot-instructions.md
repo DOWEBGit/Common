@@ -1307,12 +1307,8 @@ $controlloFkTextBoxId = \Common\Dati\Controlli::CreaControlloDatoTextBox(
 
 ```php
 $datoBlogId = \Common\Dati\Dati::CreaDato(
-    id: 0,
     nome: "Blog",
-    nomeVisualizzato: "Gestione Blog",
-    descrizione: "Entità per la gestione degli articoli del blog",
-    elementiMax: 50000,
-    parent: $datoCategorieId // Parent: relazione uno-a-molti con Categorie
+    parent: $datoCategorieId // Uno-a-molti: Categoria → Blog
 );
 
 // Aggancia FK verso Utenti (autore del blog) - riferimento al controllo Email dell'utente
@@ -1323,7 +1319,7 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
     obbligatorio: true,
     univoco: false,
     colonnaTabelle: true,
-    idFkDato: \Controller\Dati::GetIdControlloRefId("Utenti", "Email"), // OBBLIGATORIO: ID del controllo target
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Utenti", "Email"), // OBBLIGATORIO: ID del controllo target
     descrizione: "Autore dell'articolo"
 );
 
@@ -1335,7 +1331,7 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
     obbligatorio: false,
     univoco: false,
     colonnaTabelle: false,
-    idFkDato: \Controller\Dati::GetIdControlloRefId("Tag", "Nome"), // OBBLIGATORIO: ID del controllo target
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Tag", "Nome"), // OBBLIGATORIO: ID del controllo target
     descrizione: "Tag associati all'articolo"
 );
 ```
@@ -1392,7 +1388,7 @@ Per poter utilizzare un controllo di un dato come target di una foreign key, il 
   - `"FkListBox"` per selezioni multiple
   - `"FkTextBox"` per input diretti di ID
 - **Riutilizzo totale**: gli stessi controlli FK generici vengono riutilizzati per **tutte** le relazioni che necessitano dello stesso tipo di input
-- **Parametro idFkDato**: **OBBLIGATORIO** per tutte le FK - deve utilizzare `\Controller\Dati::GetIdControlloRefId(nomeDato, nomeControllo)`
+- **Parametro controlloRefId**: **OBBLIGATORIO** per tutte le FK - deve utilizzare `\Common\Dati\Dati::GetIdControlloRefId(nomeDato, nomeControllo)`
 - **Controlli target**: il controllo referenziato deve essere **univoco** e (**obbligatorio** oppure **nascosto**)
 - **Tipo Input**:
   - `DropDownList` per relazioni uno-a-uno e molti-a-uno
@@ -1414,7 +1410,7 @@ $datoProdottiId = \Common\Dati\Dati::CreaDato(
     idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $datoProdottiId,
     nome: "Fornitore", // Nome campo FK
-    idFkDato: \Controller\Dati::GetIdControlloRefId("Fornitori", "RagioneSociale") // Riferimento al controllo RagioneSociale del fornitore
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Fornitori", "RagioneSociale") // Riferimento al controllo RagioneSociale del fornitore
 );
 
 // FK verso Marchi - riutilizzo lo stesso controllo generico DropDown
@@ -1422,7 +1418,7 @@ $datoProdottiId = \Common\Dati\Dati::CreaDato(
     idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
     idDato: $datoProdottiId,
     nome: "Marchio", // Nome campo FK
-    idFkDato: \Controller\Dati::GetIdControlloRefId("Marchi", "Nome") // Riferimento al controllo Nome del marchio
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Marchi", "Nome") // Riferimento al controllo Nome del marchio
 );
 ```
 
@@ -1439,7 +1435,7 @@ $dataTicketId = \Common\Dati\Dati::CreaDato(
     idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $dataTicketId,
     nome: "AssegnatoA", // Nome campo FK
-    idFkDato: \Controller\Dati::GetIdControlloRefId("Utenti", "Email") // Riferimento all'email dell'utente
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Utenti", "Email") // Riferimento all'email dell'utente
 );
 
 // FK verso Priorità - riutilizzo lo stesso controllo generico DropDown
@@ -1447,13 +1443,13 @@ $dataTicketId = \Common\Dati\Dati::CreaDato(
     idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
     idDato: $dataTicketId,
     nome: "Priorita", // Nome campo FK
-    idFkDato: \Controller\Dati::GetIdControlloRefId("Priorita", "Livello") // Riferimento al livello di priorità
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Priorita", "Livello") // Riferimento al livello di priorità
 );
 ```
 
 ### Sintassi completa per AgganciaControllo con Foreign Key
 
-Quando si aggancia un controllo FK a un dato, la sintassi completa include sempre il parametro `idFkDato` con `GetIdControlloRefId`:
+Quando si aggancia un controllo FK a un dato, la sintassi completa include sempre il parametro `controlloRefId` con `GetIdControlloRefId`:
 
 ```php
 \Common\Dati\Dati::AgganciaControllo(
@@ -1466,13 +1462,13 @@ Quando si aggancia un controllo FK a un dato, la sintassi completa include sempr
     autoIncrementante: false,         // Sempre false per le FK
     colonnaTabelle: true|false,       // Se mostrare nelle tabelle
     valoreDefault: '',                // Valore di default (opzionale)
-    idFkDato: \Controller\Dati::GetIdControlloRefId("NomeDatoTarget", "NomeControlloTarget"), // *** OBBLIGATORIO: ID del controllo target ***
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("NomeDatoTarget", "NomeControlloTarget"), // *** OBBLIGATORIO: ID del controllo target ***
     descrizione: "Descrizione campo" // Descrizione del campo
 );
 ```
 
 **Note importanti:**
-- Il parametro `idFkDato` è **sempre obbligatorio** quando si usa un controllo di tipo FK
-- Utilizzare sempre `\Controller\Dati::GetIdControlloRefId(nomeDato, nomeControllo)` per ottenere l'ID del controllo target
+- Il parametro `controlloRefId` è **sempre obbligatorio** quando si usa un controllo di tipo FK
+- Utilizzare sempre `\Common\Dati\Dati::GetIdControlloRefId(nomeDato, nomeControllo)` per ottenere l'ID del controllo target
 - Il controllo target deve essere **univoco** e (**obbligatorio** oppure **nascosto**)
 - Il collegamento FK viene stabilito tramite riferimento a un controllo specifico, non al dato nel suo complesso
