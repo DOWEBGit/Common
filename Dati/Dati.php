@@ -70,7 +70,7 @@ class Dati
         int $adminRighe = 1,
         bool $ordinamentoASC = true,
         int $idFkDato = 0,
-        \Common\Dati\Enum\TipoEliminazioneFkEnum $tipoEliminazioneFk = \Common\Dati\Enum\TipoEliminazioneFkEnum::False,
+        \Common\Dati\Enum\TipoEliminazioneFkEnum $tipoEliminazioneFk = \Common\Dati\Enum\TipoEliminazioneFkEnum::Blocco,
         \Common\Dati\Enum\TipoControlloInLinea $tipoControlloInLinea = \Common\Dati\Enum\TipoControlloInLinea::SolaLettura,
         bool $mobile = false,
         string $descrizione = '',

@@ -1319,10 +1319,11 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $datoBlogId,
-    nome: "Autore", // Il nome definisce la relazione verso il dato Utenti
+    nome: "Autore", // Il nome del campo che conterrà la FK
     obbligatorio: true,
     univoco: false,
     colonnaTabelle: true,
+    idFkDato: $datoUtentiId, // OBBLIGATORIO: specifica l'ID del dato target
     descrizione: "Autore dell'articolo"
 );
 
@@ -1330,10 +1331,11 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
     idDato: $datoBlogId,
-    nome: "Stato", // Il nome definisce la relazione verso il dato Stati_pubblicazione
+    nome: "Stato", // Il nome del campo che conterrà la FK
     obbligatorio: true,
     univoco: false,
     colonnaTabelle: true,
+    idFkDato: $datoStatiPubblicazioneId, // OBBLIGATORIO: specifica l'ID del dato target
     descrizione: "Stato di pubblicazione dell'articolo"
 );
 
@@ -1341,10 +1343,11 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkListBoxId, // Controllo FK per selezione multipla
     idDato: $datoBlogId,
-    nome: "Tag", // Il nome definisce la relazione verso il dato Tag
+    nome: "Tag", // Il nome del campo che conterrà la FK
     obbligatorio: false,
     univoco: false,
     colonnaTabelle: false,
+    idFkDato: $datoTagId, // OBBLIGATORIO: specifica l'ID del dato target
     descrizione: "Tag associati all'articolo"
 );
 ```
@@ -1356,7 +1359,8 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
   - `"FkListBox"` per selezioni multiple
   - `"FkTextBox"` per input diretti di ID
 - **Riutilizzo totale**: gli stessi controlli FK generici vengono riutilizzati per **tutte** le relazioni che necessitano dello stesso tipo di input
-- **Collegamento al target**: il dato target della FK viene determinato automaticamente dal **nome** utilizzato in `AgganciaControllo()`
+- **Parametro idFkDato**: **OBBLIGATORIO** per tutte le FK - specifica l'ID del dato di destinazione della relazione
+- **Naming campi FK**: il **nome** utilizzato in `AgganciaControllo()` definisce il nome del campo FK nel database
 - **Tipo Input**:
   - `DropDownList` per relazioni uno-a-uno e molti-a-uno
   - `ListBox` per relazioni molti-a-molti
@@ -1376,14 +1380,16 @@ $datoProdottiId = \Common\Dati\Dati::CreaDato(
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $datoProdottiId,
-    nome: "Fornitore" // Definisce relazione verso dato Fornitori
+    nome: "Fornitore", // Nome campo FK
+    idFkDato: $datoFornitoriId // ID del dato Fornitori
 );
 
 // FK verso Marchi - riutilizzo lo stesso controllo generico DropDown
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
     idDato: $datoProdottiId,
-    nome: "Marchio" // Definisce relazione verso dato Marchi
+    nome: "Marchio", // Nome campo FK
+    idFkDato: $datoMarchiId // ID del dato Marchi
 );
 ```
 
@@ -1399,13 +1405,40 @@ $dataTicketId = \Common\Dati\Dati::CreaDato(
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $dataTicketId,
-    nome: "Assegnato_a" // Definisce relazione verso dato Utenti
+    nome: "AssegnatoA", // Nome campo FK
+    idFkDato: $datoUtentiId // ID del dato Utenti
 );
 
 // FK verso Priorità - riutilizzo lo stesso controllo generico DropDown
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
     idDato: $dataTicketId,
-    nome: "Priorita" // Definisce relazione verso dato Priorita
+    nome: "Priorita", // Nome campo FK
+    idFkDato: $datoPrioritaId // ID del dato Priorita
 );
 ```
+
+### Sintassi completa per AgganciaControllo con Foreign Key
+
+Quando si aggancia un controllo FK a un dato, la sintassi completa include sempre il parametro `idFkDato`:
+
+```php
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkId,      // ID del controllo FK generico
+    idDato: $datoCorrente,            // ID del dato che contiene la FK
+    nome: "NomeCampoFK",              // Nome del campo FK nel database
+    obbligatorio: true|false,         // Se la FK è obbligatoria
+    univoco: true|false,              // Se la FK deve essere univoca
+    nascosto: true|false,             // Se nascondere il campo negli editor
+    autoIncrementante: false,         // Sempre false per le FK
+    colonnaTabelle: true|false,       // Se mostrare nelle tabelle
+    valoreDefault: '',                // Valore di default (opzionale)
+    idFkDato: $datoTarget,           // *** OBBLIGATORIO: ID del dato target ***
+    descrizione: "Descrizione campo" // Descrizione del campo
+);
+```
+
+**Note importanti:**
+- Il parametro `idFkDato` è **sempre obbligatorio** quando si usa un controllo di tipo FK
+- **Non** utilizzare mai funzioni come `ConfiguraForeignKey()` che non esistono nel sistema
+- Il collegamento FK viene stabilito esclusivamente tramite il parametro `idFkDato` in `AgganciaControllo()`
