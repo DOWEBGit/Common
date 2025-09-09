@@ -67,7 +67,7 @@ class Dati
         {
             if ($dato->Nome == $nomeDato)
             {
-                $idRef = $dato->Id;
+                $idRef = (int)$dato->Id;
                 break;
             }
         }
@@ -83,7 +83,7 @@ class Dati
         {
             if ($datoControllo->Identificativo == $nomeControllo)
             {
-                $controlloRefId = $datoControllo->Id;
+                $controlloRefId = (int)$datoControllo->Id;
                 break;
             }
         }
