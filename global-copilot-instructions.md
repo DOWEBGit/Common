@@ -995,6 +995,9 @@ Il sistema utilizza le classi in `\Common\Dati` per creare una struttura di **Co
   - 3 = col-sm-9 (75% larghezza)
   - 4 = col-sm-12 (100% larghezza)
 
+**Controlli NON necessari:**
+- **Controlli per slug/URL**: NON creare mai controlli specifici per slug delle URL. Il sistema non li richiede e non devono essere implementati.
+
 **❌ ESEMPI SBAGLIATI:**
 ```php
 // NOMI SBAGLIATI
@@ -1282,7 +1285,7 @@ $controlloFkDropDownId = \Common\Dati\Controlli::CreaControlloDatoDropDownList(
 // Controllo FK generico per selezione multipla (ListBox)
 $controlloFkListBoxId = \Common\Dati\Controlli::CreaControlloDatoListBox(
     id: 0,
-    nome: "FkListBox", 
+    nome: "FkListBox",
     descrizione: "Foreign key generica per selezione multipla",
     avvisoCampoNonValido: "Selezionare elementi validi",
     avvisoCampoDuplicato: "",
@@ -1350,11 +1353,11 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
 
 - **Naming Controlli FK**: usare nomi generici che descrivono il tipo di input:
   - `"FkDropDown"` per selezioni singole
-  - `"FkListBox"` per selezioni multiple  
+  - `"FkListBox"` per selezioni multiple
   - `"FkTextBox"` per input diretti di ID
 - **Riutilizzo totale**: gli stessi controlli FK generici vengono riutilizzati per **tutte** le relazioni che necessitano dello stesso tipo di input
 - **Collegamento al target**: il dato target della FK viene determinato automaticamente dal **nome** utilizzato in `AgganciaControllo()`
-- **Tipo Input**: 
+- **Tipo Input**:
   - `DropDownList` per relazioni uno-a-uno e molti-a-uno
   - `ListBox` per relazioni molti-a-molti
   - `TextBox` per casi particolari dove serve inserimento diretto di ID
@@ -1406,4 +1409,3 @@ $dataTicketId = \Common\Dati\Dati::CreaDato(
     nome: "Priorita" // Definisce relazione verso dato Priorita
 );
 ```
-
