@@ -442,4 +442,174 @@ class Controlli
             opzioni: $opzioni
         );
     }
+
+    // === CONTROLLI PER FOREIGN KEY (TIPO DATO) ===
+
+    public static function CreaControlloDatoDropDownList(
+        int $id,
+        string $nome,
+        string $descrizione,
+        string $avvisoCampoNonValido,
+        string $avvisoCampoDuplicato,
+        string $avvisoCampoMancante,
+        bool $decode = false,
+        int $adminRighe = 1,
+        int $adminColonne = 1,
+        bool $autoIncrement = false,
+        string $opzioni = ''
+    ): int {
+        return self::CreaControllo(
+            $id,
+            \Common\Dati\Enum\TipoDatoEnum::Dato,
+            \Common\Dati\Enum\TipoInputEnum::DropDownList,
+            $nome,
+            $descrizione,
+            $avvisoCampoNonValido,
+            $avvisoCampoDuplicato,
+            $avvisoCampoMancante,
+            decode: $decode,
+            adminRighe: $adminRighe,
+            adminColonne: $adminColonne,
+            autoIncrement: $autoIncrement,
+            opzioni: $opzioni
+        );
+    }
+
+    public static function CreaControlloDatoListBox(
+        int $id,
+        string $nome,
+        string $descrizione,
+        string $avvisoCampoNonValido,
+        string $avvisoCampoDuplicato,
+        string $avvisoCampoMancante,
+        bool $decode = false,
+        int $adminRighe = 1,
+        int $adminColonne = 1,
+        bool $autoIncrement = false,
+        string $opzioni = ''
+    ): int {
+        return self::CreaControllo(
+            $id,
+            \Common\Dati\Enum\TipoDatoEnum::Dato,
+            \Common\Dati\Enum\TipoInputEnum::ListBox,
+            $nome,
+            $descrizione,
+            $avvisoCampoNonValido,
+            $avvisoCampoDuplicato,
+            $avvisoCampoMancante,
+            decode: $decode,
+            adminRighe: $adminRighe,
+            adminColonne: $adminColonne,
+            autoIncrement: $autoIncrement,
+            opzioni: $opzioni
+        );
+    }
+
+    public static function CreaControlloDatoTextBox(
+        int $id,
+        string $nome,
+        string $descrizione,
+        string $avvisoCampoNonValido,
+        string $avvisoCampoDuplicato,
+        string $avvisoCampoMancante,
+        bool $decode = false,
+        int $adminRighe = 1,
+        int $adminColonne = 1,
+        bool $autoIncrement = false,
+        string $opzioni = ''
+    ): int {
+        return self::CreaControllo(
+            $id,
+            \Common\Dati\Enum\TipoDatoEnum::Dato,
+            \Common\Dati\Enum\TipoInputEnum::TextBox,
+            $nome,
+            $descrizione,
+            $avvisoCampoNonValido,
+            $avvisoCampoDuplicato,
+            $avvisoCampoMancante,
+            decode: $decode,
+            adminRighe: $adminRighe,
+            adminColonne: $adminColonne,
+            autoIncrement: $autoIncrement,
+            opzioni: $opzioni
+        );
+    }
+
+    // === METODI COMPLEMENTARI ===
+
+    public static function CreaControlloTestoRichTextBox(
+        int $id,
+        string $nome,
+        string $descrizione,
+        string $avvisoCampoNonValido,
+        string $avvisoCampoDuplicato,
+        string $avvisoCampoMancante,
+        int $testoMaxCaratteri,
+        int $adminRighe = 10,
+        int $adminColonne = 100,
+        int $testoLunghezzaParole = 0,
+        int $testoMaxParole = 0,
+        string $testoRegEx = '',
+        bool $decode = false,
+        bool $autoIncrement = false,
+        string $opzioni = ''
+    ): int {
+        return self::CreaControllo(
+            $id,
+            \Common\Dati\Enum\TipoDatoEnum::Testo,
+            \Common\Dati\Enum\TipoInputEnum::RichTextBox,
+            $nome,
+            $descrizione,
+            $avvisoCampoNonValido,
+            $avvisoCampoDuplicato,
+            $avvisoCampoMancante,
+            testoMaxCaratteri: $testoMaxCaratteri,
+            testoLunghezzaParole: $testoLunghezzaParole,
+            testoMaxParole: $testoMaxParole,
+            testoRegEx: $testoRegEx,
+            decode: $decode,
+            adminRighe: $adminRighe,
+            adminColonne: $adminColonne,
+            autoIncrement: $autoIncrement,
+            opzioni: $opzioni
+        );
+    }
+
+    public static function CreaControlloTestoRichTextBoxMini(
+        int $id,
+        string $nome,
+        string $descrizione,
+        string $avvisoCampoNonValido,
+        string $avvisoCampoDuplicato,
+        string $avvisoCampoMancante,
+        int $testoMaxCaratteri,
+        int $adminRighe = 5,
+        int $adminColonne = 80,
+        int $testoLunghezzaParole = 0,
+        int $testoMaxParole = 0,
+        string $testoRegEx = '',
+        bool $decode = false,
+        bool $autoIncrement = false,
+        string $opzioni = ''
+    ): int {
+        return self::CreaControllo(
+            $id,
+            \Common\Dati\Enum\TipoDatoEnum::Testo,
+            \Common\Dati\Enum\TipoInputEnum::RichTextBoxMini,
+            $nome,
+            $descrizione,
+            $avvisoCampoNonValido,
+            $avvisoCampoDuplicato,
+            $avvisoCampoMancante,
+            testoMaxCaratteri: $testoMaxCaratteri,
+            testoLunghezzaParole: $testoLunghezzaParole,
+            testoMaxParole: $testoMaxParole,
+            testoRegEx: $testoRegEx,
+            decode: $decode,
+            adminRighe: $adminRighe,
+            adminColonne: $adminColonne,
+            autoIncrement: $autoIncrement,
+            opzioni: $opzioni
+        );
+    }
 }

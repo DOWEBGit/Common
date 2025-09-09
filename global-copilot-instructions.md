@@ -1224,21 +1224,41 @@ $datoImmaginiId = \Common\Dati\Dati::CreaDato(
 
 #### 2. Controlli di tipo Dato per altre Foreign Key
 
-Per **altre foreign key** oltre al parent, utilizzare Controlli di tipo `Dato`:
+Per **altre foreign key** oltre al parent, utilizzare Controlli di tipo `Dato` **generici e riutilizzabili**:
 
-##### Creazione del Controllo Foreign Key base
+##### Creazione dei Controlli Foreign Key riutilizzabili
+
+I controlli FK devono essere **generici** e **riutilizzabili**. Il collegamento specifico al dato target viene definito solo quando si aggancia il controllo al dato tramite `AgganciaControllo()`.
 
 ```php
-// Controllo generico per foreign key verso Utenti
-$controlloFkUtentiId = \Common\Dati\Controlli::CreaControllo(
+// Controllo FK generico per selezione singola (DropDownList)
+$controlloFkDropDownId = \Common\Dati\Controlli::CreaControlloDatoDropDownList(
     id: 0,
-    tipoDato: \Common\Dati\Enum\TipoDatoEnum::Dato,
-    tipoInput: \Common\Dati\Enum\TipoInputEnum::DropDownList,
-    nome: "FkUtenti",
-    descrizione: "Foreign key verso il dato Utenti",
-    avvisoCampoNonValido: "Selezionare un utente valido",
-    avvisoCampoDuplicato: "Relazione già esistente",
-    avvisoCampoMancante: "L'utente è obbligatorio"
+    nome: "FkDropDown",
+    descrizione: "Foreign key generica per selezione singola",
+    avvisoCampoNonValido: "Selezionare un elemento valido",
+    avvisoCampoDuplicato: "",
+    avvisoCampoMancante: "La selezione è obbligatoria"
+);
+
+// Controllo FK generico per selezione multipla (ListBox)
+$controlloFkListBoxId = \Common\Dati\Controlli::CreaControlloDatoListBox(
+    id: 0,
+    nome: "FkListBox", 
+    descrizione: "Foreign key generica per selezione multipla",
+    avvisoCampoNonValido: "Selezionare elementi validi",
+    avvisoCampoDuplicato: "",
+    avvisoCampoMancante: ""
+);
+
+// Controllo FK generico per input testo (TextBox) - se necessario per ID diretti
+$controlloFkTextBoxId = \Common\Dati\Controlli::CreaControlloDatoTextBox(
+    id: 0,
+    nome: "FkTextBox",
+    descrizione: "Foreign key generica per input diretto ID",
+    avvisoCampoNonValido: "Inserire un ID valido",
+    avvisoCampoDuplicato: "",
+    avvisoCampoMancante: "L'ID è obbligatorio"
 );
 ```
 
@@ -1255,48 +1275,54 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
     parent: $datoCategorieId // Parent: relazione uno-a-molti con Categorie
 );
 
-// Aggancia foreign key verso Utenti (autore del blog)
+// Aggancia FK verso Utenti (autore del blog) - riutilizzo controllo generico
 \Common\Dati\Dati::AgganciaControllo(
-    idControllo: $controlloFkUtentiId,
+    idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $datoBlogId,
-    nome: "Autore",
+    nome: "Autore", // Il nome definisce la relazione verso il dato Utenti
     obbligatorio: true,
     univoco: false,
     colonnaTabelle: true,
     descrizione: "Autore dell'articolo"
 );
 
-// Controllo e foreign key verso Stato pubblicazione
-$controlloFkStatiId = \Common\Dati\Controlli::CreaControllo(
-    id: 0,
-    tipoDato: \Common\Dati\Enum\TipoDatoEnum::Dato,
-    tipoInput: \Common\Dati\Enum\TipoInputEnum::DropDownList,
-    nome: "FkStati",
-    descrizione: "Foreign key verso gli stati di pubblicazione",
-    avvisoCampoNonValido: "Selezionare uno stato valido",
-    avvisoCampoDuplicato: "Stato già assegnato",
-    avvisoCampoMancante: "Lo stato è obbligatorio"
-);
-
+// Aggancia FK verso Stati pubblicazione - riutilizzo lo stesso controllo generico
 \Common\Dati\Dati::AgganciaControllo(
-    idControllo: $controlloFkStatiId,
+    idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
     idDato: $datoBlogId,
-    nome: "Stato",
+    nome: "Stato", // Il nome definisce la relazione verso il dato Stati_pubblicazione
     obbligatorio: true,
     univoco: false,
     colonnaTabelle: true,
     descrizione: "Stato di pubblicazione dell'articolo"
 );
+
+// Aggancia FK verso Tag (relazione molti-a-molti) - riutilizzo controllo per selezione multipla
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkListBoxId, // Controllo FK per selezione multipla
+    idDato: $datoBlogId,
+    nome: "Tag", // Il nome definisce la relazione verso il dato Tag
+    obbligatorio: false,
+    univoco: false,
+    colonnaTabelle: false,
+    descrizione: "Tag associati all'articolo"
+);
 ```
 
 #### Convenzioni per le Foreign Key
 
-- **Naming Controlli FK**: sempre `"Fk" + NomeDato` (es. `FkUtenti`, `FkCategorie`, `FkStati`)
-- **Riutilizzo**: i controlli FK possono essere riutilizzati in più Dati che necessitano della stessa relazione
-- **Tipo Input**: preferire `DropDownList` per single selection, `ListBox` per multiple selection
-- **Tipo Dato**: sempre `\Common\Dati\Enum\TipoDatoEnum::Dato` per le foreign key
+- **Naming Controlli FK**: usare nomi generici che descrivono il tipo di input:
+  - `"FkDropDown"` per selezioni singole
+  - `"FkListBox"` per selezioni multiple  
+  - `"FkTextBox"` per input diretti di ID
+- **Riutilizzo totale**: gli stessi controlli FK generici vengono riutilizzati per **tutte** le relazioni che necessitano dello stesso tipo di input
+- **Collegamento al target**: il dato target della FK viene determinato automaticamente dal **nome** utilizzato in `AgganciaControllo()`
+- **Tipo Input**: 
+  - `DropDownList` per relazioni uno-a-uno e molti-a-uno
+  - `ListBox` per relazioni molti-a-molti
+  - `TextBox` per casi particolari dove serve inserimento diretto di ID
 
-#### Esempi di scenari tipici
+#### Esempi di scenari con controlli riutilizzabili
 
 ##### Scenario 1: E-commerce
 ```php
@@ -1306,17 +1332,18 @@ $datoProdottiId = \Common\Dati\Dati::CreaDato(
     parent: $datoCategorieId // Uno-a-molti: Categoria → Prodotti
 );
 
-// FK aggiuntive
+// FK verso Fornitori - riutilizzo controllo generico DropDown
 \Common\Dati\Dati::AgganciaControllo(
-    idControllo: $controlloFkFornitoriId, // "FkFornitori"
+    idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $datoProdottiId,
-    nome: "Fornitore"
+    nome: "Fornitore" // Definisce relazione verso dato Fornitori
 );
 
+// FK verso Marchi - riutilizzo lo stesso controllo generico DropDown
 \Common\Dati\Dati::AgganciaControllo(
-    idControllo: $controlloFkMarchiId, // "FkMarchi"
+    idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
     idDato: $datoProdottiId,
-    nome: "Marchio"
+    nome: "Marchio" // Definisce relazione verso dato Marchi
 );
 ```
 
@@ -1328,25 +1355,18 @@ $dataTicketId = \Common\Dati\Dati::CreaDato(
     parent: $datoProgettiId // Uno-a-molti: Progetto → Ticket
 );
 
+// FK verso Utenti - riutilizzo controllo generico DropDown
 \Common\Dati\Dati::AgganciaControllo(
-    idControllo: $controlloFkUtentiId, // "FkUtenti"
+    idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $dataTicketId,
-    nome: "Assegnato_a"
+    nome: "Assegnato_a" // Definisce relazione verso dato Utenti
 );
 
+// FK verso Priorità - riutilizzo lo stesso controllo generico DropDown
 \Common\Dati\Dati::AgganciaControllo(
-    idControllo: $controlloFkPrioritaId, // "FkPriorita"
+    idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
     idDato: $dataTicketId,
-    nome: "Priorita"
+    nome: "Priorita" // Definisce relazione verso dato Priorita
 );
 ```
 
-### Best Practice per le Relazioni
-
-- **Analisi delle relazioni**: identificare prima la relazione principale (parentId) e quelle secondarie (FK)
-- **Riutilizzo FK**: creare controlli FK generici riutilizzabili in più entità
-- **Naming consistente**: seguire sempre la convenzione `Fk + NomeDato`
-- **Validazione**: sempre specificare messaggi di errore appropriati per le FK
-- **Performance**: considerare l'uso di `selectColumns` quando si accede alle relazioni per ottimizzare le query
-
-Questa struttura permette di modellare relazioni complesse mantenendo la coerenza e la riutilizzabilità del codice.
