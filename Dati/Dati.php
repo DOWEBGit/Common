@@ -55,6 +55,48 @@ class Dati
         return -1;
     }
 
+    public static function GetIdControlloRefId(string $nomeDato, string $nomeControllo): int
+    {
+        $controlloRefId = 0;
+        $idRef = 0;
+
+        $obj = PHPDOWEB();
+        $dati = $obj->DatiGetList()->Dati;
+
+        foreach ($dati as $dato)
+        {
+            if ($dato->Nome == $nomeDato)
+            {
+                $idRef = $dato->Id;
+                break;
+            }
+        }
+
+        if ($idRef == 0)
+        {
+            \Common\Log::Error('Non trovo il dato esterno '.$nomeDato.' usato in una foreign key');
+            return -1;
+        }
+
+        $datiControlli = $obj->DatiControlliGetList($idRef)->DatiControlli;
+        foreach ($datiControlli as $datoControllo)
+        {
+            if ($datoControllo->Identificativo == $nomeControllo)
+            {
+                $controlloRefId = $datoControllo->Id;
+                break;
+            }
+        }
+
+        if ($controlloRefId == 0)
+        {
+            echo 'Non trovo il controllo '.$nomeControllo.' nella tabella '.$nomeDato;
+            return -1;
+        }
+
+        return $controlloRefId;
+    }
+
     public static function AgganciaControllo(
         int $idControllo,
         int $idDato,
@@ -69,7 +111,7 @@ class Dati
         int $adminColonne = 1,
         int $adminRighe = 1,
         bool $ordinamentoASC = true,
-        int $idFkDato = 0,
+        int $controlloRefId = 0,
         \Common\Dati\Enum\TipoEliminazioneFkEnum $tipoEliminazioneFk = \Common\Dati\Enum\TipoEliminazioneFkEnum::Blocco,
         \Common\Dati\Enum\TipoControlloInLinea $tipoControlloInLinea = \Common\Dati\Enum\TipoControlloInLinea::SolaLettura,
         bool $mobile = false,
@@ -101,7 +143,7 @@ class Dati
             $adminColonne,
             $adminRighe,
             $ordinamentoASC ? 'True' : 'False',
-            $idFkDato,
+            $controlloRefId,
             $tipoEliminazioneFk->value,
             $tipoControlloInLinea->value,
             $mobile ? 'True' : 'False',
