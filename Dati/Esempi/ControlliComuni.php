@@ -95,9 +95,8 @@ class ControlliComuni
             avvisoCampoNonValido: "Inserire un prezzo valido",
             avvisoCampoDuplicato: "",
             avvisoCampoMancante: "Il prezzo è obbligatorio",
-            numeriDecimali: 2,
-            numeriMin: 0,
-            numeriMax: 999999.99
+            numeriValoreMin: 0,
+            numeriValoreMax: 999999
         );
         \Common\Dati\Registry::RegistraControllo("Prezzo", $controlloPrezzoId);
 
