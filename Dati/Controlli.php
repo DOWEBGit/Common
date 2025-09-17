@@ -100,6 +100,20 @@ class Controlli
         return -1;
     }
 
+    public static function GetIdControllo(string $nomeControllo): int
+    {
+        $obj = PHPDOWEB();
+        $controlli = $obj->ControlliGetList()->Controlli;
+
+        foreach ($controlli as $controllo)
+        {
+            if (strcasecmp($controllo->Nome, $nomeControllo) == 0)
+                return (int)$controllo->Id;
+        }
+
+        return -1;
+    }
+
     /*
      * Ritorna i tipi di input disponibili per il tipo di dato passato
      * @param \Common\Dati\Enum\TipoDatoEnum $tipoDato

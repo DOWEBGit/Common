@@ -55,6 +55,21 @@ class Dati
         return -1;
     }
 
+    public static function GetIdDato(string $nomeDato): int
+    {
+        $obj = PHPDOWEB();
+        $dati = $obj->DatiGetList()->Dati;
+
+        foreach ($dati as $dato)
+        {
+            if ($dato->Nome == $nomeDato)
+                return (int)$dato->Id;
+        }
+
+        \Common\Log::Error('Non trovo il dato esterno '.$nomeDato.' usato in una foreign key');
+        return -1;
+    }
+
     public static function GetIdControlloRefId(string $nomeDato, string $nomeControllo): int
     {
         $controlloRefId = 0;
