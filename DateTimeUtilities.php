@@ -10,6 +10,7 @@ class DateTimeUtilities
      * @param int $numeroSettimana
      * @param int $anno
      * @return \stdClass
+     * @throws \DateMalformedStringException
      */
     public static function GetStartAndEndDate(int $numeroSettimana, int $anno): \stdClass
     {
@@ -26,6 +27,7 @@ class DateTimeUtilities
      * @param int $mese
      * @param int $anno
      * @return \DateTime|bool
+     * @throws \DateMalformedStringException
      */
     public static function GetUltimaDataMese(int $mese, int $anno): \DateTime | bool
     {

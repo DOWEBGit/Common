@@ -627,7 +627,8 @@ Adattare la struttura, i nomi delle variabili e le colonne alle esigenze specifi
 Quando si costruiscono query per i metodi dei model (es. GetList, GetItemBy...), utilizzare sempre la sintassi con i nomi degli attributi racchiusi tra parentesi quadre e i parametri come placeholder numerici tra parentesi graffe.
 
 ### Regole:
-- Ogni attributo deve essere scritto come `[NomeAttributo]`.
+- **Per le clausole WHERE**: Ogni attributo deve essere scritto come `[NomeAttributo]` (con parentesi quadre).
+- **Per le clausole ORDER BY**: Ogni attributo deve essere scritto come `NomeAttributo` (senza parentesi quadre).
 - Ogni parametro deve essere rappresentato come `{N}` dove N è l'indice del parametro corrispondente nell'array `$whereValues`.
 - L'ordine dei parametri nella query deve corrispondere all'ordine dei valori in `$whereValues`.
 - Se ci sono più filtri, incrementare l'indice per ogni parametro.
@@ -1311,7 +1312,7 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
     parent: $datoCategorieId // Uno-a-molti: Categoria → Blog
 );
 
-// Aggancia FK verso Utenti (autore del blog) - riferimento al controllo Email dell'utente
+// FK verso Utenti - riutilizzo controllo generico DropDown
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkDropDownId, // Controllo FK generico
     idDato: $datoBlogId,
@@ -1319,11 +1320,11 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
     obbligatorio: true,
     univoco: false,
     colonnaTabelle: true,
-    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Utenti", "Email"), // OBBLIGATORIO: ID del controllo target
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Utenti", "Email"), // Riferimento al controllo Email dell'utente
     descrizione: "Autore dell'articolo"
 );
 
-// Aggancia FK verso Tag (relazione molti-a-molti) - riferimento al controllo Nome del tag
+// FK verso Tag (relazione molti-a-molti) - riferimento al controllo Nome del tag
 \Common\Dati\Dati::AgganciaControllo(
     idControllo: $controlloFkListBoxId, // Controllo FK per selezione multipla
     idDato: $datoBlogId,
@@ -1331,8 +1332,33 @@ $datoBlogId = \Common\Dati\Dati::CreaDato(
     obbligatorio: false,
     univoco: false,
     colonnaTabelle: false,
-    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Tag", "Nome"), // OBBLIGATORIO: ID del controllo target
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Tag", "Nome"), // Riferimento al controllo Nome del marchio
     descrizione: "Tag associati all'articolo"
+);
+```
+
+##### Scenario 2: Sistema di ticketing
+```php
+// Ticket con parent Progetti + FK verso Utenti e Priorità
+$dataTicketId = \Common\Dati\Dati::CreaDato(
+    nome: "Ticket",
+    parent: $datoProgettiId // Uno-a-molti: Progetto → Ticket
+);
+
+// FK verso Utenti - riutilizzo controllo generico DropDown
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkDropDownId, // Controllo FK generico
+    idDato: $dataTicketId,
+    nome: "AssegnatoA", // Nome campo FK
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Utenti", "Email") // Riferimento all'email dell'utente
+);
+
+// FK verso Priorità - riutilizzo lo stesso controllo generico DropDown
+\Common\Dati\Dati::AgganciaControllo(
+    idControllo: $controlloFkDropDownId, // Stesso controllo FK riutilizzato
+    idDato: $dataTicketId,
+    nome: "Priorita", // Nome campo FK
+    controlloRefId: \Common\Dati\Dati::GetIdControlloRefId("Priorita", "Livello") // Riferimento al livello di priorità
 );
 ```
 
@@ -1447,7 +1473,7 @@ $dataTicketId = \Common\Dati\Dati::CreaDato(
 );
 ```
 
-### Sintassi completa per AgganciaControllo con Foreign Key
+#### Sintassi completa per AgganciaControllo con Foreign Key
 
 Quando si aggancia un controllo FK a un dato, la sintassi completa include sempre il parametro `controlloRefId` con `GetIdControlloRefId`:
 
