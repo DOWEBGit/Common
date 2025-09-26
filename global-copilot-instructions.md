@@ -552,32 +552,33 @@ Esempio di struttura minima aggiornata:
 public function Server(): void
 {
     ?>
+    <script type="text/javascript">
+        function applicaFiltro() {
+            WindowWrite("Titolo", document.getElementById("Titolo").value);
+            ReloadViewAll();
+        }
+
+        function eliminaProvincia(id) {
+            if (!confirm("Sei sicuro di voler eliminare questa provincia?")) return;
+            TempWrite("Id", id);
+            <?php /* @see \\Action\\Province::Elimina() */ ?>
+            Action("Province", "Elimina", function() {
+                let message = TempRead("message");
+                if (message !== "")
+                    alert(message);
+                ReloadViewAll();
+            });
+        }
+
+        function redirectToProvinciaEditor(id) {
+            window.location.href = "";
+        }
+    </script>
+    
     <main class="main">
         <section class="section">
             <div class="container" <?= self::GetViewId() ?>>
                 <?php self::Client(); ?>
-                <script type="text/javascript">
-                    function applicaFiltro() {
-                        WindowWrite("Titolo", document.getElementById("Titolo").value);
-                        ReloadViewAll();
-                    }
-
-                    function eliminaProvincia(id) {
-                        if (!confirm("Sei sicuro di voler eliminare questa provincia?")) return;
-                        TempWrite("Id", id);
-                        <?php /* @see \\Action\\Province::Elimina() */ ?>
-                        Action("Province", "Elimina", function() {
-                            let message = TempRead("message");
-                            if (message !== "")
-                                alert(message);
-                            ReloadViewAll();
-                        });
-                    }
-
-                    function redirectToProvinciaEditor(id) {
-                        window.location.href = "";
-                    }
-                </script>
             </div>
         </section>
     </main>
