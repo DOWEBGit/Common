@@ -527,9 +527,21 @@ if (!$model) {
 
 ### Best practice generali per le View
 
-- **Gestione dei generatori**: se un metodo come `GetList()` restituisce un generatore, non usare `empty()` direttamente. 
-  - **Per contare gli elementi**: usa `GetCount()` con gli stessi parametri (wherePredicate, whereValues, ecc.) invece di convertire in array solo per contare
-  - **Per iterare più volte**: converti in array con `iterator_to_array()` solo se necessario per iterazioni multiple
+- **Struttura View**: ogni View deve contenere **SOLO** i seguenti metodi:
+    - `__construct()` - Costruttore della classe
+    - `Server()` - Contiene HTML, CSS, JavaScript e modal
+    - `Client()` - Contiene la logica PHP per recuperare e processare i dati
+    - **VIETATO** aggiungere altri metodi privati o pubblici nella View
+
+- **Separazione della logica**: 
+    - **MAI** inserire funzioni di business logic, calcoli o manipolazione dati nella View
+    - Spostare sempre la logica nel **Controller** corrispondente come metodi statici pubblici
+    - Se non esiste un Controller specifico, creare una **classe di appoggio** nella cartella `\Code`
+    - Le View si occupano **SOLO** di presentazione (HTML/CSS/JS) e chiamate ai Controller
+
+- **Gestione dei generatori**: se un metodo come `GetList()` restituisce un generatore, non usare `empty()` direttamente.
+    - **Per contare gli elementi**: usa `GetCount()` con gli stessi parametri (wherePredicate, whereValues, ecc.) invece di convertire in array solo per contare
+    - **Per iterare più volte**: converti in array con `iterator_to_array()` solo se necessario per iterazioni multiple
   ```php
   // ❌ NON FARE - inefficiente
   $richieste = iterator_to_array(\Model\RichiesteInterne::GetList());
@@ -574,7 +586,7 @@ if (!$model) {
 - **Mai modificare i Model**: tutta la logica di business e di manipolazione dei dati deve essere gestita nei Controller, usando solo i metodi pubblici già esistenti nei Model.
 
 - **Action**:
-  - Ricevi sempre i parametri tramite `\Common\State::BodyRead()` o `\Common\State::TempRead()`.
+  - Ricevi sempre i parametri tramite `\Common\State::SessionRead()`, `\Common\State::WindowRead()` o `\Common\State::TempRead()`.
   - Gestisci la risposta scrivendo eventuali messaggi di errore in TempWrite.
 
 - **Controller**:
