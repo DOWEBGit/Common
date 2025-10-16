@@ -174,6 +174,87 @@ class About extends \Common\Base\BaseController
     }
 }
 ```
+### \Action
+- Contiene le classi Action per gestire le chiamate AJAX.
+- I nomi dei file devono rispecchiare i nomi dei Model corrispondenti.
+- Ogni file contiene una sola classe che estende `\Common\Base\BodyToState`.
+- Le Action fungono da **layer di trasporto**: ricevono i dati dalle View tramite `TempRead` o `BodyRead` e li passano ai Controller.
+- **REGOLA FONDAMENTALE**: Le Action **NON devono contenere logica di business**.
+- Tutti i controlli (validazioni, permessi, obbligatorietà campi, autenticazione) vanno implementati **ESCLUSIVAMENTE nei Controller**.
+- Questo garantisce la consistenza: se il Controller viene chiamato da altre parti del codice (non solo da Action), la logica rimane centralizzata.
+
+**Esempio Action/Province.php:**
+```php
+<?php
+declare(strict_types=1);
+
+namespace Action;
+
+class Province extends \Common\Base\BodyToState
+{
+    public function Inserisci(): void
+    {
+        // Legge i dati dalla View
+        $Titolo = \Common\State::TempRead("Titolo");
+        
+        // Passa i dati al Controller (dove avviene tutta la logica)
+        $saveResponse = \Controller\Province::InserisciProvincia($Titolo);
+        
+        // Gestisce la risposta per la View
+        if (!$saveResponse->Success) {
+            foreach ($saveResponse->InternalAvvisi as $key => $value)
+                \Common\State::TempWrite($key, $value);
+
+            \Common\State::TempWrite("message", $saveResponse->AvvisoDecode(PHP_EOL));
+        }
+    }
+    
+    public function Elimina(): void
+    {
+        // Legge l'ID dalla View
+        $id = (int)\Common\State::TempRead("Id");
+        
+        // Passa al Controller (dove avviene il controllo permessi e la logica)
+        $deleteResponse = \Controller\Province::EliminaProvincia($id);
+        
+        // Gestisce la risposta
+        if (!$deleteResponse->Success)
+            \Common\State::TempWrite("message", $deleteResponse->AvvisoDecode(PHP_EOL));
+    }
+}
+```
+
+**Casi eccezionali:**
+- In rari casi specifici potrebbe essere necessaria logica minima nelle Action
+- Questi casi devono essere esplicitamente indicati e motivati nel prompt
+- Di default, considerare sempre le Action come semplici "ponti" tra View e Controller
+
+
+
+
+### File da non modificare
+
+I seguenti file sono generati automaticamente dal sistema e **NON devono mai essere modificati manualmente**:
+
+#### Cartella \Model
+- **Tutti i file** nella cartella `\Model\` sono generati automaticamente da `\Common\CodeGenerator\CodeGenerator.php`
+- Qualsiasi modifica manuale verrà sovrascritta alla prossima rigenerazione
+
+#### Cartella \Code
+- **`\Code\GetLink.php`** - Gestione dei link delle pagine (generato automaticamente)
+- **`\Code\ObjectFromQuery.php`** - Conversione query/oggetti (generato automaticamente)
+
+#### Cartella \Code\Enum
+I seguenti file Enum sono generati automaticamente e non devono essere modificati:
+- **`\Code\Enum\ModelEnum.php`**
+- **`\Code\Enum\PagineEnum.php`**
+- **`\Code\Enum\PagineInterneEnum.php`**
+- **`\Code\Enum\PagineDatiEnum.php`**
+- **`\Code\Enum\PagineControlliEnum.php`**
+- **`\Code\Enum\PagineDatiControlliEnum.php`**
+
+**Nota importante:** Se è necessario modificare la struttura di Model, Controlli, Dati o Enum, utilizzare i metodi forniti dalla classe `\Common\Dati\Dati` e `\Common\Dati\Controlli`, quindi rigenerare i file tramite il CodeGenerator. Non modificare mai direttamente i file generati.
+
 
 ---
 
@@ -460,7 +541,7 @@ if (!$model) {
     - `Client()` - Contiene la logica PHP per recuperare e processare i dati
     - **VIETATO** aggiungere altri metodi privati o pubblici nella View
 
-- **Separazione della logica**: 
+- **Separazione della logica**:
     - **MAI** inserire funzioni di business logic, calcoli o manipolazione dati nella View
     - Spostare sempre la logica nel **Controller** corrispondente come metodi statici pubblici
     - Se non esiste un Controller specifico, creare una **classe di appoggio** nella cartella `\Code`
@@ -473,16 +554,16 @@ if (!$model) {
   // ❌ NON FARE - inefficiente
   $richieste = iterator_to_array(\Model\RichiesteInterne::GetList());
   if (empty($richieste)) { ... }
-  
+
   // ✅ CORRETTO - usa GetCount per verificare l'esistenza
   $count = \Model\RichiesteInterne::GetCount();
-  if ($count == 0) { 
-      echo "Nessun elemento trovato"; 
+  if ($count == 0) {
+      echo "Nessun elemento trovato";
   } else {
       $richieste = \Model\RichiesteInterne::GetList();
       foreach ($richieste as $item) { ... }
   }
-  
+
   // ✅ CORRETTO - con filtri
   $where = '[Stato] = {0}';
   $whereValues = ['Attivo'];
@@ -586,7 +667,7 @@ public function Server(): void
             window.location.href = "";
         }
     </script>
-    
+
     <main class="main">
         <section class="section">
             <div class="container" <?= self::GetViewId() ?>>
@@ -809,7 +890,7 @@ if ($richiesta && $richiesta->Stato === "Approvata") {
 ```php
 $richiesta = \Model\Richieste::GetItemById($idRichiesta);
 $dettagli = $richiesta->Dettagli_richiesteGetList(
-    orderPredicate: "DataOrder ASC", 
+    orderPredicate: "DataOrder ASC",
     selectColumns: ["Data", "Ora inizio"]
 );
 ```
@@ -838,12 +919,12 @@ public function Server(): void
     // Legge i parametri di paginazione dalla URL
     $page = $_GET['page'] ?? '0';           // Pagina corrente (base 0)
     $items = $_GET['items'] ?? '10';        // Elementi per pagina
-    
+
     \Common\State::WindowWrite("page", $page);
     \Common\State::WindowWrite("items", $items);
     ?>
     <div <?= self::GetViewId() ?>><?php self::Client() ?></div>
-    
+
     <script type="text/javascript">
         // Le tue funzioni JavaScript specifiche della view
     </script>
@@ -860,16 +941,16 @@ public function Client(): void
     // Legge i parametri di paginazione passati dal Server
     $page = (int)\Common\State::WindowRead("page", "0");
     $item4page = (int)\Common\State::WindowRead("items", "10");
-    
+
     // Conta il totale degli elementi
     $tot = \Model\NomeModel::GetCount();
-    
+
     // Ottiene gli elementi paginati
     $elementi = iterator_to_array(\Model\NomeModel::GetList(
         item4page: $item4page,
         page: $page
     ));
-    
+
     // Ottiene l'URL corrente per il paginatore
     $urlCorrente = $_SERVER['REQUEST_URI'];
     if (strpos($urlCorrente, '?') !== false) {
@@ -878,7 +959,7 @@ public function Client(): void
     ?>
     <div class="container">
         <h2>Titolo Elenco</h2>
-        
+
         <?php if ($tot == 0): ?>
             <div class="alert alert-info">
                 Nessun elemento trovato.
@@ -890,7 +971,7 @@ public function Client(): void
                     <?= \Code\Html\Pager::Genera($page, $item4page, $tot, $urlCorrente) ?>
                 </div>
             </div>
-            
+
             <!-- Contenuto paginato -->
             <div class="row">
                 <?php foreach ($elementi as $elemento): ?>
@@ -900,7 +981,7 @@ public function Client(): void
                     </div>
                 <?php endforeach; ?>
             </div>
-            
+
             <!-- Paginatore inferiore -->
             <div class="row" style="margin-top: 20px;">
                 <div class="col-md-12">
@@ -957,10 +1038,10 @@ public function Client(): void
     // Legge parametri di paginazione
     $page = (int)\Common\State::WindowRead("page", "0");
     $item4page = (int)\Common\State::WindowRead("items", "10");
-    
+
     // Legge parametri di filtro
     $filtroTitolo = \Common\State::WindowRead("filtroTitolo", "");
-    
+
     // Costruisce where per i filtri
     $where = '';
     $whereValues = [];
@@ -968,13 +1049,13 @@ public function Client(): void
         $where = '[Titolo] LIKE {0}';
         $whereValues[] = '%' . $filtroTitolo . '%';
     }
-    
+
     // Conta il totale con filtri applicati
     $tot = \Model\NomeModel::GetCount(
-        wherePredicate: $where, 
+        wherePredicate: $where,
         whereValues: $whereValues
     );
-    
+
     // Ottiene elementi paginati e filtrati
     $elementi = iterator_to_array(\Model\NomeModel::GetList(
         item4page: $item4page,
@@ -982,7 +1063,7 @@ public function Client(): void
         wherePredicate: $where,
         whereValues: $whereValues
     ));
-    
+
     // Il resto dell'implementazione...
 }
 ```
@@ -1005,7 +1086,7 @@ Il sistema utilizza le classi in `\Common\Dati` per creare una struttura di **Co
 **Parametri tecnici:**
 - **adminColonne**: può contenere **SOLO valori da 1 a 4**
   - 1 = col-sm-3 (25% larghezza)
-  - 2 = col-sm-6 (50% larghezza) 
+  - 2 = col-sm-6 (50% larghezza)
   - 3 = col-sm-9 (75% larghezza)
   - 4 = col-sm-12 (100% larghezza)
 
@@ -1379,7 +1460,7 @@ $dataTicketId = \Common\Dati\Dati::CreaDato(
 
 Per poter utilizzare un controllo di un dato come target di una foreign key, il controllo deve essere configurato con **una** delle seguenti combinazioni:
 
-1. **univoco: true** + **obbligatorio: true** 
+1. **univoco: true** + **obbligatorio: true**
 2. **univoco: true** + **nascosto: true**
 
 **Esempi di controlli validi come target FK:**
@@ -1511,3 +1592,4 @@ Quando si aggancia un controllo FK a un dato, la sintassi completa include sempr
 - Utilizzare sempre `\Common\Dati\Dati::GetIdControlloRefId(nomeDato, nomeControllo)` per ottenere l'ID del controllo target
 - Il controllo target deve essere **univoco** e (**obbligatorio** oppure **nascosto**)
 - Il collegamento FK viene stabilito tramite riferimento a un controllo specifico, non al dato nel suo complesso
+
