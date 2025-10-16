@@ -256,8 +256,81 @@ I seguenti file Enum sono generati automaticamente e non devono essere modificat
 **Nota importante:** Se è necessario modificare la struttura di Model, Controlli, Dati o Enum, utilizzare i metodi forniti dalla classe `\Common\Dati\Dati` e `\Common\Dati\Controlli`, quindi rigenerare i file tramite il CodeGenerator. Non modificare mai direttamente i file generati.
 
 
----
+### Principio di responsabilità per salvataggio/eliminazione Model
 
+**REGOLA FONDAMENTALE**: Ogni Model deve essere salvato/eliminato **SOLO** nel proprio Controller corrispondente.
+
+#### Quando creare metodi dedicati nel Controller:
+- **SEMPRE** quando ci sono validazioni custom oltre al semplice `$model->Save()` o `$model->Delete()`
+- **SEMPRE** quando si salvano/eliminano Model di altre entità insieme al Model principale
+- **SEMPRE** quando la logica di salvataggio/eliminazione è più complessa di una singola riga
+
+#### Quando è accettabile NON creare metodi dedicati:
+- **SOLO** quando si fa una semplice operazione diretta senza logica aggiuntiva:
+  ```php
+  // Accettabile in casi molto semplici
+  $model = \Model\NomeModel::GetItemById($id);
+  $deleteResult = $model->Delete();
+  ```
+
+#### Esempi di violazioni da EVITARE:
+```php
+// ❌ SBAGLIATO - Salvare Model di altre entità nel Controller sbagliato
+class SegnalazioniController {
+    public function salvaSegnalazione() {
+        // ...logica segnalazione...
+        
+        // VIOLAZIONE: salvataggio Model di altra entità
+        $valoreCampo = new \Model\ValoriCampiPersonalizzati();
+        $valoreCampo->Save();
+        
+        // VIOLAZIONE: salvataggio Model di altra entità  
+        $allegato = new \Model\Allegati();
+        $allegato->Save();
+    }
+}
+```
+
+#### Approccio CORRETTO:
+```php
+// ✅ CORRETTO - Ogni Model nel proprio Controller
+class SegnalazioniController {
+    public function salvaSegnalazione() {
+        // ...logica segnalazione...
+        
+        // Delega ai Controller dedicati
+        \Controller\ValoriCampiPersonalizzati::SalvaValore($segnalazione, $campoId, $valore);
+        \Controller\Allegati::SalvaAllegato($segnalazione, $nomeFile, $bytes);
+    }
+}
+
+class ValoriCampiPersonalizzatiController {
+    public static function SalvaValore($segnalazione, $campoId, $valore): SaveResponse {
+        // Validazione + creazione + salvataggio Model proprio
+        $valoreCampo = new \Model\ValoriCampiPersonalizzati();
+        // ...logica specifica...
+        return $valoreCampo->Save();
+    }
+}
+
+class AllegatiController {
+    public static function SalvaAllegato($segnalazione, $nomeFile, $bytes): SaveResponse {
+        // Validazione + creazione + salvataggio Model proprio  
+        $allegato = new \Model\Allegati();
+        // ...logica specifica...
+        return $allegato->Save();
+    }
+}
+```
+
+#### Vantaggi di questo approccio:
+- **Centralizzazione**: Tutta la logica di validazione/salvataggio di un Model è in un solo posto
+- **Manutenibilità**: Modifiche alle regole di un Model richiedono modifiche solo nel suo Controller
+- **Riusabilità**: I metodi possono essere riutilizzati da altri Controller
+- **Testabilità**: Ogni Controller può essere testato indipendentemente
+- **Separazione responsabilità**: Ogni Controller gestisce solo il proprio dominio
+
+---
 ## 3. Gestione input nei form
 
 ### Input standard (text, number, ecc.)
