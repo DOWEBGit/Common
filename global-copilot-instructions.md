@@ -298,26 +298,56 @@ class SegnalazioniController {
     public function salvaSegnalazione() {
         // ...logica segnalazione...
         
-        // Delega ai Controller dedicati
-        \Controller\ValoriCampiPersonalizzati::SalvaValore($segnalazione, $campoId, $valore);
+        // Recupera i model necessari prima di delegare
+        $campo = \Model\CampiPersonalizzati::GetItemById($campoId);
+        
+        // Delega ai Controller dedicati passando i model, non gli ID
+        \Controller\ValoriCampiPersonalizzati::SalvaValore($segnalazione, $campo, $valore);
         \Controller\Allegati::SalvaAllegato($segnalazione, $nomeFile, $bytes);
     }
 }
 
 class ValoriCampiPersonalizzatiController {
-    public static function SalvaValore($segnalazione, $campoId, $valore): SaveResponse {
+    public static function SalvaValore(?\Model\Segnalazioni $segnalazione, ?\Model\CampiPersonalizzati $campo, string $valore): SaveResponse {
+        $response = new SaveResponse();
+        
+        // Validazione dei model passati
+        if (!$segnalazione) {
+            $response->InternalAvvisi["SegnalazioneId"] = "Segnalazione non trovata";
+            return $response;
+        }
+        
+        if (!$campo) {
+            $response->InternalAvvisi["CampoId"] = "Campo personalizzato non trovato";
+            return $response;
+        }
+        
         // Validazione + creazione + salvataggio Model proprio
         $valoreCampo = new \Model\ValoriCampiPersonalizzati();
-        // ...logica specifica...
+        $valoreCampo->ParentId = $segnalazione->Id;
+        $valoreCampo->FkCampiPersonalizzati = $campo->Id;
+        $valoreCampo->Valore = trim($valore);
+        
         return $valoreCampo->Save();
     }
 }
 
 class AllegatiController {
-    public static function SalvaAllegato($segnalazione, $nomeFile, $bytes): SaveResponse {
+    public static function SalvaAllegato(?\Model\Segnalazioni $segnalazione, string $nomeFile, string $bytes): SaveResponse {
+        $response = new SaveResponse();
+        
+        // Validazione del model passato
+        if (!$segnalazione) {
+            $response->InternalAvvisi["SegnalazioneId"] = "Segnalazione non trovata";
+            return $response;
+        }
+        
         // Validazione + creazione + salvataggio Model proprio  
         $allegato = new \Model\Allegati();
+        $allegato->ParentId = $segnalazione->Id;
+        $allegato->NomeFile = $nomeFile;
         // ...logica specifica...
+        
         return $allegato->Save();
     }
 }
