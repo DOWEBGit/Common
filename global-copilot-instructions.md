@@ -7,6 +7,19 @@
   declare(strict_types=1);
   ```
 - Il server supporta **PHP 8.4** → privilegiare codice moderno e performante.
+- **REGOLA FONDAMENTALE - Lettura delle classi prima dell'uso**:
+    - **SEMPRE** leggere il file della classe Model o Controller prima di utilizzarne metodi o proprietà
+    - **MAI** assumere che un metodo o una proprietà esista senza averlo verificato nel codice sorgente
+    - **VERIFICARE** sempre la struttura effettiva della classe con `read_file` o `grep_search` prima di scrivere codice che la utilizza
+    - Questo vale per:
+        - Metodi getter delle relazioni (es. `FkUtente_get()`, `SiglaTurno_get()`)
+        - Proprietà pubbliche dei Model (es. `$model->Rifiutata`, `$model->DataChiusura`)
+        - Metodi pubblici dei Controller
+        - Qualsiasi altra classe del progetto
+    - **Esempio corretto di workflow**:
+      1. Devo usare `\Model\Turni` → prima leggo il file `Model/Turni.php`
+      2. Verifico quali proprietà e metodi esistono effettivamente
+      3. Solo dopo scrivo il codice che usa quella classe
 - Per recuperare lo **stream di input**:
     - Non usare:
       ```php
