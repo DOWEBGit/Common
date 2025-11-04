@@ -104,7 +104,7 @@ if (message !== '') {
 
 // ✅ CORRETTO - una riga senza parentesi graffe
 if (message !== '')
-    alert(message;
+    alert(message);
 
 // ✅ CORRETTO - più righe con parentesi graffe
 if (message !== '') {
@@ -417,8 +417,10 @@ reader.readAsBinaryString(file);
 ## 4. Flusso View → Action → Controller
 
 ### Chiamata AJAX
-```javascript
+```php
 <?php /* @see \Action\Province::NomeFunzione() */ ?>
+```
+```javascript
 Action("Province", "NomeFunzione", function() {
     // gestione risposta
 });
@@ -431,8 +433,10 @@ Action("Province", "NomeFunzione", function() {
 ### Esempio completo
 
 **1. View**
-```javascript
+```php
 <?php /* @see \Action\Province::Inserisci() */ ?>
+```
+```javascript
 Action("Province", "Inserisci", function() {
     let message = TempRead("message");
     if (message !== '') {
