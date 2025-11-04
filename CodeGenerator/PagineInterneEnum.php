@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 //CREO L'ENUM PER LE PAGINE INTERNE, DA COMPLETATE, FINISCE DENTRO CODE/ENUM/PAGINEINTERNEENUM.PHP
 
+/** @noinspection PhpUndefinedFunctionInspection */
 $obj = PHPDOWEB();
 
 $basePath = $_SERVER["DOCUMENT_ROOT"] . "\\Public\\Php";

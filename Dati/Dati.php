@@ -17,6 +17,7 @@ class Dati
         string $onDelete = "",
     ): int
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         $dati = $obj->DatiGetList()->Dati;
@@ -57,6 +58,7 @@ class Dati
 
     public static function GetIdDato(string $nomeDato): int
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
         $dati = $obj->DatiGetList()->Dati;
 
@@ -75,6 +77,7 @@ class Dati
         $controlloRefId = 0;
         $idRef = 0;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
         $dati = $obj->DatiGetList()->Dati;
 
@@ -137,6 +140,7 @@ class Dati
 
     ): bool
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         $identificativo = str_replace(" ", "", $nome);

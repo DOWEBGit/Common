@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 //CREO L'ENUM PER LE ETICHETTE CHE FINISCE DENTRO CODE/ENUM/ETICHETTEENUM.PHP
 
+/** @noinspection PhpUndefinedFunctionInspection */
 $obj = PHPDOWEB();
 
 $basePath = $_SERVER["DOCUMENT_ROOT"] . "\\Public\\Php";

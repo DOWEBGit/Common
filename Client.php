@@ -27,6 +27,7 @@ class Client
 
         $parametri = json_encode($value);
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB()->ClientPush($name, $parametri);
 
         $resp = new \Common\Response\SaveResponse();
@@ -51,6 +52,7 @@ class Client
 
     public static function Count(): int
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         return PHPDOWEB()->ClientCount();
     }
 }

@@ -21,17 +21,20 @@ class Etichette
         if ($success)
             return $item;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $result = PHPDOWEB()->SitoEtichetteGetItem($etichetta->name, $encode, $iso);
 
         if (\Common\Convert::ToBool($result->Errore))
         {
             //probabilmente l'errore è che l'etichetta non c'è, la aggiungo
 
+            /** @noinspection PhpUndefinedFunctionInspection */
             $result = PHPDOWEB()->SitoEtichetteSave($etichetta->name, $encode, $iso !== "", $iso, $etichetta->name);
 
             if (\Common\Convert::ToBool($result->Errore))
                 \Common\Log::Error("Etichette->SitoEtichetteSave(" . $etichetta->name . ", " . $encode . ")");
 
+            /** @noinspection PhpUndefinedFunctionInspection */
             $result = PHPDOWEB()->SitoEtichetteGetItem($etichetta->name, $encode, $iso);
         }
 

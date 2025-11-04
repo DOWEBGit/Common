@@ -15,6 +15,7 @@ class Cache
 
         $cacheKey = $siteName . "|Cache";
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $dati = PHPDOWEB()->Cache()->O; // = in serverpipe.cs
 
         $pos = 0;

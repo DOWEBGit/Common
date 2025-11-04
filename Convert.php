@@ -274,6 +274,8 @@ class Convert
 
             $index = -1;
 
+            $urlLength = 0;
+
             if ($indexHttps !== false)
             {
                 $index = $indexHttps;

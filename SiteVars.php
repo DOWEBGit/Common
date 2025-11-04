@@ -39,6 +39,7 @@ class SiteVars
         if ($value != null)
             return $value;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $value = $phpobj->InfoSito($varsEnum->name)->Valore;

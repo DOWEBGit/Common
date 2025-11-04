@@ -24,6 +24,7 @@ class PagineInterne
 
         $id = $args[0];
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $result = PHPDOWEB()->AdminPaginaInternaUrl($id, $queryString);
 
         return $result->Url;
@@ -36,6 +37,7 @@ class PagineInterne
      */
     public static function GetQuery() : array
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         $result = PHPDOWEB()->AdminPaginaInternaQuery($_SERVER['QUERY_STRING']);
 
         return $result->NameValues;
@@ -79,6 +81,7 @@ class PagineInterne
         if ($parentModel)
             $idParent = $parentModel->Id;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $url = PHPDOWEB()->AdminDatiElenco($name, $idParent)->Url; //non metto in linea solo per debug
 
         return $url;
@@ -114,6 +117,7 @@ class PagineInterne
             $id = $model->Id;
         }
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $url = PHPDOWEB()->AdminDatiEditor($name, $id, $idParent)->Url; //non metto in linea solo per debug
 
         return $url;

@@ -23,6 +23,7 @@ foreach ($files as $file)
 
 $tab = "    ";
 
+/** @noinspection PhpUndefinedFunctionInspection */
 $obj = PHPDOWEB();
 
 $arr = $obj->DatiGetList();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 //CREO IL FILE REPLACE CON ETICHETTE E VARS CHE FINISCE DENTRO \Code\Replace.php
 
+/** @noinspection PhpUndefinedFunctionInspection */
 $obj = PHPDOWEB();
 
 $basePath = $_SERVER["DOCUMENT_ROOT"] . "\\Public\\Php\\Code";

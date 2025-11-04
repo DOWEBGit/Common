@@ -215,6 +215,7 @@ class BaseModel
         //i nomi delle classi hanno lo spazio sostituito il simbolo
         $partialName = str_replace("_", " ", $partialName);
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
@@ -575,6 +576,7 @@ class BaseModel
         //i nomi delle classi hanno lo spazio sostituito il simbolo
         $partialName = str_replace("_", " ", $partialName);
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         $parentId = 0;
@@ -651,6 +653,7 @@ class BaseModel
 
         \Common\Cache::ResetDati($tableName);
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         //prendo i valori dal db
@@ -789,6 +792,7 @@ class BaseModel
         //i nomi delle classi hanno lo spazio sostituito il simbolo
         $datoNome = str_replace("_", " ", $datoNome);
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         $result = $obj->FetchOpen($datoNome, $parentId, $visible, $iso, $wherePredicate, $whereValues, $colonne, $orderPredicate, $item4page, $page, $webP, $encode, $groupBy);
@@ -892,6 +896,7 @@ class BaseModel
         //i nomi delle classi hanno lo spazio sostituito il simbolo
         $datoNome = str_replace("_", " ", $datoNome);
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         //prendo i valori dal db

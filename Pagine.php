@@ -35,6 +35,7 @@ class Pagine
         if ($success)
             return $valore;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso);
@@ -80,6 +81,7 @@ class Pagine
             return $valore;
 
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso);
@@ -119,6 +121,7 @@ class Pagine
         $pagina = $attribute->getArguments()[0];
         $identificativo = $attribute->getArguments()[1];
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $controllo = $phpobj->PagineFileInfo($pagina, $identificativo, $iso);
@@ -152,6 +155,7 @@ class Pagine
         if ($success)
             return $item;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $result = $phpobj->Pagine($pagina->value, $lingua->Iso);
@@ -198,7 +202,7 @@ class Pagine
         if ($success)
             return $item;
 
-
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $result = $phpobj->Pagine($pagineEnum->value, $iso);

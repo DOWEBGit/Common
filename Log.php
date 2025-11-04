@@ -12,6 +12,7 @@ class Log
 
         $str = $saveResponse->Avviso(PHP_EOL) . ", " . $trace;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
         $obj->LogError($str);
 
@@ -25,6 +26,7 @@ class Log
 
         $str = $messaggio . ", " . $trace;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
         $obj->LogError($str);
         return $str;
@@ -32,6 +34,7 @@ class Log
 
     public static function Error(string $messaggio) : string
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
         $obj->LogError($messaggio);
         return  $messaggio;
@@ -39,6 +42,7 @@ class Log
     
     public static function Warn(string $messaggio) : string
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
         $obj->LogWarn($messaggio);
         return $messaggio;

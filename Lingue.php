@@ -25,6 +25,7 @@ class Lingue
 
         $lingua = new Lingue();
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         $lingueDb = $obj->LingueGetListAttive()->Lingue;
@@ -66,7 +67,7 @@ class Lingue
         if ($success)
             return $item;
 
-
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         $lingueDb = $obj->LingueGetListAttive()->Lingue;

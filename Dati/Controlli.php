@@ -42,6 +42,7 @@ class Controlli
         string $opzioni = ''
     ): int
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
 
         //guardo se il controllo esiste già nel caso in cui mi abbiano passato un id == 0
@@ -102,6 +103,7 @@ class Controlli
 
     public static function GetIdControllo(string $nomeControllo): int
     {
+        /** @noinspection PhpUndefinedFunctionInspection */
         $obj = PHPDOWEB();
         $controlli = $obj->ControlliGetList()->Controlli;
 

@@ -33,6 +33,7 @@ class PagineDati
         if ($success)
             return $item;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $controllo = $phpobj->PagineDatiControlliValori($pagina, $identificativo, $iso);
@@ -66,6 +67,7 @@ class PagineDati
         if ($success)
             return $item;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $reflection = new \ReflectionEnum($identificativoEnum);
@@ -114,6 +116,7 @@ class PagineDati
         $pagina = $attribute->getArguments()[0];
         $identificativo = $attribute->getArguments()[1];
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $controllo = $phpobj->DatiPagineFileInfo($pagina, $identificativo, $iso);
@@ -145,6 +148,7 @@ class PagineDati
         if ($success)
             return $item;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $result = $phpobj->PagineDatiGetUrlElenco($pagineDatiEnum->value, $idElemento, $iso);
@@ -176,6 +180,7 @@ class PagineDati
         if ($success)
             return $item;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $result = $phpobj->PagineDatiGetUrlElemento($pagineDatiEnum->name, $idElemento, $iso);

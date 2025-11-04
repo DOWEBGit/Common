@@ -7,6 +7,7 @@ $path = $basePath . '/Controller';
 
 $tab = "    ";
 
+/** @noinspection PhpUndefinedFunctionInspection */
 $obj = PHPDOWEB();
 
 $arr = $obj->DatiGetList();

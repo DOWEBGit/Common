@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 
+/** @noinspection PhpUndefinedFunctionInspection */
 $obj = PHPDOWEB();
 
 $basePath = $_SERVER["DOCUMENT_ROOT"] . "\\Public\\Php";

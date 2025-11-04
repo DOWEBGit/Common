@@ -42,6 +42,7 @@ class Aree
         if ($success)
             return $valore;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $controllo = $phpobj->AreeControlliValori($pagina, $identificativo, $iso);
@@ -86,6 +87,7 @@ class Aree
         if ($success)
             return $valore;
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $controllo = $phpobj->AreeControlliValori($pagina, $identificativo, $iso);
@@ -125,6 +127,7 @@ class Aree
         $pagina = $attribute->getArguments()[0];
         $identificativo = $attribute->getArguments()[1];
 
+        /** @noinspection PhpUndefinedFunctionInspection */
         $phpobj = PHPDOWEB();
 
         $controllo = $phpobj->AreeFileInfo($pagina, $identificativo, $iso);
