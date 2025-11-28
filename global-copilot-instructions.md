@@ -564,7 +564,7 @@ public static function InserisciProvincia(string $Titolo): \Common\Response\Save
 
 L’attributo id e name degli input deve corrispondere al nome della proprietà del model/controller.
 
-Tutti gli input (inclusi select, text, number, ecc.) che devono essere letti tramite TempRead o WindowRead devono avere sempre anche la classe `TempRead`.
+Tutti gli input (inclusi select, text, number, ecc.) che devono essere letti tramite TempRead o WindowRead devono avere sempre anche la classe `TempData`.
 
 **Esempio:**
 Model → proprietà Titolo
@@ -579,7 +579,7 @@ Model → proprietà Titolo
 
 - Quando una select HTML viene popolata tramite un model (es. \Model\TipiConnessione::GetList()), l’attributo value delle option deve essere l’id della riga (intero).
 - L’attributo id e name della select deve corrispondere al nome del model (es. TipiConnessione).
-- La select deve avere sempre anche la classe `TempRead` (oltre ad eventuali altre classi), per essere letta da TempRead o WindowRead.
+- La select deve avere sempre anche la classe `TempData` (oltre ad eventuali altre classi), per essere letta da TempRead o WindowRead.
 - In fase di invio (JS), passa l’id selezionato tramite TempWrite usando il nome del model (es. TempWrite("TipiConnessione", ...)).
 - In Action, recupera l’id con TempRead usando il nome del model, poi usa GetItemById per ottenere il model corrispondente.
 - Passa l’oggetto model (o null se non trovato) al controller, non solo l’id.
