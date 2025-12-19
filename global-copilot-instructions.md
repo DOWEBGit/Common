@@ -593,7 +593,7 @@ Model → proprietà Titolo
 $tipiConnessione = \Model\TipiConnessione::GetList();
 <select id="TipiConnessione" name="TipiConnessione" class="form-control TempRead">
     <?php foreach ($tipiConnessione as $tipo) { ?>
-        <option value="<?= $tipo->Id ?>"><?= htmlspecialchars($tipo->Titolo) ?></option>
+        <option value="<?= $tipo->Id ?>"><?= $tipo->Titolo ?></option>
     <?php } ?>
 </select>
 ```
@@ -732,7 +732,9 @@ if (!$model) {
   - Usa `ReloadViewAll()` per aggiornare la pagina dopo operazioni di salvataggio o eliminazione.
 
 - **Sicurezza e validazione**:
-  - Usa sempre `htmlspecialchars()` per l’output di dati dinamici nelle view.
+  - **NON** usare `htmlspecialchars()` su proprietà dei Model (i valori sono già encodati nel database).
+  - Usare `htmlspecialchars()` **solo** su input utente grezzo da `$_GET`, `$_POST`, `$_REQUEST` o parametri URL.
+  - Negli input form, usare `\Common\Convert::ForInputValue()` per i valori da WindowRead/TempRead.
   - Gestisci la validazione lato server e mostra i messaggi di errore accanto ai campi tramite span dedicati.
 
 ---
@@ -752,7 +754,9 @@ Quando si sviluppano viste elenco (es. ElencoProvince, ElencoComuni, ecc.), segu
   - Per l'eliminazione, chiedere conferma all'utente (es. con <code>confirm</code> JS).
   - Per la modifica, prevedere un redirect all'editor della singola entità.
 - Sicurezza:
-  - Eseguire sempre l'escape dell'output (es. <code>htmlspecialchars</code>) per i dati mostrati.
+  - **NON** usare <code>htmlspecialchars</code> su proprietà dei Model (già encodati).
+  - Usare <code>htmlspecialchars</code> **solo** su input utente grezzo (<code>$_GET</code>, <code>$_POST</code>, parametri URL).
+  - Per input form, usare <code>\Common\Convert::ForInputValue()</code>.
 - Separazione logica:
   - La funzione <code>Server()</code> deve solo includere la struttura base e gli script JS.
   - La funzione <code>Client()</code> deve occuparsi di leggere i dati, applicare filtri e generare la tabella.
@@ -810,7 +814,7 @@ public function Client(): void
             <tr>
                 <th>
                     <label for="Titolo" class="form-label">Filtro per nome provincia</label><br />
-                    <input type="text" class="form-control TempRead" id="Titolo" name="Titolo" value="<?= htmlspecialchars($filtroTitolo) ?>" />
+                    <input type="text" class="form-control TempRead" id="Titolo" name="Titolo" value="<?= \Common\Convert::ForInputValue($filtroTitolo) ?>" />
                     <button type="button" class="btn btn-secondary mt-2" onclick="applicaFiltro()">Applica filtro</button>
                 </th>
                 <th>Azioni</th>
@@ -819,7 +823,7 @@ public function Client(): void
         <tbody>
         <?php foreach ($province as $provincia) { ?>
             <tr>
-                <td><?= htmlspecialchars($provincia->Titolo) ?></td>
+                <td><?= $provincia->Titolo ?></td>
                 <td>
                     <button type="button" class="btn btn-primary btn-sm" onclick="redirectToProvinciaEditor(<?= $provincia->Id ?>)">Modifica</button>
                     <button type="button" class="btn btn-danger btn-sm" onclick="eliminaProvincia(<?= $provincia->Id ?>)">Elimina</button>
