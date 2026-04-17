@@ -458,7 +458,7 @@ foreach ($dati as $index => $dato)
     $code .= $tab . $tab . "{\n";
     $code .= $tab . $tab . $tab . "$" . "e = new \Exception;\n";
     $code .= $tab . $tab . $tab . "$" . "trace = $" . "e->getTraceAsString();\n";
-    $code .= $tab . $tab . $tab . "\\Common\\Log::Error(\"SaveLog: \" . \$" . "result->Avviso() . \", \" . $" . "trace . \"->\" . $" . "this);\n";
+    $code .= $tab . $tab . $tab . "\\Common\\Log::Warn(\"SaveLog: \" . \$" . "result->Avviso() . \", \" . $" . "trace . \"->\" . $" . "this);\n";
     $code .= $tab . $tab . "}\n";
     $code .= $tab . $tab . "return $" . "result;\n";
     $code .= $tab . "}\n";
@@ -479,7 +479,7 @@ foreach ($dati as $index => $dato)
     $code .= $tab . $tab . "{\n";
     $code .= $tab . $tab . $tab . "$" . "e = new \Exception;\n";
     $code .= $tab . $tab . $tab . "$" . "trace = $" . "e->getTraceAsString();\n";
-    $code .= $tab . $tab . $tab . "\\Common\\Log::Error(\"DeleteLog: \" . \$" . "result->Avviso() . \", \" . $" . "trace . \"->\" . $" . "this);\n";
+    $code .= $tab . $tab . $tab . "\\Common\\Log::Warn(\"DeleteLog: \" . \$" . "result->Avviso() . \", \" . $" . "trace . \"->\" . $" . "this);\n";
     $code .= $tab . $tab . "}\n";
     $code .= $tab . $tab . "return $" . "result;\n";
 
