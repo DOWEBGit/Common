@@ -29,64 +29,45 @@ if ($asyncArray && count($asyncArray) > 0)
 
 if (\Common\Client::$enabled)
 {
-    // Determina se siamo in ambiente localhost
-    $isLocalhost = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', 'localhost'])
-            || str_contains($_SERVER['HTTP_HOST'] ?? '', 'localhost');
+    ?>
 
-    if ($isLocalhost)
-    {
-        ?>
+    <script src="https://static.doweb.site/liveserver/signalRJs.js"></script>
 
-        <!-- Carica la libreria SignalR Core dal CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
+    <script type="text/javascript">
 
-        <!-- Carica il client SignalR multi-tenant -->
-        <script src="https://static.doweb.site/liveserver/signalr-client.js"></script>
+        var connection = hubConnection("/client", {useDefaultPath: false});
 
-        <?php
-    }
-    else
-    {
-        ?>
+        connection.connectionSlow(function ()
+        {
+            console.log('DOWEB Client: We are currently experiencing difficulties with the connection.')
+        });
 
-        <script src="https://static.doweb.site/liveserver/signalRJs.js"></script>
+        //connection.start({ transport: ['webSockets', 'longPolling'] });
 
-        <script type="text/javascript">
+        connection.url = "<?= \Common\SiteVars::Value(\Common\VarsEnum::webpath) ?>/client";
 
-            var connection = hubConnection("/client", {useDefaultPath: false});
+        var proxy = connection.createHubProxy('Client');
 
-            connection.connectionSlow(function ()
+        proxy.on('Push', function (name, value)
+        {
+            if (typeof Push === 'function')
             {
-                console.log('DOWEB Client: We are currently experiencing difficulties with the connection.')
+                Push(name, value);
+            }
+        });
+
+        //connection.logging = true;
+        connection.start({pingInterval: 10000})
+            .done(function ()
+            {
+                console.log("DOWEB Client connected");
+            })
+            .fail(function (e)
+            {
+                console.log("DOWEB Client failed: " + e);
             });
 
-            //connection.start({ transport: ['webSockets', 'longPolling'] });
+    </script>
 
-            connection.url = "<?= \Common\SiteVars::Value(\Common\VarsEnum::webpath) ?>/client";
-
-            var proxy = connection.createHubProxy('Client');
-
-            proxy.on('Push', function (name, value)
-            {
-                if (typeof Push === 'function')
-                {
-                    Push(name, value);
-                }
-            });
-
-            //connection.logging = true;
-            connection.start({pingInterval: 10000})
-                .done(function ()
-                {
-                    console.log("DOWEB Client connected");
-                })
-                .fail(function (e)
-                {
-                    console.log("DOWEB Client failed: " + e);
-                });
-
-        </script>
-
-        <?php
-    }
+    <?php
 }
