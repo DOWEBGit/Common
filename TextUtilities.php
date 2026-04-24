@@ -19,6 +19,12 @@ class TextUtilities
         // Tag consentiti dal wysiwyg (bold, italic, underline) + tag strutturali di base
         $tagConsentiti = ['strong', 'b', 'em', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li'];
 
+        // Converti tag blocco non consentiti in <p> per preservare gli a capo.
+        // Molti editor (Quill, TinyMCE, ecc.) usano <div>, <h1>-<h6>, ecc.
+        // Senza questa conversione il testo risulterebbe privo di separatori.
+        $text = preg_replace('/<(div|h[1-6]|blockquote|pre|section|article|header|footer)(\s[^>]*)?>/', '<p>', $text);
+        $text = preg_replace('/<\/(div|h[1-6]|blockquote|pre|section|article|header|footer)>/', '</p>', $text);
+
         // Rimuove tutti gli attributi da tutti i tag (style, class, color, face, size, ecc.)
         $text = preg_replace('/<([a-zA-Z][a-zA-Z0-9]*)\s[^>]*>/i', '<$1>', $text);
 
