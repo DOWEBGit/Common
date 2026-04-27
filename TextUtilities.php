@@ -42,8 +42,13 @@ class TextUtilities
             $text
         );
 
-        // Rimuove paragrafi vuoti o con soli spazi/nbsp rimasti dopo la pulizia
-        $text = preg_replace('/<p>(\s|&nbsp;)*<\/p>/i', '', $text);
+        // Converti paragrafi con solo &nbsp; (riga vuota di TinyMCE) in <p><br></p>
+        // così le righe intenzionalmente lasciate vuote dall'admin vengono preservate.
+        // DEVE stare PRIMA della rimozione dei paragrafi vuoti.
+        $text = preg_replace('/<p>\s*(&nbsp;\s*)+<\/p>/i', '<p><br></p>', $text);
+
+        // Rimuove paragrafi vuoti (senza alcun contenuto, nemmeno &nbsp;)
+        $text = preg_replace('/<p>\s*<\/p>/i', '', $text);
 
         // Normalizza spazi multipli
         $text = preg_replace('/[ \t]+/', ' ', $text);
