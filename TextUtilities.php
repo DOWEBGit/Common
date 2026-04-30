@@ -42,6 +42,14 @@ class TextUtilities
             $text
         );
 
+        // Rimuove il <br> fantasma finale dentro i <p> (aggiunto dal browser per mostrare il cursore)
+        // Es: <p>testo<br></p> → <p>testo</p>  |  <p>testo<br><br></p> → <p>testo<br></p>
+        // Usa callback per rimuovere solo l'ULTIMO <br> prima di </p>
+        $text = preg_replace_callback('/<p>(.*?)<\/p>/is', function(array $m): string {
+            $inner = preg_replace('/(<br\s*\/?>)\s*$/i', '', $m[1]);
+            return '<p>' . $inner . '</p>';
+        }, $text);
+
         // Converti paragrafi con solo &nbsp; (riga vuota di TinyMCE) in <p><br></p>
         // così le righe intenzionalmente lasciate vuote dall'admin vengono preservate.
         // DEVE stare PRIMA della rimozione dei paragrafi vuoti.
@@ -49,6 +57,11 @@ class TextUtilities
 
         // Rimuove paragrafi vuoti (senza alcun contenuto, nemmeno &nbsp;)
         $text = preg_replace('/<p>\s*<\/p>/i', '', $text);
+
+        // Converte <p><br></p> in semplice <br> per evitare doppio spazio visivo
+        // (il <p> con solo <br> dentro genera margini + altezza br = spazio eccessivo)
+        $text = preg_replace('/<p>\s*<br\s*\/?>\s*<\/p>/i', '<br>', $text);
+
 
         // Normalizza spazi multipli
         $text = preg_replace('/[ \t]+/', ' ', $text);
