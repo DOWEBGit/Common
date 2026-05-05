@@ -225,7 +225,10 @@ class State
         if (!isset($_POST))
             return;
 
-        $json = $_POST["INPUTSTREAM"];
+        if (isset($_POST["INPUTSTREAM"]))
+            $json = $_POST["INPUTSTREAM"];
+        else
+            $json = file_get_contents("php://input");
 
         $stateArray = json_decode($json, true);
 
