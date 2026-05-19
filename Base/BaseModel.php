@@ -86,25 +86,76 @@ class BaseModel
         }
     }
 
-    public function EqualsValues(BaseModel $external): bool
+    /**
+     * Confronta i valori delle proprietà tra due oggetti, trattando le stringhe HTML-encoded e decodificate come equivalenti.
+     * Salta i campi tecnici come Id, ParentId, Visibile, Aggiornamento, Inserimento e quelli che iniziano con _
+     * @param mixed $other
+     * @return bool
+     */
+    public function EqualsValues(BaseModel $other): bool
     {
-        $externalFields = get_object_vars($external);
-        unset($externalFields["Id"]);
-        unset($externalFields["Visibile"]);
-        unset($externalFields["_Visibile"]);
-        unset($externalFields["_ParentId"]);
-        unset($externalFields["Aggiornamento"]);
-        unset($externalFields["Inserimento"]);
+        if (!is_object($other))
+            return false;
 
-        $thisFields = get_object_vars($this);
-        unset($thisFields["Id"]);
-        unset($thisFields["Visibile"]);
-        unset($thisFields["_Visibile"]);
-        unset($thisFields["_ParentId"]);
-        unset($thisFields["Aggiornamento"]);
-        unset($thisFields["Inserimento"]);
+        foreach ($this as $key => $value)
+        {
+            // Salta proprietà tecniche e di sistema
+            if ($key === 'Id' ||
+                $key === '_ParentId' ||
+                $key === 'Visibile' ||
+                $key === '_Visibile' ||
+                $key === 'Aggiornamento' ||
+                $key === 'Inserimento')
+                continue;
 
-        return $thisFields == $externalFields;
+            if (!property_exists($other, $key))
+                continue;
+
+            $otherValue = $other->$key;
+
+            // Se entrambi sono stringhe, confronta dopo aver decodificato HTML
+            if (is_string($value) && is_string($otherValue))
+            {
+                $decodedA = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $decodedB = html_entity_decode($otherValue, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                if ($decodedA !== $decodedB)
+                    return false;
+            }
+            // Se entrambi sono array, confronta ricorsivamente
+            else if (is_array($value) && is_array($otherValue))
+            {
+                if (count($value) !== count($otherValue))
+                    return false;
+                foreach ($value as $k => $v)
+                {
+                    if (!array_key_exists($k, $otherValue))
+                        return false;
+                    // Ricorsivo se array di oggetti
+                    if (is_object($v) && is_object($otherValue[$k]))
+                    {
+                        if (!$v->EqualsValues($otherValue[$k]))
+                            return false;
+                    }
+                    else if ($v !== $otherValue[$k])
+                        return false;
+                }
+            }
+            // Se entrambi sono oggetti, confronta ricorsivamente
+            else if (is_object($value) && is_object($otherValue))
+            {
+                if (method_exists($value, 'EqualsValues'))
+                {
+                    if (!$value->EqualsValues($otherValue))
+                        return false;
+                }
+                else if ($value != $otherValue)
+                    return false;
+            }
+            // Altri tipi: confronto diretto
+            else if ($value !== $otherValue)
+                return false;
+        }
+        return true;
     }
 
     #[PropertyAttribute('Id', 'Numeri', true)]

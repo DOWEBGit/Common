@@ -13,6 +13,15 @@
   <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
     <execution />
   </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/DOWEB/Siti/Colorificio-Maraia/Public/Php/Common" value="2ULZc2c0nEoZG4GO8wHms1U3pyM" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="89" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -22,12 +31,12 @@
     &quot;assignee&quot;: &quot;DOWEBGit&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/DOWEBGit/Common.git",
-    "accountId": "18140d36-cb02-488a-bdbe-d9afd705f890"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/DOWEBGit/Common.git&quot;,
+    &quot;accountId&quot;: &quot;18140d36-cb02-488a-bdbe-d9afd705f890&quot;
   }
-}]]></component>
+}</component>
   <component name="PhpServers">
     <servers>
       <server host="localhost" id="cfb0a360-53b8-4e27-88df-ebc77d20e84f" name="localhost" port="8081" />
@@ -48,8 +57,10 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "WebServerToolWindowFactoryState": "false",
     "com.codeium.enabled": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
@@ -67,8 +78,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-PS-251.28293.47" />
-        <option value="bundled-php-predefined-a98d8de5180a-e5747d4f5a45-com.jetbrains.php.sharedIndexes-PS-251.28293.47" />
+        <option value="bundled-js-predefined-d6986cc7102b-c7e53b3be11b-JavaScript-PS-253.28294.345" />
+        <option value="bundled-php-predefined-a98d8de5180a-09080813851e-com.jetbrains.php.sharedIndexes-PS-253.28294.345" />
       </set>
     </attachedChunks>
   </component>
@@ -111,6 +122,7 @@
       <workItem from="1756741136485" duration="22000" />
       <workItem from="1756742032548" duration="1000" />
       <workItem from="1759329680865" duration="42000" />
+      <workItem from="1768894967665" duration="25000" />
     </task>
     <task id="LOCAL-00001" summary="fix e aggiunte varie">
       <option name="closed" value="true" />
@@ -156,5 +168,13 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix e aggiunte varie" />
     <option name="LAST_COMMIT_MESSAGE" value="fix e aggiunte varie" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>
