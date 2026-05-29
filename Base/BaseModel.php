@@ -188,7 +188,7 @@ class BaseModel
             $uniqueValue = $uniqueValue->format('d-m-Y H:i:s');  //nel named pipe viene letto in questo formato
         }
 
-        $searchKey = strtolower("item|" . $tableName . "|" . $parent . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso);
+        $searchKey = strtolower("item|" . $tableName . "|" . $parent . "|" . $uniqueColumn . "|" . $uniqueValue . "|" . $iso . "|" . implode("-", $selectColumns));
 
         $success = false;
 
@@ -408,6 +408,9 @@ class BaseModel
                         {
                             $str = $a[0] . $a[1] . '/' . $a[3] . $a[4] . '/' . $a[6] . $a[7] . $a[8] . $a[9] . ' ' .
                                 $a[11] . $a[12] . ':' . $a[14] . $a[15] . ':00';
+
+                            if ($prop->name == "Aggiornamento" || $prop->name == "Inserimento")
+                                break;
 
                             $prop->setValue($tableObj, \DateTime::createFromFormat('d/m/Y H:i:s', $str));
 
