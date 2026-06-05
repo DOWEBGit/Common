@@ -79,7 +79,7 @@ class Cache
         //non c'è, aggiungo
         if (!$success)
         {
-            apcu_store($cacheKey, $remoteCache, self::TTL);
+            self::Store($cacheKey, $remoteCache, self::TTL);
             return;
         }
 
@@ -94,7 +94,7 @@ class Cache
             self::ResetLingue();
             self::ResetSiteVars();
 
-            apcu_store($cacheKey, $remoteCache, self::TTL);
+            self::Store($cacheKey, $remoteCache, self::TTL);
             return;
         }
 
@@ -109,7 +109,7 @@ class Cache
         if (empty($toReset))
             return;
 
-        apcu_store($cacheKey, $remoteCache, self::TTL);
+        self::Store($cacheKey, $remoteCache, self::TTL);
 
         //echo "Exist 2 : " . apcu_exists($cacheKey) . "<br>";
 
@@ -223,7 +223,7 @@ class Cache
         $globalCache = &$GLOBALS['CacheLingue'];
 
         //orario e array della cache
-        apcu_store($key, $value, self::TTL);
+        self::Store($key, $value, self::TTL);
 
         $globalCache[$key] = $value;
     }
@@ -285,7 +285,7 @@ class Cache
         $globalCache = &$GLOBALS['CacheAree'];
 
         //orario e array della cache
-        apcu_store($key, $value, self::TTL);
+        self::Store($key, $value, self::TTL);
 
         $globalCache[$key] = $value;
     }
@@ -347,7 +347,7 @@ class Cache
         $globalCache = &$GLOBALS['CacheDatiPagine'];
 
         //orario e array della cache
-        apcu_store($key, $value, self::TTL);
+        self::Store($key, $value, self::TTL);
 
         $globalCache[$key] = $value;
     }
@@ -409,7 +409,7 @@ class Cache
         $globalCache = &$GLOBALS['CachePagine'];
 
         //orario e array della cache
-        apcu_store($key, $value, self::TTL);
+        self::Store($key, $value, self::TTL);
 
         $globalCache[$key] = $value;
     }
@@ -471,7 +471,7 @@ class Cache
 
         $globalCache[$key] = $value;
 
-        apcu_store($key, $value, self::TTL);
+        self::Store($key, $value, self::TTL);
     }
 
     #endregion
@@ -534,7 +534,7 @@ class Cache
 
         $globalCache[$key] = $value;
 
-        apcu_store($key, $value, self::TTL);
+        self::Store($key, $value, self::TTL);
     }
 
     #endregion
@@ -613,7 +613,29 @@ class Cache
 
         $globalCache[$key] = $model;
 
-        apcu_store($key, $model, self::TTL);
+        /*$start = microtime(true);*/
+
+        self::Store($key, $model, self::TTL, true);
+
+        /*$time_elapsed_secs = microtime(true) - $start;
+
+        \Common\Log::Warn((string)$time_elapsed_secs);*/
+    }
+
+    private static function Store(string $key, mixed $value, int $ttl = self::TTL, bool $check = false): array | bool
+    {
+        if ($check)
+        {
+            $serializedData = json_encode($value);
+
+            if (strlen($serializedData) > 1000000) // 1 MB, limite di APCu
+            {
+                \Common\Log::Warn("Cache::Store - Dato troppo grande per APCu: chiave = {$key}, dimensione = " . strlen($serializedData) . " bytes");
+                return false;
+            }
+        }
+
+        return apcu_store($key, $value, $ttl);
     }
 
     #endregion
