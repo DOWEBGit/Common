@@ -396,10 +396,22 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . $tab . "$" . "local->Base64Encoded = true;\n";
                 $code .= $tab . $tab . "return $" . "local;\n";
                 $code .= $tab . "}\n";
+
+                $code .= $tab . "public function " . $identificativo . "Size() : ?ControlloFile\n";
+                $code .= $tab . "{\n";
+                $code .= $tab . $tab . "$" . "obj = PHPDOWEB()->DatiElencoFileSize($" . "this->Id, '" . $colonnaDettagliata->Identificativo . "', $" . "iso = '');\n";
+                $code .= $tab . $tab . "$" . "local = new ControlloFile();\n";
+                $code .= $tab . $tab . "$" . "local->Nome = $" . "obj->Nome;\n";
+                $code .= $tab . $tab . "$" . "local->DimensioneReale = intval($" . "obj->DimensioneReale);\n";
+                $code .= $tab . $tab . "$" . "local->DimensioneCompressa = intval($" . "obj->DimensioneCompressa);\n";
+                $code .= $tab . $tab . "return $" . "local;\n";
+                $code .= $tab . "}\n";
+
                 $code .= $tab . "public function " . $identificativo . "Set(ControlloFile $" . "controlloFile) : void\n";
                 $code .= $tab . "{\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = $" . "controlloFile;\n";
                 $code .= $tab . "}\n\n";
+
                 break;
             }
 
@@ -422,6 +434,19 @@ foreach ($dati as $index => $dato)
                 $code .= $tab . $tab . "$" . "local->Base64Encoded = true;\n";
                 $code .= $tab . $tab . "return $" . "local;\n";
                 $code .= $tab . "}\n";
+
+                $code .= $tab . "public function " . $identificativo . "Size() : ?ControlloImmagine\n";
+                $code .= $tab . "{\n";
+                $code .= $tab . $tab . "$" . "obj = PHPDOWEB()->DatiElencoFileSize($" . "this->Id, '" . $colonnaDettagliata->Identificativo . "', $" . "iso = '');\n";
+                $code .= $tab . $tab . "$" . "local = new ControlloImmagine();\n";
+                $code .= $tab . $tab . "$" . "local->Nome = $" . "obj->Nome;\n";
+                $code .= $tab . $tab . "$" . "local->DimensioneReale = intval($" . "obj->DimensioneReale);\n";
+                $code .= $tab . $tab . "$" . "local->DimensioneCompressa = intval($" . "obj->DimensioneCompressa);\n";
+                $code .= $tab . $tab . "$" . "local->ImmagineAltezza = intval($" . "obj->ImmagineAltezza);\n";
+                $code .= $tab . $tab . "$" . "local->ImmagineLarghezza = intval($" . "obj->ImmagineLarghezza);\n";
+                $code .= $tab . $tab . "return $" . "local;\n";
+                $code .= $tab . "}\n";
+
                 $code .= $tab . "public function " . $identificativo . "Set(ControlloImmagine $" . "controlloImmagine) : void\n";
                 $code .= $tab . "{\n";
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = $" . "controlloImmagine;\n";
