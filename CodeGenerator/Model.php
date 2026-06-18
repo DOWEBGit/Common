@@ -179,7 +179,6 @@ foreach ($dati as $index => $dato)
                 if ($colonna->DatiRefNome !== "")
                 {
                     $code .= $tab . $tab . "$" . "this->" . $identificativo . " = 0;\n";
-                    $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = 0;\n";
                 }
                 break;
             }
@@ -210,7 +209,6 @@ foreach ($dati as $index => $dato)
                 }
 
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = \DateTime::createFromFormat('Y-m-d H:i:s', '0001-01-01 00:00:00');\n";
-                $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = \DateTime::createFromFormat('Y-m-d H:i:s', '0001-01-01 00:00:00');\n";
                 break;
             }
 
@@ -241,12 +239,10 @@ foreach ($dati as $index => $dato)
                 if ($colonna->TipoInput == "CheckBox")
                 {
                     $code .= $tab . $tab . "$" . "this->" . $identificativo . " = false;\n";
-                    $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = false;\n";
                 }
                 else
                 {
                     $code .= $tab . $tab . "$" . "this->" . $identificativo . " = 0;\n";
-                    $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = 0;\n";
                 }
                 break;
             }
@@ -296,7 +292,6 @@ foreach ($dati as $index => $dato)
                 }
 
                 $code .= $tab . $tab . "$" . "this->" . $identificativo . " = '';\n";
-                $code .= $tab . $tab . "$" . "this->_" . $identificativo . " = '';\n";
                 break;
             }
 
@@ -330,12 +325,16 @@ foreach ($dati as $index => $dato)
                     $identificativoRef = str_replace(" ", "_", $colonnaDettagliata->DatiRefNome);
 
                     $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Dato', " . $colonnaDettagliata->Univoco . ")]\n";
-                    $code .= $tab . "public int $" . $identificativo . ";\n";
+                    $code .= $tab . "public int $" . $identificativo . "\n";
+                    $code .= $tab . "{\n";
+                    $code .= $tab . $tab . "get { return \$this->" . $identificativo . "; }\n";
+                    $code .= $tab . $tab . "set(int \$value) { \$this->" . $identificativo . " = \$value; \$this->_" . $identificativo . "Set = true; }\n";
+                    $code .= $tab . "}\n";
                     $code .= $tab . "public function " . $identificativo . "_get($" . "iso = '', array $" . "selectColumns = []) : ?" . $identificativoRef . "\n";
                     $code .= $tab . "{ return " . $identificativoRef . "::GetItemById($" . "this->" . $identificativo . ", $" . "iso, $" . "selectColumns); }\n";
                     $code .= $tab . "public function " . $identificativo . "_set(?" . $identificativoRef . " $" . "value) : void\n";
                     $code .= $tab . "{ $" . "this-> " . $identificativo . " = $" . "value === null ? 0 : $" . "value->Id; }\n";
-                    $code .= $tab . "private int $" . "_" . $identificativo . ";\n\n";
+                    $code .= $tab . "private bool $" . "_" . $identificativo . "Set = false;\n\n";
                 }
                 break;
             }
@@ -343,16 +342,24 @@ foreach ($dati as $index => $dato)
             case "Data":
             {
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Data', " . $colonnaDettagliata->Univoco . ")]\n";
-                $code .= $tab . "public \DateTime $" . $identificativo . ";\n";
-                $code .= $tab . "private \DateTime $" . "_" . $identificativo . ";\n\n";
+                $code .= $tab . "public \DateTime $" . $identificativo . "\n";
+                $code .= $tab . "{\n";
+                $code .= $tab . $tab . "get { return \$this->" . $identificativo . "; }\n";
+                $code .= $tab . $tab . "set(\DateTime \$value) { \$this->" . $identificativo . " = \$value; \$this->_" . $identificativo . "Set = true; }\n";
+                $code .= $tab . "}\n";
+                $code .= $tab . "private bool $" . "_" . $identificativo . "Set = false;\n\n";
                 break;
             }
 
             case "DataOra":
             {
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'DataOra', " . $colonnaDettagliata->Univoco . ")]\n";
-                $code .= $tab . "public \DateTime $" . $identificativo . ";\n";
-                $code .= $tab . "private \DateTime $" . "_" . $identificativo . ";\n\n";
+                $code .= $tab . "public \DateTime $" . $identificativo . "\n";
+                $code .= $tab . "{\n";
+                $code .= $tab . $tab . "get { return \$this->" . $identificativo . "; }\n";
+                $code .= $tab . $tab . "set(\DateTime \$value) { \$this->" . $identificativo . " = \$value; \$this->_" . $identificativo . "Set = true; }\n";
+                $code .= $tab . "}\n";
+                $code .= $tab . "private bool $" . "_" . $identificativo . "Set = false;\n\n";
                 break;
             }
 
@@ -366,16 +373,24 @@ foreach ($dati as $index => $dato)
                 }
 
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Numeri', " . $colonnaDettagliata->Univoco . ")]\n";
-                $code .= $tab . "public {$type} $" . $identificativo . ";\n";
-                $code .= $tab . "private {$type} $" . "_" . $identificativo . ";\n\n";
+                $code .= $tab . "public {$type} $" . $identificativo . "\n";
+                $code .= $tab . "{\n";
+                $code .= $tab . $tab . "get { return \$this->" . $identificativo . "; }\n";
+                $code .= $tab . $tab . "set({$type} \$value) { \$this->" . $identificativo . " = \$value; \$this->_" . $identificativo . "Set = true; }\n";
+                $code .= $tab . "}\n";
+                $code .= $tab . "private bool $" . "_" . $identificativo . "Set = false;\n\n";
                 break;
             }
 
             case "Testo":
             {
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Testo', " . $colonnaDettagliata->Univoco . ")]\n";
-                $code .= $tab . "public string $" . $identificativo . ";\n";
-                $code .= $tab . "private string $" . "_" . $identificativo . ";\n\n";
+                $code .= $tab . "public string $" . $identificativo . "\n";
+                $code .= $tab . "{\n";
+                $code .= $tab . $tab . "get { return \$this->" . $identificativo . "; }\n";
+                $code .= $tab . $tab . "set(string \$value) { \$this->" . $identificativo . " = \$value; \$this->_" . $identificativo . "Set = true; }\n";
+                $code .= $tab . "}\n";
+                $code .= $tab . "private bool $" . "_" . $identificativo . "Set = false;\n\n";
                 break;
             }
 
