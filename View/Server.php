@@ -37,8 +37,8 @@ class Server
         }
         else
         {
-            // Metodo non trovato         
-            http_response_code(400);
+            // Metodo non trovato
+            echo 'View '.$viewName.' non trovata';
         }
     }
 }
