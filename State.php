@@ -34,7 +34,7 @@ class State
 
         $windowState[$name] = strval($value);
 
-        $newJson = base64_encode(json_encode($windowState));
+        $newJson = base64_encode(json_encode($windowState, JSON_INVALID_UTF8_SUBSTITUTE));
 
         $GLOBALS['_TempStateWrite'] = $newJson;
 
@@ -54,7 +54,7 @@ class State
 
         $windowState[$name] = strval($value);
 
-        $newJson = base64_encode(json_encode($windowState));
+        $newJson = base64_encode(json_encode($windowState, JSON_INVALID_UTF8_SUBSTITUTE));
 
         $GLOBALS['_TempStateRead'] = $newJson;
     }
@@ -106,7 +106,7 @@ class State
 
         $windowState[$name] = strval($value);
 
-        $newJson = base64_encode(json_encode($windowState));
+        $newJson = base64_encode(json_encode($windowState, JSON_INVALID_UTF8_SUBSTITUTE));
 
         $GLOBALS['_WindowState'] = $newJson;
     }
