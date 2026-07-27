@@ -9,9 +9,9 @@ class Master
     {
         $obj = PHPDOWEB();
 
-        $master = $obj->MasterGetItem(\Common\State::CookieRead("AdminGuid"));
+        $master = $obj->MasterSessione($_COOKIE['AdminSession'] ?? '');
 
-        if ($master->Errore == "1")
+        if ($master->Errore)
             return null;
 
         return $master;
