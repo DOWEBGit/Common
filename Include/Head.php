@@ -4,22 +4,23 @@
         top: 0;
         bottom: 0;
         width: 100%;
-        background-color: rgba(0, 0, 0, 0.05);
+        background-color: rgba(0, 0, 0, 0.25);
         z-index: 1000;
     }
 
     .loader {
         position: fixed;
-        z-index: 1000;
+        z-index: 1001;
         margin: auto;
-        border: 5px solid #EAF0F6 !important;
+        border: 5px solid rgba(255, 255, 255, 1) !important;
         border-radius: 50% !important;
-        border-top: 5px solid #FF7A59;
+        border-top: 5px solid #FF7A59 !important;
         width: 100px;
         height: 100px;
-        animation: spinner 4s linear infinite;
+        animation: spinner 0.8s linear infinite;
         top: calc(50% - 50px);
         left: calc(50% - 50px);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     }
 
     @keyframes spinner {
@@ -244,15 +245,25 @@
 
         timeoutPreloader = setTimeout(function ()
         {
-            loaderContainer = document.createElement("div");
+            let targetDoc = (window !== window.top) ? window.top.document : document;
+
+            if (!targetDoc.getElementById('__loaderStyles'))
+            {
+                let style = targetDoc.createElement('style');
+                style.id = '__loaderStyles';
+                style.textContent = '.loaderContainer{position:fixed;top:0;bottom:0;width:100%;background-color:rgba(0,0,0,0.25);z-index:1000;}.loader{position:fixed;z-index:1001;margin:auto;border:5px solid rgba(255,255,255,1) !important;border-radius:50% !important;border-top:5px solid #FF7A59 !important;width:100px;height:100px;animation:__loaderSpin 0.8s linear infinite;top:calc(50% - 50px);left:calc(50% - 50px);box-shadow:0 2px 12px rgba(0,0,0,0.2);}@keyframes __loaderSpin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}';
+                targetDoc.head.appendChild(style);
+            }
+
+            loaderContainer = targetDoc.createElement("div");
             loaderContainer.classList.add("loaderContainer");
 
-            loader = document.createElement("div");
+            loader = targetDoc.createElement("div");
             loader.classList.add("loader");
 
             loaderContainer.appendChild(loader);
 
-            document.body.appendChild(loaderContainer);
+            targetDoc.body.appendChild(loaderContainer);
 
         }, preload);
     }

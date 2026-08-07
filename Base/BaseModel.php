@@ -188,6 +188,95 @@ class BaseModel
     #[PropertyAttribute('Inserimento', 'Data', false)]
     public DateTime $Inserimento;
 
+    /*
+     * ---------------------------------------------------------------------------
+     * Memoizzazione della reflection.
+     *
+     * I metadati di una classe non cambiano mai durante la richiesta, ma venivano
+     * ricalcolati a ogni GetItem, a ogni GetList e - per le proprieta' "_XxxSet" -
+     * a ogni RIGA letta. Qui si calcolano una volta sola per classe.
+     *
+     * Le cache sono statiche di processo: PHP le azzera a fine richiesta, quindi non
+     * c'e' rischio di trascinare metadati stantii fra richieste diverse.
+     * ---------------------------------------------------------------------------
+     */
+
+    /** @var array<string,\ReflectionClass> */
+    private static array $cacheReflection = [];
+
+    /** @var array<string,array> metadati delle proprieta' pubbliche con attributo */
+    private static array $cacheMetadati = [];
+
+    /** @var array<string,array> proprieta' private "_XxxSet" da riazzerare a ogni riga */
+    private static array $cacheFlagSet = [];
+
+    private static function ReflectionDi(string $tableName): \ReflectionClass
+    {
+        return self::$cacheReflection[$tableName] ??= new \ReflectionClass($tableName);
+    }
+
+    /**
+     * Elenco delle colonne ricavate dagli attributi, calcolato una volta per classe.
+     * Ogni voce: [property, nome colonna, tipo, univoco, nome attributo].
+     */
+    private static function MetadatiDi(string $tableName): array
+    {
+        if (isset(self::$cacheMetadati[$tableName])) {
+            return self::$cacheMetadati[$tableName];
+        }
+
+        $meta = [];
+
+        foreach (self::ReflectionDi($tableName)->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
+            foreach ($property->getAttributes() as $attribute) {
+                $arguments = $attribute->getArguments();
+
+                $nome = $arguments['0'];
+                $tipo = $arguments['1'];
+
+                if ($tipo == "Dato") {
+                    $nome .= "_FkId";
+                }
+
+                $meta[] = [$property, $nome, $tipo, $arguments['2'], $arguments['0']];
+            }
+        }
+
+        return self::$cacheMetadati[$tableName] = $meta;
+    }
+
+    /**
+     * Proprieta' private "_XxxSet" della classe e della sua base. Prima venivano
+     * ricavate con due getProperties() piu' i controlli sul nome PER OGNI RIGA letta.
+     */
+    private static function FlagSetDi(\ReflectionClass $reflection): array
+    {
+        $chiave = $reflection->getName();
+
+        if (isset(self::$cacheFlagSet[$chiave])) {
+            return self::$cacheFlagSet[$chiave];
+        }
+
+        $flag = [];
+
+        $classi = [$reflection];
+
+        $base = $reflection->getParentClass();
+        if ($base) {
+            $classi[] = $base;
+        }
+
+        foreach ($classi as $classe) {
+            foreach ($classe->getProperties(\ReflectionProperty::IS_PRIVATE) as $p) {
+                if (str_starts_with($p->name, "_") && str_ends_with($p->name, "Set")) {
+                    $flag[] = $p;
+                }
+            }
+        }
+
+        return self::$cacheFlagSet[$chiave] = $flag;
+    }
+
     /** @noinspection PhpIncompatibleReturnTypeInspection */
     //    non ci sono i tipi anonimi in PHP quindi passo l'oggetto come parametro
     static function GetItem(
@@ -226,7 +315,7 @@ class BaseModel
             return clone $value;
         }
 
-        $reflection = new \ReflectionClass($tableName);
+        $reflection = self::ReflectionDi($tableName);
 
         $properties = [];
         $colonne = [];
@@ -235,42 +324,18 @@ class BaseModel
 
         $filterColumns = count($selectColumns) > 0;
 
-        //recupero le colonne della classe dalle etichette sulle variabili
-        foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
-            $attributes = $property->getAttributes();
+        //le colonne arrivano dai metadati gia' calcolati per questa classe
+        foreach (self::MetadatiDi($tableName) as [$property, $nome, $tipo, $univoco, $attributo]) {
+            if ($filterColumns && array_search($attributo, $selectColumns) === false) {
+                continue;
+            }
 
-            foreach ($attributes as $attribute) {
-                $arguments = $attribute->getArguments();
+            $properties[] = $property;
+            $colonne[] = $nome;
+            $tipi[] = $tipo;
 
-                $nome = $arguments['0'];
-                $tipo = $arguments['1'];
-                $univoco = $arguments['2'];
-
-                if ($tipo == "Dato") {
-                    $nome .= "_FkId";
-                }
-
-                if ($filterColumns) {
-                    $found = array_search($arguments['0'], $selectColumns);
-
-                    if ($found !== false) {
-                        $properties[] = $property;
-                        $colonne[] = $nome;
-                        $tipi[] = $tipo;
-
-                        if ($univoco) {
-                            $univoci[] = $arguments['0'];
-                        }
-                    }
-                } else {
-                    $properties[] = $property;
-                    $colonne[] = $nome;
-                    $tipi[] = $tipo;
-
-                    if ($univoco) {
-                        $univoci[] = $arguments['0'];
-                    }
-                }
+            if ($univoco) {
+                $univoci[] = $attributo;
             }
         }
 
@@ -293,7 +358,14 @@ class BaseModel
             $colonne,
             (string)$webP,
             false,
-            parent: $parent
+            // Deve restare POSIZIONALE: mai "parent: $parent". I metodi dell'estensione
+            // sono registrati con un arginfo variadico (unico parametro, di nome "args"),
+            // quindi un argomento nominato finisce in extra_named_params e lo ZPP
+            // posizionale non lo vede mai. Il controllo che segnalerebbe l'anomalia
+            // (ZPP_ERROR_UNEXPECTED_EXTRA_NAMED) esiste solo dentro Z_PARAM_VARIADIC_EX,
+            // che qui non c'e': il valore veniva scartato in silenzio e il filtro sul
+            // carrello spariva, restituendo elementi di altri carrelli.
+            $parent
         );
 
         if (\Common\Convert::ToBool($result->Errore)) {
@@ -432,15 +504,10 @@ class BaseModel
             }
         }
 
-        foreach ($reflection->getProperties(ReflectionProperty::IS_PRIVATE) as $p) {
-            if (str_starts_with($p->name, "_") && str_ends_with($p->name, "Set")) {
-                $p->setValue($tableObj, false);
-            }
-        }
-        foreach ($baseClass->getProperties(ReflectionProperty::IS_PRIVATE) as $p) {
-            if (str_starts_with($p->name, "_") && str_ends_with($p->name, "Set")) {
-                $p->setValue($tableObj, false);
-            }
+        // Elenco gia' filtrato una volta per classe: prima si facevano due getProperties()
+        // piu' i controlli sul nome PER OGNI RIGA letta da una lista.
+        foreach (self::FlagSetDi($reflection) as $p) {
+            $p->setValue($tableObj, false);
         }
 
         if (!$cache) {
@@ -477,7 +544,7 @@ class BaseModel
 
         \Common\Cache::ResetDati($tableName);
 
-        $reflection = new ReflectionClass($tableName);
+        $reflection = self::ReflectionDi($tableName);
 
         $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PRIVATE);
 
@@ -568,11 +635,20 @@ class BaseModel
                             break;
                         }
 
-                        if (\Common\Convert::ToBool($propertyValue->Base64Encoded)) {
-                            $colonne[] = [$nome, [$propertyValue->Nome, $propertyValue->Bytes]];
-                        } else {
-                            $colonne[] = [$nome, [$propertyValue->Nome, base64_encode($propertyValue->Bytes)]];
-                        }
+                        // I byte del file viaggiano GREZZI, nella coda binaria della
+                        // richiesta: l'estensione li mette da parte e nel JSON lascia solo
+                        // {"Name":"...","Stream":K}. Il base64 costava il 33% di byte in
+                        // piu' sul filo e, lato server, una stringa .NET in UTF-16 che
+                        // pesava il doppio del base64 stesso.
+                        $colonne[] = [
+                            $nome,
+                            [
+                                $propertyValue->Nome,
+                                \Common\Convert::ToBool($propertyValue->Base64Encoded)
+                                    ? base64_decode($propertyValue->Bytes)
+                                    : $propertyValue->Bytes,
+                            ],
+                        ];
 
                         break;
                     }
@@ -736,7 +812,7 @@ class BaseModel
             return;
         }
 
-        $reflection = new \ReflectionClass($tableName);
+        $reflection = self::ReflectionDi($tableName);
 
         $properties = [];
         $colonne = [];
@@ -745,42 +821,18 @@ class BaseModel
 
         $filterColumns = count($selectColumns) > 0;
 
-        foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
-            $attributes = $property->getAttributes();
+        //le colonne arrivano dai metadati gia' calcolati per questa classe
+        foreach (self::MetadatiDi($tableName) as [$property, $nome, $tipo, $univoco, $attributo]) {
+            if ($filterColumns && array_search($attributo, $selectColumns) === false) {
+                continue;
+            }
 
-            foreach ($attributes as $attribute) {
-                $arguments = $attribute->getArguments();
+            $properties[] = $property;
+            $colonne[] = $nome;
+            $tipi[] = $tipo;
 
-                $nome = $arguments['0'];
-                $tipo = $arguments['1'];
-                $univoco = $arguments['2'];
-
-                if ($tipo == "Dato") {
-                    $nome .= "_FkId";
-                }
-
-                if ($filterColumns) //se sto recuperando solo alcune colonne
-                {
-                    $found = array_search($arguments['0'], $selectColumns);
-
-                    if ($found !== false) {
-                        $properties[] = $property;
-                        $colonne[] = $nome;
-                        $tipi[] = $tipo;
-
-                        if ($univoco) {
-                            $univoci[] = $arguments['0'];
-                        }
-                    }
-                } else {
-                    $properties[] = $property;
-                    $colonne[] = $nome;
-                    $tipi[] = $tipo;
-
-                    if ($univoco) {
-                        $univoci[] = $arguments['0'];
-                    }
-                }
+            if ($univoco) {
+                $univoci[] = $attributo;
             }
         }
 
