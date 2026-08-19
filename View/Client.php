@@ -53,6 +53,26 @@ if (!\Common\Csrf::Verifica())
     exit();
 }
 
+//Il nome della classe arriva dal client e finisce nell'autoloader, che lo traduce in un
+//percorso e fa include: un nome con ".." permetteva di includere qualunque file .php del
+//server e di istanziare classi mai pensate come endpoint. Qui si accettano solo nomi di
+//classe veri, e per le view solo quelle sotto il namespace View.
+if (!empty($view))
+{
+    if (!preg_match('/^\\\\?View(\\\\[A-Za-z][A-Za-z0-9]*)+$/', $view))
+    {
+        \Common\Log::Error("\Common\View\Client.php, nome di view non valido: " . print_r($_GET, true));
+        http_response_code(400);
+        exit();
+    }
+}
+else if (!preg_match('/^[A-Za-z][A-Za-z0-9]*$/', $controller) || !preg_match('/^[A-Za-z][A-Za-z0-9]*$/', $action))
+{
+    \Common\Log::Error("\Common\View\Client.php, nome di controller o action non valido: " . print_r($_GET, true));
+    http_response_code(400);
+    exit();
+}
+
 if (!empty($view))
 {
     $className = $view;

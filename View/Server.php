@@ -26,6 +26,15 @@ class Server
                 $viewName = substr($viewName, 1);
         }
 
+        //quando $viewName arriva da $_GET["url"] è scelto dal client, e finisce nell'autoloader
+        //che ne fa un percorso e lo include: senza controllo un ".." permetteva di includere
+        //qualunque file .php del server
+        if (!preg_match('/^[A-Za-z][A-Za-z0-9]*(\\\\[A-Za-z][A-Za-z0-9]*)*$/', $viewName))
+        {
+            echo 'View non valida';
+            return;
+        }
+
         $className = "\\View\\" . $viewName;
 
         // Verifica se il metodo corrispondente all'azione esiste nella classe corrente
