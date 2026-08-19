@@ -36,6 +36,11 @@
 
 <!--suppress JSDeprecatedSymbols -->
 <script>
+    //token CSRF della sessione: viaggia nell'header X-Csrf-Token di ogni chiamata a
+    //Client.php. Sta qui, nello stesso file delle fetch, così i due pezzi non possono
+    //finire su pagine diverse.
+    const CSRF_TOKEN = <?= json_encode(\Common\Csrf::Token()) ?>;
+
     const createLock = () =>
     {
         let lockStatus = false
@@ -162,7 +167,8 @@
                 method: 'POST',
                 headers:
                     {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-Csrf-Token': CSRF_TOKEN
                     },
                 body: JSON.stringify(array)
             });
@@ -314,7 +320,8 @@
                 keepalive: keepAlive, //The keepalive option can be used to allow the request to outlive the page.
                 headers:
                     {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-Csrf-Token': CSRF_TOKEN
                     },
                 body: JSON.stringify(finalArray)
             })

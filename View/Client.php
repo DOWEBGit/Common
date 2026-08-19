@@ -31,6 +31,28 @@ if ($action === null && $view === null)
 
 include_once $_SERVER['DOCUMENT_ROOT'] . '/public/php/start.php';
 
+//Il dispatcher si fidava del solo cookie di sessione, che il browser allega anche a una
+//richiesta partita da un altro sito: bastava un modulo altrove per far eseguire un'azione a
+//nome di chi era autenticato. Il token viaggia nell'header X-Csrf-Token, emesso dallo stesso
+//file che contiene le fetch (Common/Include/Head.php).
+if (!\Common\Csrf::Verifica())
+{
+    \Common\Log::Error("\Common\View\Client.php, token CSRF assente o non valido: " . print_r($_GET, true));
+
+    http_response_code(403);
+
+    //si risponde con la forma che il JavaScript si aspetta, altrimenti il lock di Action()
+    //non viene rilasciato e la pagina resta bloccata invece di mostrare l'errore
+    \Common\State::BodyToState();
+
+    if (!empty($view))
+        echo json_encode(['', \Common\State::StateToBody()]);
+    else
+        echo \Common\State::StateToBody();
+
+    exit();
+}
+
 if (!empty($view))
 {
     $className = $view;

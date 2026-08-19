@@ -166,8 +166,34 @@ class State
 
         $expiryTime = time() + (86400 * 30); // 86400 secondi = 30 giorni
 
-        // Imposta il cookie
-        setcookie($name, $value, $expiryTime, '/'); // '/' indica che il cookie è valido per tutto il dominio
+        setcookie($name, $value, self::OpzioniCookie($expiryTime));
+    }
+
+    /**
+     * Attributi di sicurezza dei cookie.
+     *
+     * Con la firma a 4 argomenti di setcookie() non si possono impostare, quindi i cookie
+     * uscivano leggibili da JavaScript e allegati anche alle richieste partite da altri siti.
+     *
+     *  - httponly: fuori dalla portata di uno script iniettato in pagina
+     *  - samesite Lax: non vengono inviati dalle richieste cross-site, il che toglie
+     *    carburante al CSRF
+     *  - secure: solo quando si sta davvero navigando in HTTPS, altrimenti in sviluppo su
+     *    http il browser scarterebbe il cookie e non funzionerebbe più niente
+     */
+    private static function OpzioniCookie(int $expiryTime) : array
+    {
+        $https = (($_SERVER['HTTPS'] ?? '') !== '' && ($_SERVER['HTTPS'] ?? '') !== 'off')
+            || ($_SERVER['SERVER_PORT'] ?? '') === '443'
+            || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+
+        return [
+            'expires'  => $expiryTime,
+            'path'     => '/', //valido per tutto il dominio
+            'httponly' => true,
+            'samesite' => 'Lax',
+            'secure'   => $https,
+        ];
     }
 
     public static function CookieDelete(string $name) : void
@@ -177,8 +203,7 @@ class State
 
         $expiryTime = time() - 3600;
 
-        // Imposta il cookie
-        setcookie($name, '', $expiryTime, '/'); // '/' indica che il cookie è valido per tutto il dominio
+        setcookie($name, '', self::OpzioniCookie($expiryTime));
     }
 
     public static function SessionWrite(string $name, string $value) : void
