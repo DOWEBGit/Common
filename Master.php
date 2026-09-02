@@ -40,9 +40,7 @@ class Master
         if (($_SESSION[self::SESSIONE_ACCESSO] ?? '') === $oggi)
             return;
 
-        //il guid della sessione e' il valore del cookie, lo stesso che GetMasterLoggato() passa a
-        //MasterSessione: non esiste nessun $_SESSION['doweb_guid'] in questi progetti
-        $guid = $_COOKIE['AdminSession'] ?? '';
+        $guid = $_COOKIE['doweb_guid'] ?? '';
 
         if ($guid === '')
             return;
