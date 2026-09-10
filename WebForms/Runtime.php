@@ -531,13 +531,15 @@ DW.carica = async (zona, file) => {
 
         esito = await risposta.json();
     } catch (err) {
-        DW.errore('upload: ' + err);
+        DW.avviso('Caricamento non riuscito: ' + err);
         return;
     } finally {
         zona.classList.remove('js-dw-caricando');
     }
 
-    if (esito.errore) { DW.errore('upload: ' + esito.errore); return; }
+    // il file e' stato rifiutato: e' una risposta all'utente - il formato, il peso, le
+    // misure - non un errore del programma, e va dove l'utente guarda
+    if (esito.errore) { DW.avviso(esito.errore); return; }
 
     // per nome e non fra i figli: senza l'area di trascinamento il campo del token e'
     // un fratello dell'input, non un suo discendente
@@ -698,6 +700,55 @@ function pila() {
     document.body.appendChild(colonna);
 
     return colonna;
+}
+
+// Un avviso che nasce QUI e non dal server: serve quando la risposta arriva prima del
+// prossimo render - un file rifiutato al caricamento, per esempio. La forma e' la stessa,
+// cosi' non ci sono due modi di dire la stessa cosa all'utente.
+DW.avviso = (testo, tipo) => {
+    const successo = tipo === 'successo';
+
+    const avviso = document.createElement('div');
+
+    avviso.className = 'dw-avviso ' + (successo ? 'dw-avviso-successo' : 'dw-avviso-fallito');
+    avviso.id = 'dw-avviso-' + Math.random().toString(36).slice(2);
+    avviso.setAttribute('role', 'status');
+
+    const icona = document.createElement('span');
+    icona.className = 'dw-avviso-icona';
+    icona.setAttribute('aria-hidden', 'true');
+    icona.textContent = successo ? '\u2713' : '\u26a0';
+
+    // textContent e non innerHTML: qui dentro finiscono messaggi che arrivano dal server e
+    // nomi di file scelti dall'utente
+    const corpo = document.createElement('div');
+    corpo.className = 'dw-avviso-testo';
+    corpo.textContent = testo;
+
+    const chiudi = document.createElement('button');
+    chiudi.type = 'button';
+    chiudi.className = 'dw-avviso-chiudi';
+    chiudi.setAttribute('aria-label', 'Chiudi');
+    chiudi.innerHTML = '&times;';
+
+    avviso.append(icona, corpo, chiudi);
+
+    avvisiArmati.add(avviso.id);
+
+    pila().appendChild(avviso);
+
+    while (pila().children.length > 5) pila().firstElementChild.remove();
+
+    arma(avviso, durataAvvisi());
+};
+
+// quanto durano, secondo il <dw:Alert> della master. Senza quello, cinque secondi.
+function durataAvvisi() {
+    const colonna = document.querySelector('.dw-avvisi:not(.js-dw-pila)');
+
+    const durata = colonna ? parseInt(colonna.dataset.dwDurata, 10) : NaN;
+
+    return isNaN(durata) ? 5000 : durata;
 }
 
 function armaAvvisi() {

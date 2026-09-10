@@ -219,6 +219,54 @@ class Upload
                 . number_format($vincoli->KBytesMax / 1024, 1, ',', '.') . ' MB.';
         }
 
+        return self::Misure($voce, $vincoli);
+    }
+
+    /**
+     * Le misure di un'immagine, contro quelle che il pannello ammette.
+     *
+     * Perche' qui e non solo al salvataggio: senza questo controllo un'immagine da 2166x1601
+     * viene accettata, caricata, mostrata in anteprima, e poi rifiutata dalla Save con
+     * "Immagine: Valore non valido" - una frase che non dice cosa c'e' che non va, e arriva
+     * dopo che l'utente ha compilato tutto il resto della scheda. Il momento giusto per dire
+     * di no e' quando il file arriva, e la frase giusta contiene i numeri.
+     *
+     * L'ultima parola resta a Kestrel, che ricontrolla al salvataggio: questo taglia il
+     * viaggio, non la guardia.
+     */
+    private static function Misure(array $voce, \Common\Attribute\VincoliAttribute $vincoli): string
+    {
+        if ($vincoli->LarghezzaMin <= 0 && $vincoli->LarghezzaMax <= 0
+            && $vincoli->AltezzaMin <= 0 && $vincoli->AltezzaMax <= 0)
+            return '';
+
+        $misure = @getimagesize($voce['percorso']);
+
+        //un documento non ha misure, e non e' un errore: le regole sulle dimensioni valgono
+        //per i campi immagine, e li' getimagesize risponde sempre
+        if ($misure === false)
+            return '';
+
+        [$larghezza, $altezza] = $misure;
+
+        $quanto = $larghezza . 'x' . $altezza . ' pixel';
+
+        if ($vincoli->LarghezzaMax > 0 && $larghezza > $vincoli->LarghezzaMax)
+            return 'Immagine troppo larga: e\' ' . $quanto . ', il massimo e\' '
+                . $vincoli->LarghezzaMax . ' pixel di larghezza.';
+
+        if ($vincoli->AltezzaMax > 0 && $altezza > $vincoli->AltezzaMax)
+            return 'Immagine troppo alta: e\' ' . $quanto . ', il massimo e\' '
+                . $vincoli->AltezzaMax . ' pixel di altezza.';
+
+        if ($vincoli->LarghezzaMin > 0 && $larghezza < $vincoli->LarghezzaMin)
+            return 'Immagine troppo stretta: e\' ' . $quanto . ', il minimo e\' '
+                . $vincoli->LarghezzaMin . ' pixel di larghezza.';
+
+        if ($vincoli->AltezzaMin > 0 && $altezza < $vincoli->AltezzaMin)
+            return 'Immagine troppo bassa: e\' ' . $quanto . ', il minimo e\' '
+                . $vincoli->AltezzaMin . ' pixel di altezza.';
+
         return '';
     }
 
