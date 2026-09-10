@@ -35,7 +35,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings"><![CDATA[{
   "selectedUrlAndAccountId": {
-    "url": "https://github.com/DOWEBGit/Common",
+    "url": "https://github.com/DOWEBGit/Common.git",
     "accountId": "18140d36-cb02-488a-bdbe-d9afd705f890"
   }
 }]]></component>
@@ -44,7 +44,7 @@
       <server host="localhost" id="cfb0a360-53b8-4e27-88df-ebc77d20e84f" name="localhost" port="8081" />
     </servers>
   </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\Program Files\PHP\php.exe" />
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="PHP" />
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 4
@@ -58,6 +58,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "WebServerToolWindowFactoryState": "false",
@@ -81,7 +82,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-php-predefined-a98d8de5180a-9522f28f0b20-com.jetbrains.php.sharedIndexes-PS-262.9437.196" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PS-253.33813.65" />
+        <option value="bundled-php-predefined-a98d8de5180a-0e0d91225499-com.jetbrains.php.sharedIndexes-PS-253.33813.65" />
       </set>
     </attachedChunks>
   </component>
@@ -126,6 +128,7 @@
       <workItem from="1759329680865" duration="42000" />
       <workItem from="1768894967665" duration="25000" />
       <workItem from="1787156880249" duration="17000" />
+      <workItem from="1789025338886" duration="12000" />
     </task>
     <task id="LOCAL-00001" summary="fix e aggiunte varie">
       <option name="closed" value="true" />

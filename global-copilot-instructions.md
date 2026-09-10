@@ -20,15 +20,12 @@
       1. Devo usare `\Model\Turni` → prima leggo il file `Model/Turni.php`
       2. Verifico quali proprietà e metodi esistono effettivamente
       3. Solo dopo scrivo il codice che usa quella classe
-- Per recuperare lo **stream di input**:
-    - Non usare:
-      ```php
-      $input = file_get_contents('php://input');
-      ```
-    - Usare invece:
-      ```php
-      $input = $_POST["INPUTSTREAM"];
-      ```
+- Per recuperare lo **stream di input** va bene la forma standard:
+  ```php
+  $input = file_get_contents('php://input');
+  ```
+  Un tempo non funzionava e si doveva leggere `$_POST["INPUTSTREAM"]`: quel ripiego non serve
+  più. Se lo si trova nel codice vecchio non è un errore, ma nel codice nuovo non va scritto.
 - Prima di utilizzare librerie esterne, controllare nel file `start.php` se è presente la riga:
   ```php
   require_once __DIR__ . '/vendor/autoload.php';
@@ -842,81 +839,163 @@ Adattare la struttura, i nomi delle variabili e le colonne alle esigenze specifi
 
 ## 8. Costruzione delle query con parametri: sintassi e best practice
 
-Quando si costruiscono query per i metodi dei model (es. GetList, GetItemBy...), utilizzare sempre la sintassi con i nomi degli attributi racchiusi tra parentesi quadre e i parametri come placeholder numerici tra parentesi graffe.
+I filtri dei metodi dei Model (`GetList`, `GetCount`, `GetItemBy...`) non sono SQL: sono un
+mini-linguaggio che Kestrel traduce lui in SQL. Quello che segue e' quello che il traduttore
+accetta davvero — sta in `DatiElencoFast.ParseWhere` / `ParseOrderBy` e in `QueryToken`.
 
-### Regole:
-- **Per le clausole WHERE**: Ogni attributo deve essere scritto come `[NomeAttributo]` (con parentesi quadre).
-- **Per le clausole ORDER BY**: Ogni attributo deve essere scritto come `NomeAttributo` (senza parentesi quadre).
-- Ogni parametro deve essere rappresentato come `{N}` dove N è l'indice del parametro corrispondente nell'array `$whereValues`.
-- L'ordine dei parametri nella query deve corrispondere all'ordine dei valori in `$whereValues`.
-- Se ci sono più filtri, incrementare l'indice per ogni parametro.
-- Gli unici operatori consentiti per costruire le query sono: `AND`, `OR`, le parentesi tonde, `=`, `<>`, `>`, `<` e `LIKE`.
+**Regola che vale piu' di tutte: una query sbagliata non solleva niente.** Kestrel scrive una
+riga nel log del sito e torna un elenco **vuoto** (o un conteggio a zero). Chi la scrive vede
+una pagina senza righe e pensa che non ci siano dati. Quindi la sintassi qui sotto va seguita
+alla lettera, e un filtro nuovo si prova con dei dati che si sa che esistono.
 
-### Esempio con un solo filtro
+### `wherePredicate` — la forma
+
+- I nomi delle colonne vanno fra **parentesi quadre**: `[Titolo]`.
+- I valori **non si scrivono nel testo**: si passano in `whereValues` e nel predicato ci va il
+  segnaposto `{0}`, `{1}`, … L'indice e' la posizione nell'array.
+- Fra le quadre ci possono stare **solo lettere, cifre e spazi**. Niente altro: un punto, una
+  parentesi tonda o un underscore fermano la query.
+
 ```php
-$where = '[Titolo] LIKE {0}';
-$whereValues = ['%' . $filtroTitolo . '%'];
-$listaProvince = \Model\Province::GetList(wherePredicate: $where, whereValues: $whereValues);
+$where = '[Titolo] LIKE {0} AND [Stato] = {1}';
+$whereValues = ['%' . $filtro . '%', 'Attivo'];
+
+$elenco = \Model\Province::GetList(wherePredicate: $where, whereValues: $whereValues);
 ```
 
-### Esempio di chiamata semplice
+### Gli operatori: sono questi e basta
+
+| | |
+|---|---|
+| connettivi | `AND` `OR` `(` `)` |
+| confronti | `=` `==` `<>` `<` `<=` `>` `>=` `LIKE` `NOT LIKE` |
+
+`NOT` vale **solo** davanti a `LIKE`, e ci vuole lo spazio in mezzo: `NOT LIKE`.
+
+**Non esistono funzioni.** `Contains()`, `StartsWith()`, `IN (...)`, `IS NULL`, `BETWEEN` non
+sono previsti: la ricerca parziale si fa con `LIKE`, e **il `%` va nel valore**, mai nel
+predicato.
+
+```php
+// ✅ ricerca parziale
+'[Nome] LIKE {0}'          ['%rossi%']
+
+// ✅ inizia con
+'[Nome] LIKE {0}'          ['rossi%']
+
+// ❌ non esiste: la query fallisce e l'elenco torna vuoto
+'[Nome].Contains({0})'
+'[Nome] LIKE %{0}%'
+'[Nome] = ?'
+'[Nome] = @0'
+'[Id] IN ({0})'
+```
+
+Le parentesi tonde vanno bilanciate, e ogni `{n}` deve esistere in `whereValues`: se manca, la
+query fallisce.
+
+### Quali nomi si possono usare
+
+Gli **Identificativo** dei controlli del dato (quelli che torna `DatiElencoGetColonne`, non le
+etichette dell'amministrazione), piu' queste colonne di sistema:
+
+| in `wherePredicate` | `Id` `ParentId` `Inserimento` `Aggiornamento` |
+| in `orderPredicate` | `Id` `Parent` `Visibile` `Inserimento` `Aggiornamento` |
+
+**Non e' un refuso: nel filtro si scrive `ParentId`, nell'ordinamento `Parent`.** L'altro nome,
+nell'uno o nell'altro, non viene riconosciuto.
+
+**Se l'Identificativo contiene uno spazio, nel predicato ci va lo spazio.** La proprieta' PHP
+del Model ha l'underscore (`$ordine->Data_Ordine`) perche' un nome PHP non puo' avere spazi, ma
+la query vuole il nome vero: `'[Data Ordine] >= {0}'`. Con l'underscore la query fallisce,
+perche' fra le quadre l'underscore non e' un carattere ammesso.
+
+### I valori: cosa diventano
+
+- **Testo** — passa cosi' com'e'.
+- **Numeri** — passano come numero.
+- **Data / DataOra** — il valore va scritto **`dd/MM/yyyy`** o **`dd/MM/yyyy HH:mm`** (esattamente
+  10 o 16 caratteri): solo in quella forma diventa una data vera. Scritto in ISO
+  (`2026-01-31`) viene confrontato come testo e **non trova mai niente**.
+- **Riferimenti (colonne `Dato`)** — il confronto e' sull'**id** del record puntato:
+  `'[Categoria] = {0}'` con `[$categoria->Id]`. Kestrel prova anche a risolvere un valore
+  testuale nel record corrispondente, ma e' una cortesia: passare l'id e' l'unica cosa che si
+  comporta sempre allo stesso modo.
+
+### `orderPredicate` — i nomi vanno NUDI
+
+```php
+// ✅
+$order = 'Titolo ASC';
+$order = 'Data Inizio DESC, Titolo ASC';   // piu' colonne separate da virgola
+
+// ❌ con le quadre non trova il controllo
+$order = '[Titolo] ASC';
+```
+
+Con un nome che non esiste — o con le parentesi quadre — **non c'e' errore**: Kestrel lo annota
+nel log e ordina per `Inserimento DESC`. L'elenco esce nell'ordine sbagliato e sembra che tutto
+funzioni. E' l'errore piu' facile da non vedere di tutti.
+
+### Paginazione: `item4page` e `page`
+
+`page` e' contata **da zero**. `item4page: -1` vuol dire "tutti"; `item4page: 0` vuol dire zero
+elementi, e torna una lista vuota senza dire niente.
+
+```php
+$totale = \Model\Province::GetCount(wherePredicate: $where, whereValues: $whereValues);
+
+$elenco = \Model\Province::GetList(
+    item4page: 20,
+    page: 0,                       // la prima
+    wherePredicate: $where,
+    whereValues: $whereValues,
+    orderPredicate: 'Titolo ASC',
+    selectColumns: ['Id', 'Titolo']);
+```
+
+**Il conteggio e il filtro devono essere gli stessi.** `GetCount` e `GetList` vanno chiamate con
+lo stesso `wherePredicate` e gli stessi `whereValues`: se divergono, il totale del paginatore
+non corrisponde alle righe e in fondo si vedono pagine vuote. Il modo per non sbagliare e'
+comporre il filtro in un metodo solo e passarlo a tutte e due.
+
+### Come si compone un filtro a piu' condizioni
+
+L'indice del segnaposto e' la **posizione nell'array**, quindi si usa `count($whereValues)`
+invece di scriverlo a mano: aggiungere una condizione in mezzo non sposta niente.
+
 ```php
 $where = '';
 $whereValues = [];
-if ($filtroTitolo !== '') {
-    $where = '[Titolo] LIKE {0}';
-    $whereValues[] = '%' . $filtroTitolo . '%';
-}
-$listaProvince = \Model\Province::GetList(wherePredicate: $where, whereValues: $whereValues);
-```
 
-### Esempio con paginazione
-```php
-$item4page = 20; // elementi per pagina
-$page = 2; // pagina corrente (parte da 1)
-$where = '';
-$whereValues = [];
-if ($filtroTitolo !== '') {
-    $where = '[Titolo] LIKE {0}';
-    $whereValues[] = '%' . $filtroTitolo . '%';
+if ($titolo !== '')
+{
+    $where .= ($where === '' ? '' : ' AND ') . '[Titolo] LIKE {' . count($whereValues) . '}';
+    $whereValues[] = '%' . $titolo . '%';
 }
-$listaProvince = \Model\Province::GetList(item4page: $item4page, page: $page, wherePredicate: $where, whereValues: $whereValues);
-```
 
-### Esempio con ordinamento
-```php
-$orderBy = '[Titolo] ASC';
-$where = '';
-$whereValues = [];
-if ($filtroTitolo !== '') {
-    $where = '[Titolo] LIKE {0}';
-    $whereValues[] = '%' . $filtroTitolo . '%';
-}
-$listaProvince = \Model\Province::GetList(wherePredicate: $where, whereValues: $whereValues, orderPredicate: $orderBy);
-```
-
-### Esempio con più filtri
-```php
-$where = '';
-$whereValues = [];
-if ($filtroTitolo !== '') {
-    $where = '[Titolo] LIKE {0}';
-    $whereValues[] = '%' . $filtroTitolo . '%';
-}
-if ($stato !== '') {
-    $where .= ($where ? ' AND ' : '') . '[Stato] = {' . count($whereValues) . '}';
+if ($stato !== '')
+{
+    $where .= ($where === '' ? '' : ' AND ') . '[Stato] = {' . count($whereValues) . '}';
     $whereValues[] = $stato;
 }
-$orderBy = '[Titolo] ASC';
-$item4page = 20;
-$page = 1;
-$listaProvince = \Model\Province::GetList(item4page: $item4page, page: $page, wherePredicate: $where, whereValues: $whereValues, orderPredicate: $orderBy);
 ```
 
-### Note aggiuntive
-- Non usare mai `?` o altri placeholder diversi da `{N}`.
-- Se la query non ha filtri, passare stringa vuota come `$where` e array vuoto come `$whereValues`.
-- Questa sintassi è obbligatoria per tutte le query custom nei controller e nelle view che usano i metodi dei model.
+Nessun filtro: `wherePredicate: ''` e `whereValues: []`.
+
+### Se un elenco torna vuoto e non dovrebbe
+
+Nell'ordine, sono queste:
+
+1. il nome fra le quadre non e' l'**Identificativo** del controllo (o ha un underscore al posto
+   dello spazio);
+2. `orderPredicate` scritto con le parentesi quadre;
+3. una data non in `dd/MM/yyyy`;
+4. un operatore o una funzione che non esistono (`Contains`, `IN`, `IS NULL`);
+5. `item4page: 0` invece di `-1`;
+6. `page` contata da 1 invece che da 0.
+
+Il log del sito dice quale delle sei: ogni fallimento ci scrive la riga con il predicato intero.
 
 ---
 
