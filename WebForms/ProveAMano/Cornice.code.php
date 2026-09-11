@@ -21,7 +21,7 @@ use Common\WebForms\MasterPage;
 class Cornice extends MasterPage
 {
     /** Le voci del menu: indirizzo => etichetta. */
-    private const VOCI = [
+    private const array VOCI = [
         'Prima.php'   => 'Prima pagina',
         'Seconda.php' => 'Seconda pagina',
         'Tabella.php' => 'Righe a mano',

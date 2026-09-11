@@ -14,10 +14,9 @@ class TextBox extends Control
     public string $Type = 'text';
 
     /** Come in WebForms: SingleLine, MultiLine (textarea), Password. */
-    public const SINGLELINE = 'SingleLine';
-    public const MULTILINE  = 'MultiLine';
-    public const PASSWORD   = 'Password';
-
+    public const string SINGLELINE = 'SingleLine';
+    public const string MULTILINE = 'MultiLine';
+    public const string PASSWORD = 'Password';
     public string $TextMode = self::SINGLELINE;
 
     public int $Rows = 4;

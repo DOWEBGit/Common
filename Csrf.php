@@ -19,11 +19,9 @@ namespace Common;
  */
 class Csrf
 {
-    private const CHIAVE = 'csrf';
-
+    private const string CHIAVE = 'csrf';
     //nome dell'header X-Csrf-Token come lo espone PHP in $_SERVER
-    private const HEADER = 'HTTP_X_CSRF_TOKEN';
-
+    private const string HEADER = 'HTTP_X_CSRF_TOKEN';
     /**
      * Token della sessione corrente, generato al primo utilizzo.
      */

@@ -17,11 +17,9 @@ namespace Common\WebForms;
 class Upload
 {
     /** Quanto vale un token, e quanto resta in giro un temporaneo: un'ora per compilare. */
-    private const DURATA = 3600;
-
+    private const int DURATA = 3600;
     /** Oltre questo si rifiuta. Resta comunque sotto il limite di PHP, che vince sempre. */
-    private const BYTE_MASSIMI = 8 * 1024 * 1024;
-
+    private const int BYTE_MASSIMI = 8 * 1024 * 1024;
     /**
      * I formati che si accettano, e basta.
      *
@@ -31,7 +29,7 @@ class Upload
      * cosa e' finito nel sito, e un file che entra diverso da come e' stato scelto e' una
      * bugia detta a fin di bene.
      */
-    private const TIPI = [
+    private const array TIPI = [
         'image/jpeg' => 'jpg',
         'image/png'  => 'png',
         'image/gif'  => 'gif',
@@ -47,7 +45,7 @@ class Upload
      * Non si usa mime_content_type: qui l'estensione fileinfo non e' caricata. E non ci si
      * fida del tipo dichiarato dal browser, che lo scrive lui.
      */
-    private const DOCUMENTI = [
+    private const array DOCUMENTI = [
         'pdf'  => ['application/pdf', "%PDF-"],
         'zip'  => ['application/zip', "PK\x03\x04"],
         'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', "PK\x03\x04"],
@@ -59,10 +57,11 @@ class Upload
     ];
 
     /** Le due famiglie, per capire se un file si guarda o si scarica. */
-    public const IMAGES = 'immagini';
-    public const DOCUMENTS_ONLY = 'documenti';
-
-    /** Riceve il file e risponde con il token. Chiamato da Common/WebForms/FileUploadHandler.php. */
+    public const string IMAGES = 'immagini';
+    public const string DOCUMENTS_ONLY = 'documenti';
+    /**
+     * Riceve il file e risponde con il token. Chiamato da Common/WebForms/FileUploadHandler.php.
+     */
     public static function Receive(): void
     {
         header('Content-Type: application/json; charset=utf-8');
@@ -104,8 +103,16 @@ class Upload
             return;
         }
 
-        $destinazione = sys_get_temp_dir() . DIRECTORY_SEPARATOR
-            . 'dwup_' . bin2hex(random_bytes(16)) . '.' . $estensione;
+        try
+        {
+            $casuale = bin2hex(random_bytes(16));
+        }
+        catch (\Random\RandomException $e)
+        {
+            throw new \RuntimeException('Il sistema non ha entropia per il nome del file.', 0, $e);
+        }
+
+        $destinazione = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dwup_' . $casuale . '.' . $estensione;
 
         if (!@move_uploaded_file($file['tmp_name'], $destinazione))
         {

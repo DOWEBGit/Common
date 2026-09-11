@@ -19,8 +19,7 @@ final class AttributeCollection extends NamedCollection
      * Nomi che hanno gia' un padrone: renderli due volte darebbe un HTML con l'attributo
      * ripetuto, e il browser terrebbe il primo - cioe' non quello appena scritto.
      */
-    private const RESERVED = ['id', 'class', 'hidden', 'name', 'style'];
-
+    private const array RESERVED = ['id', 'class', 'hidden', 'name', 'style'];
     protected function CheckName(string $name): void
     {
         if (preg_match('/^[A-Za-z][A-Za-z0-9_.:-]*$/', $name) !== 1)

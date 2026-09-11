@@ -7,7 +7,7 @@ use Common\WebForms\Control;
 
 class DropDownList extends Control
 {
-    /** @var array<string,string> valore => testo */
+    /** @var array<int|string,string> valore => testo. Una chiave numerica PHP la fa int: si confronta come testo */
     public array $Items = [];
 
     public string $SelectedValue = '';
@@ -71,12 +71,15 @@ class DropDownList extends Control
 
         foreach ($this->Items as $valore => $testo)
         {
-            $html .= '<option value="' . self::HtmlEncode((string)$valore) . '"';
+            //la chiave di un array PHP puo' essere diventata int: si confronta come testo
+            $valore = (string)$valore;
 
-            if ((string)$valore === $this->SelectedValue)
+            $html .= '<option value="' . self::HtmlEncode($valore) . '"';
+
+            if ($valore === $this->SelectedValue)
                 $html .= ' selected';
 
-            $html .= '>' . self::HtmlEncode((string)$testo) . '</option>';
+            $html .= '>' . self::HtmlEncode($testo) . '</option>';
         }
 
         return $html . '</select>';

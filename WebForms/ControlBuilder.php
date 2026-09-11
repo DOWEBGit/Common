@@ -17,8 +17,7 @@ class ControlBuilder
      * Dove si cercano gli UserControl chiamati per nome: <dw:PageNavigator> e' il markup
      * UserControls/PageNavigator.php. La cartella E' la registrazione.
      */
-    public const FOLDER = 'UserControls';
-
+    public const string FOLDER = 'UserControls';
     /**
      * @param array $nodi        nodi prodotti da PageParser::Parse()
      * @param array $tokens segnaposto {{Campo}} => valore, usati dentro un ItemTemplate
@@ -100,7 +99,6 @@ class ControlBuilder
                 );
             }
 
-            /** @var Control $control */
             $control = new $classe();
 
             $attr = [];
@@ -167,7 +165,6 @@ class ControlBuilder
         if (!is_subclass_of($codeClass, MasterPage::class))
             throw new \RuntimeException($codeClass . ' deve estendere ' . MasterPage::class . '.');
 
-        /** @var MasterPage $master */
         $master = new $codeClass();
 
         $master->Page = $pagina;
@@ -395,7 +392,6 @@ class ControlBuilder
         if (!is_subclass_of($codeClass, UserControl::class))
             throw new \RuntimeException($codeClass . ' deve estendere ' . UserControl::class . '.');
 
-        /** @var UserControl $control */
         $control = new $codeClass();
 
         $attr = [];

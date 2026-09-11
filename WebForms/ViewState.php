@@ -24,11 +24,22 @@ namespace Common\WebForms;
 class ViewState
 {
     /** Marcatore di versione: se un giorno cambia il formato, i vecchi pacchetti si scartano. */
-    private const VERSIONE = 'v1';
-
+    private const string VERSIONE = 'v1';
+    /**
+     * Una chiave nuova, casuale, per le notifiche push.
+     */
     public static function NewKey(): string
     {
-        return bin2hex(random_bytes(16));
+        //random_bytes solleva se il sistema non ha entropia: non si va avanti con una chiave
+        //debole, ma non e' nemmeno un caso da gestire riga per riga in chi chiama
+        try
+        {
+            return bin2hex(random_bytes(16));
+        }
+        catch (\Random\RandomException $e)
+        {
+            throw new \RuntimeException('Il sistema non ha entropia per una chiave.', 0, $e);
+        }
     }
 
     /**
@@ -139,7 +150,14 @@ class ViewState
                 return $segreto = $letto;
         }
 
-        $nuovo = bin2hex(random_bytes(32));
+        try
+        {
+            $nuovo = bin2hex(random_bytes(32));
+        }
+        catch (\Random\RandomException $e)
+        {
+            throw new \RuntimeException('Il sistema non ha entropia per il segreto.', 0, $e);
+        }
 
         //scrittura atomica: due richieste che lo creano insieme non devono poter leggere
         //un file mezzo scritto, che darebbe firme diverse a caso

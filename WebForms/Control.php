@@ -80,10 +80,9 @@ abstract class Control
      */
     public string $ViewStateMode = self::INHERIT;
 
-    public const INHERIT  = 'Inherit';
-    public const ENABLED  = 'Enabled';
-    public const DISABLED = 'Disabled';
-
+    public const string INHERIT = 'Inherit';
+    public const string ENABLED = 'Enabled';
+    public const string DISABLED = 'Disabled';
     /**
      * Proprieta' che attraversano il postback. Chi aggiunge una proprieta' che l'utente
      * puo' cambiare e non la elenca qui si ritrova il valore azzerato al click dopo.
@@ -255,13 +254,10 @@ abstract class Control
      */
     public function DynamicChildren(): array
     {
-        $dinamici = [];
-
-        foreach ($this->Controls as $posizione => $figlio)
-            if (!in_array($figlio, $this->markupChildren, true))
-                $dinamici[$posizione] = $figlio;
-
-        return $dinamici;
+        return array_filter(
+            $this->Controls,
+            fn(Control $figlio): bool => !in_array($figlio, $this->markupChildren, true)
+        );
     }
 
     /**
@@ -367,7 +363,7 @@ abstract class Control
             if (!is_array($voce))
                 continue;
 
-            $classe = self::VIVAIO . (string)($voce['c'] ?? '');
+            $classe = self::VIVAIO . ($voce['c'] ?? '');
 
             if (!class_exists($classe) || !is_subclass_of($classe, self::class))
                 continue;
@@ -394,7 +390,6 @@ abstract class Control
                 continue;
             }
 
-            /** @var Control $figlio */
             $figlio = new $classe();
 
             $figlio->Id        = $id;
@@ -430,8 +425,7 @@ abstract class Control
     }
 
     /** Il vivaio da cui si ripescano i controlli dinamici. */
-    private const VIVAIO = __NAMESPACE__ . '\\Controls\\';
-
+    private const string VIVAIO = __NAMESPACE__ . '\\Controls\\';
     /** Applica i valori del form. Solo i controlli di input la implementano. */
     public function LoadPostData(array $post): void
     {

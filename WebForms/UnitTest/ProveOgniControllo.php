@@ -34,7 +34,7 @@ class ProveOgniControllo
      * Chi ne aggiunge una qui si assume la responsabilita' di dire perche': senza questo
      * elenco la prova 1 non potrebbe distinguere una scelta da una dimenticanza.
      */
-    private const FUORI = [
+    private const array FUORI = [
         'Id'           => 'viene dal markup e non cambia mai',
         'Parent'       => 'l\'albero si ricostruisce ad ogni richiesta',
         'Controls'     => 'idem',
@@ -53,13 +53,10 @@ class ProveOgniControllo
      * prova dell'escape gli si da' un file vero (vedi Prepara), cosi' il render si fa sul
      * serio invece di essere saltato.
      */
-    private const NIENTE_ESCAPE = ['Src'];
-
+    private const array NIENTE_ESCAPE = ['Src'];
     /** Un file dei sorgenti che c'e' di sicuro: e' il motore lato browser. */
-    private const FILE_VERO = 'Common/WebForms/runtime.js';
-
-    private const CATTIVO = '<script>"x"&\'y\'</script>';
-
+    private const string FILE_VERO = 'Common/WebForms/runtime.js';
+    private const string CATTIVO = '<script>"x"&\'y\'</script>';
     public static function Esegui(Prova $p): void
     {
         $p->Sezione('tutti i controlli, uno per uno');

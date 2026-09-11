@@ -24,12 +24,12 @@ namespace Common\WebForms;
  */
 class Csrf
 {
-    private const COOKIE = 'dw_csrf';
-
+    private const string COOKIE = 'dw_csrf';
     /** Nome dell'intestazione X-Csrf-Token come lo espone PHP. */
-    private const HEADER = 'HTTP_X_CSRF_TOKEN';
-
-    /** Il valore da mettere nella pagina, uguale a quello del cookie. */
+    private const string HEADER = 'HTTP_X_CSRF_TOKEN';
+    /**
+     * Il valore da mettere nella pagina, uguale a quello del cookie.
+     */
     public static function Token(): string
     {
         $token = (string)($_COOKIE[self::COOKIE] ?? '');
@@ -39,7 +39,14 @@ class Csrf
         if (preg_match('/^[a-f0-9]{64}$/', $token) === 1)
             return $token;
 
-        $token = bin2hex(random_bytes(32));
+        try
+        {
+            $token = bin2hex(random_bytes(32));
+        }
+        catch (\Random\RandomException $e)
+        {
+            throw new \RuntimeException('Il sistema non ha entropia per il token.', 0, $e);
+        }
 
         //cookie di sessione del BROWSER: niente scadenza, muore quando si chiude. HttpOnly
         //perche' il valore lo scrive il server nella pagina e il JavaScript non deve leggerlo

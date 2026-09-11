@@ -348,7 +348,7 @@ async function esegui(target, evento, arg) {
     if (esito.vai) {
         if (esito.portatile) portatile = esito.portatile;
 
-        DW.navigate(esito.vai, true);
+        void DW.navigate(esito.vai, true);
         return;
     }
 
@@ -471,7 +471,7 @@ document.addEventListener('change', e => {
     if (!(e.target instanceof HTMLInputElement) || e.target.type !== 'file') return;
 
     const zona = zonaDi(e);
-    if (zona) DW.load(zona, e.target.files[0]);
+    if (zona) void DW.load(zona, e.target.files[0]);
 });
 
 // Il browser, se gli molli un file addosso, lo APRE e ti porta via dalla pagina. Va fermato
@@ -497,7 +497,7 @@ document.addEventListener('drop', e => {
 
     zona.classList.remove('js-dw-sopra');
 
-    DW.load(zona, e.dataTransfer && e.dataTransfer.files[0]);
+    void DW.load(zona, e.dataTransfer && e.dataTransfer.files[0]);
 });
 
 // ---------------------------------------------------------------- navigazione senza ricarico
@@ -517,7 +517,7 @@ document.addEventListener('click', e => {
     if (!DW.isNavigable(a, e)) return;
 
     e.preventDefault();
-    DW.navigate(a.href, true);
+    void DW.navigate(a.href, true);
 });
 
 // ---------------------------------------------------------------- pagine che si tengono

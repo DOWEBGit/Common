@@ -132,8 +132,7 @@ final class PaginaMese extends Page
     #[\Common\WebForms\Transient]
     public int $Legature = 0;
 
-    private const GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
-
+    private const array GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
     protected function OnLoad(): void
     {
         $this->Visite++;

@@ -91,8 +91,7 @@ class PageParser
         return $dir . DIRECTORY_SEPARATOR . sha1($markupFile) . '.php';
     }
 
-    private const TAG = '/<(dw:[A-Za-z][A-Za-z0-9]*|ItemTemplate)\b([^>]*?)(\/?)>|<\/(dw:[A-Za-z][A-Za-z0-9]*|ItemTemplate)>/';
-
+    private const string TAG = '/<(dw:[A-Za-z][A-Za-z0-9]*|ItemTemplate)\b([^>]*?)(\/?)>|<\/(dw:[A-Za-z][A-Za-z0-9]*|ItemTemplate)>/';
     private static function ParseNodes(string $markup): array
     {
         $radice = ['figli' => []];
@@ -110,7 +109,7 @@ class PageParser
                 //intero, ma dall'array non si vede - senza il cast la somma qui sotto sembra
                 //una concatenazione di stringhe scritta con l'operatore sbagliato
                 $inizio = (int)$m[0][1];
-                $intero = (string)$m[0][0];
+                $intero = $m[0][0];
 
                 //tutto quello che sta fra il tag precedente e questo e' HTML letterale
                 if ($inizio > $ultimo)

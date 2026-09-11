@@ -21,9 +21,8 @@ namespace Common\WebForms\Controls;
  */
 class RepeaterItem extends Panel
 {
-    public const ITEM = 'Item';
-    public const ALTERNATING_ITEM = 'AlternatingItem';
-
+    public const string ITEM = 'Item';
+    public const string ALTERNATING_ITEM = 'AlternatingItem';
     /** Posizione nella pagina corrente, base zero. */
     public int $ItemIndex = 0;
 

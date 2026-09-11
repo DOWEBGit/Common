@@ -20,11 +20,9 @@ use Common\WebForms\Controls\StaticResource;
 class Runtime
 {
     /** Il motore lato browser. L'indirizzo lo compone StaticResource, marca temporale inclusa. */
-    private const RUNTIME_JS = 'Common/WebForms/runtime.js';
-
+    private const string RUNTIME_JS = 'Common/WebForms/runtime.js';
     /** Lo stile funzionale, stessa storia. */
-    private const RUNTIME_CSS = 'Common/WebForms/runtime.css';
-
+    private const string RUNTIME_CSS = 'Common/WebForms/runtime.css';
     /**
      * Il client SignalR per il browser, servito da noi.
      *
@@ -32,8 +30,7 @@ class Runtime
      * Z:\Rete\_Programmi\static.doweb.site\LiveServer\signalr\<versione>\ - e cambiare
      * questa riga. La cartella vecchia resta finche' c'e' un sito che la chiede.
      */
-    private const SIGNALR = 'https://static.doweb.site/LiveServer/signalr/8.0.29/signalr.min.js';
-
+    private const string SIGNALR = 'https://static.doweb.site/LiveServer/signalr/8.0.29/signalr.min.js';
     /**
      * Se il nostro static non risponde si ripiega sul CDN pubblico.
      *
@@ -41,8 +38,7 @@ class Runtime
      * una griglia che non si aggiorna piu' non ha nessun sintomo da cui risalire. Il ripiego
      * si toglie il giorno che il nostro static e' l'unica strada che serve.
      */
-    private const SIGNALR_SCORTA = 'https://cdn.jsdelivr.net/npm/@microsoft/signalr@8/dist/browser/signalr.min.js';
-
+    private const string SIGNALR_SCORTA = 'https://cdn.jsdelivr.net/npm/@microsoft/signalr@8/dist/browser/signalr.min.js';
     public static function Styles(): string
     {
         return '<link rel="stylesheet" href="'

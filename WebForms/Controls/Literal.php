@@ -18,11 +18,9 @@ use Common\WebForms\Control;
 class Literal extends Control
 {
     /** Il testo esce escapato. */
-    public const ENCODE = 'Encode';
-
+    public const string ENCODE = 'Encode';
     /** Il testo esce cosi' com'e': solo su HTML costruito dal server. */
-    public const PASSTHROUGH = 'PassThrough';
-
+    public const string PASSTHROUGH = 'PassThrough';
     public string $Text = '';
 
     public string $Mode = self::ENCODE;

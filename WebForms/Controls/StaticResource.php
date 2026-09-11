@@ -39,7 +39,7 @@ abstract class StaticResource extends Control
     /** L'indirizzo da mettere nel tag, con la marca temporale. Solleva se il file non c'e'. */
     protected function VersionedUrl(): string
     {
-        return self::Url($this->Src, '<dw:' . (new \ReflectionClass($this))->getShortName() . '>');
+        return self::Url($this->Src, '<dw:' . new \ReflectionClass($this)->getShortName() . '>');
     }
 
     /**

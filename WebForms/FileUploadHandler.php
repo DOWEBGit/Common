@@ -8,7 +8,10 @@ declare(strict_types=1);
  * campi che risponde JSON, questo riceve multipart e risponde un token.
  */
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/public/php/Start.php';
+//per __DIR__ e non per DOCUMENT_ROOT: questo file sta in Common/WebForms, due sopra c'e'
+//la radice dei sorgenti, e cosi' vale anche da riga di comando e in un sito servito da
+//un'altra cartella
+require_once dirname(__DIR__, 2) . '/Start.php';
 
 //GET con un token: e' la richiesta di anteprima di un file caricato e non ancora salvato.
 //POST: e' il caricamento vero.

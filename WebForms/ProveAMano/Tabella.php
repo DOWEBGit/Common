@@ -42,9 +42,9 @@
         web, torni e trovi la tabella vuota: lo stato vale per quella visita. Prova con i due
         link qui sotto, prima acceso e poi spento.
         <br>
-        <a href="/public/php/Common/WebForms/ProveAMano/Stato.php">vai all'altro banco</a>
+        <a href="Stato.php">vai all'altro banco</a>
         &nbsp;·&nbsp;
-        <a href="/public/php/Common/WebForms/ProveAMano/Tabella.php">torna qui</a>
+        <a href="Tabella.php">torna qui</a>
         &nbsp;·&nbsp;
         <span>e poi il tasto indietro del browser</span>
     </p>

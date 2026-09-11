@@ -119,11 +119,9 @@ abstract class Page
 
     private int $depth = 0;
 
-    private const MAX_DEPTH = 8;
-
+    private const int MAX_DEPTH = 8;
     /** Tetto del pacchetto #[Portable]: viaggia su ogni richiesta, non e' un magazzino. */
-    private const PORTABLE_MAX = 4096;
-
+    private const int PORTABLE_MAX = 4096;
     // ---------------------------------------------------------------- ganci
 
     protected function OnInit(): void
@@ -203,7 +201,6 @@ abstract class Page
         {
             http_response_code(403);
             Response::Reload();
-            return;
         }
 
         $this->IsPostBack = $postback;
@@ -360,7 +357,16 @@ abstract class Page
         if ($riflesso->getDeclaringClass()->getName() === self::class)
             throw new \RuntimeException('"' . $metodo . '" non e\' un handler di pagina.');
 
-        $riflesso->invoke($this, $sender, $argomento);
+        try
+        {
+            $riflesso->invoke($this, $sender, $argomento);
+        }
+        catch (\ReflectionException $e)
+        {
+            //il metodo esiste, e' di questa classe ed e' appena stato letto: se non si
+            //lascia invocare e' un errore di programmazione, non un caso da gestire
+            throw new \RuntimeException('Handler "' . $metodo . '" non invocabile.', 0, $e);
+        }
     }
 
     /**
@@ -517,13 +523,10 @@ abstract class Page
      */
     public function DynamicChildren(): array
     {
-        $dinamici = [];
-
-        foreach ($this->Controls as $posizione => $control)
-            if (!in_array($control, $this->markupRoot, true))
-                $dinamici[$posizione] = $control;
-
-        return $dinamici;
+        return array_filter(
+            $this->Controls,
+            fn(Control $control): bool => !in_array($control, $this->markupRoot, true)
+        );
     }
 
     public function FindControl(string $id): Control
@@ -755,7 +758,7 @@ abstract class Page
 
         $property = [];
 
-        foreach ((new \ReflectionClass($this))->getProperties() as $p)
+        foreach (new \ReflectionClass($this)->getProperties() as $p)
             if ($p->getAttributes(Portable::class) !== [])
                 $property[] = $p;
 
@@ -794,7 +797,7 @@ abstract class Page
 
         $property = [];
 
-        foreach ((new \ReflectionClass($this))->getProperties() as $p)
+        foreach (new \ReflectionClass($this)->getProperties() as $p)
         {
             if ($p->isStatic() || $p->getDeclaringClass()->getName() === self::class)
                 continue;

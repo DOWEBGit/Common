@@ -145,11 +145,7 @@ class Designer
         if (preg_match_all('/public \\\\Common\\\\WebForms\\\\Controls\\\\([A-Za-z_][A-Za-z0-9_]*) \$/', $testo, $m) === 0)
             return true;
 
-        foreach ($m[1] as $classe)
-            if (!is_file(__DIR__ . '/Controls/' . $classe . '.php'))
-                return false;
-
-        return true;
+        return array_all($m[1], static fn(string $classe): bool => is_file(__DIR__ . '/Controls/' . $classe . '.php'));
     }
 
     private static function Collect(array $nodi, array &$declarations, array &$handlers, bool $dentroTemplate = false): void

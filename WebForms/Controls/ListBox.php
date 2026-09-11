@@ -13,10 +13,9 @@ use Common\WebForms\Control;
  */
 class ListBox extends Control
 {
-    public const SINGLE  = 'Single';
-    public const MULTIPLE = 'Multiple';
-
-    /** @var array<string,string> valore => testo */
+    public const string SINGLE = 'Single';
+    public const string MULTIPLE = 'Multiple';
+    /** @var array<int|string,string> valore => testo. Una chiave numerica PHP la fa int: si confronta come testo */
     public array $Items = [];
 
     public string $SelectedValue = '';
@@ -132,7 +131,7 @@ class ListBox extends Control
 
             $html .= '<option value="' . self::HtmlEncode($valore) . '"'
                 . ($scelto ? ' selected' : '') . '>'
-                . self::HtmlEncode((string)$testo) . '</option>';
+                . self::HtmlEncode($testo) . '</option>';
         }
 
         return $html . '</select>';

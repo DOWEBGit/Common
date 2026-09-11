@@ -8,7 +8,10 @@ declare(strict_types=1);
  * giorno il bootstrap cambia, cambia in un posto solo invece che in tutte le pagine.
  */
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/public/php/Start.php';
+//per __DIR__ e non per DOCUMENT_ROOT: questo file sta in Common/WebForms, due sopra c'e'
+//la radice dei sorgenti, e cosi' vale anche da riga di comando e in un sito servito da
+//un'altra cartella
+require_once dirname(__DIR__, 2) . '/Start.php';
 
 //Il motore NON apre la sessione e non ne ha bisogno: lo stato della pagina sta nel campo
 //nascosto firmato, il token degli upload e' firmato anche lui, e il CSRF e' a doppio invio

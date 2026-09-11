@@ -5,6 +5,7 @@ namespace Common\WebForms\ProveAMano;
 
 use Common\WebForms\Control;
 use Common\WebForms\Controls\Label;
+use Common\WebForms\Controls\Literal;
 use Common\WebForms\Controls\TextBox;
 use Common\WebForms\Page;
 
@@ -40,15 +41,14 @@ class Stato extends Page
     public string $Eco = '';
 
     /** I dati stanno qui: la prova e' sul motore, non sulle letture. */
-    private const RIGHE = [
+    private const array RIGHE = [
         ['Id' => 1, 'Nome' => 'Alfa'],
         ['Id' => 2, 'Nome' => 'Beta'],
         ['Id' => 3, 'Nome' => 'Gamma'],
         ['Id' => 4, 'Nome' => 'Delta'],
     ];
 
-    private const COLORI = ['#b91c1c', '#15803d', '#1d4ed8', '#a16207'];
-
+    private const array COLORI = ['#b91c1c', '#15803d', '#1d4ed8', '#a16207'];
     /**
      * RIQUADRO 2. La maniera classica: i controlli dinamici ricreati AD OGNI RICHIESTA.
      *
@@ -130,7 +130,10 @@ class Stato extends Page
             $tocca->Style->Add('color', $colore);
             $tocca->Attributes->Add('title', 'Riga numero ' . ($riga->ItemIndex + 1));
 
-            $riga->FindControl('litNota')->Text = 'vestita dal codice, riga ' . ($riga->ItemIndex + 1);
+            /** @var Literal $nota */
+            $nota = $riga->FindControl('litNota');
+
+            $nota->Text = 'vestita dal codice, riga ' . ($riga->ItemIndex + 1);
         }
     }
 
@@ -158,7 +161,10 @@ class Stato extends Page
     {
         $riga = $sender->NamingContainer();
 
-        $riga->FindControl('litNota')->Text = 'toccata al postback numero ' . ($this->Click + 1);
+        /** @var Literal $nota */
+        $nota = $riga->FindControl('litNota');
+
+        $nota->Text = 'toccata al postback numero ' . ($this->Click + 1);
 
         $riga->Style->Add('background', '#fef9c3');
     }
@@ -209,15 +215,16 @@ class Stato extends Page
     {
         $this->litVolo->Text = (string)count($this->phVolatile->Controls);
 
+        /** @var TextBox $casella */
         $casella = $this->FindControl('txtDinamico');
-
-        if ($casella === null)
-            return;
 
         if ($casella->Text !== '')
             $this->Eco = $casella->Text;
 
-        $this->FindControl('lblEco')->Text = $this->Eco === ''
+        /** @var Label $eco */
+        $eco = $this->FindControl('lblEco');
+
+        $eco->Text = $this->Eco === ''
             ? 'La casella qui sopra e\' vuota: scrivici qualcosa e fai un postback.'
             : 'Il motore ha riletto dalla casella dinamica: "' . $this->Eco . '"';
     }

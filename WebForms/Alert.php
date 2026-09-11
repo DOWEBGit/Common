@@ -30,15 +30,13 @@ namespace Common\WebForms;
  */
 class Alert
 {
-    public const SUCCESS = 'successo';
-    public const FAILURE  = 'fallito';
-
+    public const string SUCCESS = 'successo';
+    public const string FAILURE = 'fallito';
     /**
      * Quanti se ne tengono in coda. E' anche il tetto di quelli che si vedono insieme, ed
      * evita che un ciclo che sbaglia riempia il pacchetto portatile, che ha un limite suo.
      */
-    private const MASSIMO = 5;
-
+    private const int MASSIMO = 5;
     public function __construct(private readonly Page $pagina)
     {
     }

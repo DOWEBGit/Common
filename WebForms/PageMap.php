@@ -32,11 +32,9 @@ namespace Common\WebForms;
 class PageMap
 {
     /** Il nome dell'enum generato, e quindi anche del file: /public/php/Pagine.php. */
-    public const ENUM = 'Pages';
-
+    public const string ENUM = 'Pages';
     /** Cartelle che non contengono pagine e che non ha senso attraversare. */
-    private const SALTA = ['Common', 'vendor', 'Model', 'node_modules'];
-
+    private const array SALTA = ['Common', 'vendor', 'Model', 'node_modules'];
     /**
      * Assicura che la pagina che si sta aprendo sia nell'elenco, e in caso rigenera.
      *
@@ -123,7 +121,7 @@ class PageMap
         //ReflectionEnum e non $classe::cases(): il nome della classe qui e' una stringa, e una
         //chiamata statica su una stringa nessuno la puo' verificare - ne' l'IDE ne' chi legge
         return array_any(
-            (new \ReflectionEnum($classe))->getCases(),
+            new \ReflectionEnum($classe)->getCases(),
             static fn(\ReflectionEnumBackedCase $caso): bool => $caso->getBackingValue() === $percorso
         );
     }
