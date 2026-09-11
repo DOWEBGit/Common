@@ -12,7 +12,7 @@ namespace Common\WebForms\Controls;
  *
  * ItemType esiste per la stessa ragione: le pagine WK cominciano tutte con
  *
- *   if ($riga->ItemType !== RepeaterItem::ITEM && $riga->ItemType !== RepeaterItem::ALTERNATO)
+ *   if ($riga->ItemType !== RepeaterItem::ITEM && $riga->ItemType !== RepeaterItem::ALTERNATING_ITEM)
  *       return;
  *
  * e quella riga deve continuare a leggersi allo stesso modo. Qui le righe sono solo di dati -
@@ -22,7 +22,7 @@ namespace Common\WebForms\Controls;
 class RepeaterItem extends Panel
 {
     public const ITEM = 'Item';
-    public const ALTERNATO = 'AlternatingItem';
+    public const ALTERNATING_ITEM = 'AlternatingItem';
 
     /** Posizione nella pagina corrente, base zero. */
     public int $ItemIndex = 0;

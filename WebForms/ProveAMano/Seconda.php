@@ -1,0 +1,45 @@
+<?php require __DIR__ . '/../Bootstrap.php';
+\Common\WebForms\Page::Run(__FILE__, \Common\WebForms\ProveAMano\Seconda::class,
+    'Common/WebForms/ProveAMano/Cornice'); ?>
+
+<dw:Content placeholder="corpo">
+
+    <div class="pm-card">
+        <h2>Quello che e' arrivato dalla prima pagina</h2>
+
+        <p class="pm-grande"><dw:Literal id="litArrivato" /></p>
+
+        <p class="pm-tenue">
+            Questa pagina non ha ricevuto niente in querystring — guarda l'indirizzo — e non
+            c'e' nessuna sessione sul server. Il nome sta in una proprieta'
+            <code>#[Portable]</code> che si chiama come quella di la': e' il nome della
+            proprieta' a fare da chiave.
+        </p>
+
+        <p>
+            <dw:Button id="btnMaiuscolo" Text="Scrivilo maiuscolo, e riportalo indietro" OnClick="MaiuscoloClick" />
+            <dw:Button id="btnSvuota" Text="Svuotalo" OnClick="SvuotaClick" />
+        </p>
+
+        <p class="pm-tenue">
+            Poi <a href="Prima.php">torna alla prima pagina</a>: quello che hai cambiato qui
+            e' gia' di la'. Il viaggio vale nei due sensi.
+        </p>
+    </div>
+
+    <div class="pm-card">
+        <h2>E il suo contatore, che invece e' suo</h2>
+
+        <p>
+            <span class="pm-grande"><dw:Literal id="litContatore" /></span>
+            <dw:Button id="btnConta" Text="Conta" OnClick="ContaClick" />
+        </p>
+
+        <p class="pm-tenue">
+            Ogni pagina ha il suo ViewState: questo contatore e quello della prima pagina non
+            si vedono fra loro, e nessuno dei due sopravvive alla navigazione — a meno di
+            accendere il modo WinForms, che li' e' una casella e vale solo per quella pagina.
+        </p>
+    </div>
+
+</dw:Content>

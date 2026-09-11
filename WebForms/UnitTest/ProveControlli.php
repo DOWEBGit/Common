@@ -45,23 +45,23 @@ class ProveControlli
 
         $pagina->Alert = new \Common\WebForms\Alert($pagina);
 
-        $p->Uguale('all\'inizio non c\'e\' niente da dire', true, $pagina->Alert->Vuoto());
+        $p->Uguale('all\'inizio non c\'e\' niente da dire', true, $pagina->Alert->IsEmpty());
 
         $pagina->Alert->Success('Salvato.');
         $pagina->Alert->Fail('Non salvato: manca il nome.', true);
 
-        $p->Uguale('i messaggi si accodano', 2, count($pagina->Alert->Messaggi()));
+        $p->Uguale('i messaggi si accodano', 2, count($pagina->Alert->Messages()));
 
         $pagina->Alert->Success('   ');
 
-        $p->Uguale('un messaggio vuoto non e\' un messaggio', 2, count($pagina->Alert->Messaggi()));
+        $p->Uguale('un messaggio vuoto non e\' un messaggio', 2, count($pagina->Alert->Messages()));
 
         //il tetto: sei ne lasciano cinque, e restano gli ultimi - il primo l'utente ha gia'
         //avuto il tempo di leggerlo
         for ($i = 1; $i <= 6; $i++)
             $pagina->Alert->Success('numero ' . $i);
 
-        $messaggi = $pagina->Alert->Messaggi();
+        $messaggi = $pagina->Alert->Messages();
 
         $p->Uguale('non se ne tengono piu' . "'" . ' di cinque', 5, count($messaggi));
         $p->Uguale('e sono gli ultimi', 'numero 6', $messaggi[4]['testo']);
@@ -72,7 +72,7 @@ class ProveControlli
 
         $html = $controllo->Render();
 
-        $p->Contiene('il contenitore porta la durata', 'data-dw-durata="5000"', $html);
+        $p->Contiene('il contenitore porta la durata', 'data-dw-duration="5000"', $html);
         $p->Contiene('un riquadro per messaggio', 'class="dw-avviso dw-avviso-successo"', $html);
         $p->Contiene('con la x per chiuderlo subito', 'dw-avviso-chiudi', $html);
 
@@ -80,7 +80,7 @@ class ProveControlli
         //il morph riusa il nodo che sta in quella posizione
         $p->Contiene('ogni riquadro ha un id suo', 'id="dw-avviso-' . $messaggi[0]['chiave'] . '"', $html);
 
-        $p->Uguale('chi li disegna li consuma', true, $pagina->Alert->Vuoto());
+        $p->Uguale('chi li disegna li consuma', true, $pagina->Alert->IsEmpty());
 
         $p->Manca('e alla seconda passata non c\'e\' piu\' niente', 'dw-avviso ', $controllo->Render());
 
@@ -244,15 +244,15 @@ class ProveControlli
         $btn = new \Common\WebForms\Controls\Button();
         $btn->Id = 'btnElimina';
 
-        $btn->AttributoAggiungi('title', 'Elimina "L\'Oreal" & C.')
-            ->AttributoAggiungi('data-riga', '7');
+        $btn->Attributes->Add('title', 'Elimina "L\'Oreal" & C.')
+            ->Add('data-riga', '7');
 
         $html = $btn->Render();
 
         $p->Contiene('il valore esce escapato', 'title="Elimina &quot;L&#039;Oreal&quot; &amp; C."', $html);
         $p->Contiene('un data- passa com\'e\'', 'data-riga="7"', $html);
 
-        $btn->AttributoTogli('data-riga');
+        $btn->Attributes->Remove('data-riga');
 
         $p->Manca('e si puo\' togliere', 'data-riga', $btn->Render());
 
@@ -264,20 +264,64 @@ class ProveControlli
         $p->Contiene('gli attributi attraversano il postback', 'title="Elimina', $altro->Render());
 
         $p->Solleva('un nome che non e\' un nome di attributo si ferma subito', 'non e\' un nome di attributo',
-            static fn() => $btn->AttributoAggiungi('on click="x"', 'y'));
+            static fn() => $btn->Attributes->Add('on click="x"', 'y'));
 
         $p->Solleva('gli attributi che scrive il controllo sono riservati', 'lo scrive il controllo',
-            static fn() => $btn->AttributoAggiungi('class', 'x'));
+            static fn() => $btn->Attributes->Add('class', 'x'));
 
         $p->Solleva('il canale del motore non si tocca', 'appartiene al motore',
-            static fn() => $btn->AttributoAggiungi('data-dw-click', '1'));
+            static fn() => $btn->Attributes->Add('data-dw-click', '1'));
 
-        //scrivendo dritto nell'array il controllo non passa: si rifa' al render, che e' il
-        //punto oltre il quale il nome finirebbe davvero nell'HTML
-        $btn->Attributes['nome con spazio'] = 'x';
+        //anche scrivendo come in un array si passa dalla collection, quindi il nome si
+        //controlla subito: non esiste una strada per cui un nome storto arrivi all'HTML
+        $p->Solleva('un nome storto scritto come in un array si ferma subito', 'non e\' un nome di attributo',
+            static fn() => $btn->Attributes['nome con spazio'] = 'x');
 
-        $p->Solleva('un nome storto messo nell\'array si ferma al render', 'non e\' un nome di attributo',
-            static fn() => $btn->Render());
+        $p->Uguale('e la collection si legge come un array', 'Elimina "L' . "'" . 'Oreal" & C.', $btn->Attributes['title']);
+
+        // --- lo stile in linea, che in WebForms e' la CssStyleCollection
+
+        $barra = new \Common\WebForms\Controls\Panel();
+        $barra->Id = 'pnlBarra';
+
+        $barra->Style->Add('width', '72%')
+              ->Add('background-color', '#1a7f37');
+
+        $html = $barra->Render();
+
+        $p->Contiene('lo stile esce in un attributo solo',
+            'style="width:72%;background-color:#1a7f37"', $html);
+
+        $barra->Style->Remove('background-color');
+
+        $p->Contiene('e si toglie una dichiarazione alla volta', 'style="width:72%"', $barra->Render());
+
+        //lo stato: uno stile messo in un handler deve esserci ancora al click dopo, e dentro
+        //un Repeater viaggia per riga come tutto il resto
+        $altra = new \Common\WebForms\Controls\Panel();
+        $altra->Id = 'pnlBarra';
+        $altra->LoadViewState($barra->SaveViewState());
+
+        $p->Contiene('lo stile attraversa il postback', 'style="width:72%"', $altra->Render());
+
+        $barra->Style->Clear();
+
+        $p->Manca('svuotarlo toglie l\'attributo', 'style=', $barra->Render());
+
+        //una proprieta' personalizzata e' un nome CSS valido: --dw-qualcosa
+        $barra->Style->Add('--dw-mio', '3px');
+
+        $p->Contiene('le proprieta\' personalizzate valgono', 'style="--dw-mio:3px"', $barra->Render());
+
+        $p->Solleva('un nome che non e\' una proprieta\' CSS si ferma subito', 'non e\' una proprieta',
+            static fn() => $barra->Style->Add('width:0;color', 'red'));
+
+        //il valore puo' contenere qualunque cosa, e l'escape dell'attributo la neutralizza
+        $barra->Style->Clear();
+        $barra->Style->Add('background-image', 'url("a\'b.png")');
+
+        $p->Contiene('il valore esce escapato',
+            'url(&quot;a&#039;b.png&quot;)', $barra->Render());
     }
 
     private static function Escape(Prova $p): void
@@ -346,7 +390,7 @@ class ProveControlli
         $lst = new ListBox();
         $lst->Id = 'lstColori';
         $lst->Items = ['rosso' => 'Rosso', 'verde' => 'Verde', 'blu' => 'Blu'];
-        $lst->SelectionMode = ListBox::MULTIPLA;
+        $lst->SelectionMode = ListBox::MULTIPLE;
 
         $p->Contiene('un elenco multiplo rende il campo con le parentesi',
             'name="lstColori[]"', $lst->Render());

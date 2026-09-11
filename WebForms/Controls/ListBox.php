@@ -13,8 +13,8 @@ use Common\WebForms\Control;
  */
 class ListBox extends Control
 {
-    public const SINGOLA  = 'Single';
-    public const MULTIPLA = 'Multiple';
+    public const SINGLE  = 'Single';
+    public const MULTIPLE = 'Multiple';
 
     /** @var array<string,string> valore => testo */
     public array $Items = [];
@@ -24,7 +24,7 @@ class ListBox extends Control
     /** @var string[] usato quando SelectionMode e' Multiple */
     public array $SelectedValues = [];
 
-    public string $SelectionMode = self::SINGOLA;
+    public string $SelectionMode = self::SINGLE;
 
     public int $Rows = 6;
 
@@ -47,7 +47,7 @@ class ListBox extends Control
 
     private function Multipla(): bool
     {
-        return $this->SelectionMode === self::MULTIPLA;
+        return $this->SelectionMode === self::MULTIPLE;
     }
 
     public function LoadPostData(array $post): void

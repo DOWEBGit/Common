@@ -44,10 +44,17 @@ else
 
 use Common\WebForms\UnitTest\Prova;
 use Common\WebForms\UnitTest\ProveControlli;
+use Common\WebForms\UnitTest\ProveDinamici;
 use Common\WebForms\UnitTest\ProveMarkup;
+use Common\WebForms\UnitTest\ProveMemoria;
+use Common\WebForms\UnitTest\ProveOgniControllo;
+use Common\WebForms\UnitTest\ProvePaginaVuota;
+use Common\WebForms\UnitTest\ProveQuerystring;
 use Common\WebForms\UnitTest\ProveRepeater;
 use Common\WebForms\UnitTest\ProveSicurezza;
 use Common\WebForms\UnitTest\ProveStato;
+use Common\WebForms\UnitTest\ProveVariabili;
+use Common\WebForms\UnitTest\ProveViewStateMode;
 
 if (PHP_SAPI !== 'cli')
     header('Content-Type: text/plain; charset=utf-8');
@@ -55,6 +62,13 @@ if (PHP_SAPI !== 'cli')
 $prova = new Prova();
 
 ProveControlli::Esegui($prova);
+ProveOgniControllo::Esegui($prova);
+ProveDinamici::Esegui($prova);
+ProveVariabili::Esegui($prova);
+ProveViewStateMode::Esegui($prova);
+ProvePaginaVuota::Esegui($prova);
+ProveQuerystring::Esegui($prova);
+ProveMemoria::Esegui($prova);
 ProveMarkup::Esegui($prova);
 ProveRepeater::Esegui($prova);
 ProveSicurezza::Esegui($prova);

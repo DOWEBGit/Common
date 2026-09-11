@@ -13,6 +13,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/public/php/Start.php';
 //GET con un token: e' la richiesta di anteprima di un file caricato e non ancora salvato.
 //POST: e' il caricamento vero.
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET')
-    \Common\WebForms\Upload::Mostra((string)($_GET['token'] ?? ''));
+    \Common\WebForms\Upload::Show((string)($_GET['token'] ?? ''));
 else
-    \Common\WebForms\Upload::Ricevi();
+    \Common\WebForms\Upload::Receive();

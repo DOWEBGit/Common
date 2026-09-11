@@ -32,7 +32,7 @@ class ListItem extends Control
         return array_merge(parent::ViewStateProperties(), ['Value', 'Text', 'Selected']);
     }
 
-    public function Etichetta(): string
+    public function Label(): string
     {
         return $this->Text !== '' ? $this->Text : $this->Value;
     }

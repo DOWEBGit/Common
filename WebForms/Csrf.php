@@ -64,7 +64,7 @@ class Csrf
     }
 
     /** L'intestazione della richiesta corrente combacia col cookie? */
-    public static function Verifica(): bool
+    public static function Verify(): bool
     {
         $cookie = (string)($_COOKIE[self::COOKIE] ?? '');
 

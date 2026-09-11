@@ -37,24 +37,52 @@ abstract class Control
     public string $NamingKey = '';
 
     /**
-     * Attributi HTML aggiunti dal codice, come l'Attributes di WebForms.
+     * Gli attributi HTML aggiunti dal codice, come l'Attributes di WebForms.
      *
-     *     $elimina->AttributoAggiungi('title', 'Elimina la riga ' . $nome);
-     *     $riga->AttributoAggiungi('data-stato', $ordine->Stato);
+     *     $elimina->Attributes->Add('title', 'Elimina la riga ' . $nome);
      *
-     * E' la valvola di sfogo per quello che il motore non prevede: un title che cambia per
-     * riga, un data- che serve a un pezzo di JavaScript del sito, un aria- per un caso
-     * particolare. Si scrive dal codebehind - nel markup gli attributi si mettono e basta.
-     *
-     * @var array<string,string>
+     * @see AttributeCollection
      */
-    public array $Attributes = [];
+    public AttributeCollection $Attributes;
 
     /**
-     * Nomi che hanno gia' un padrone: renderli due volte darebbe un HTML con l'attributo
-     * ripetuto, e il browser terrebbe il primo - cioe' non quello appena scritto.
+     * Lo stile in linea, come lo Style di WebForms.
+     *
+     *     $riga->Style->Add('background-color', $colore);
+     *
+     * @see CssStyleCollection
      */
-    private const RISERVATI = ['id', 'class', 'hidden', 'name'];
+    public CssStyleCollection $Style;
+
+    public function __construct()
+    {
+        $this->Attributes = new AttributeCollection();
+        $this->Style      = new CssStyleCollection();
+    }
+
+    /**
+     * Se lo stato di questo controllo si salva, come il ViewStateMode di WebForms.
+     *
+     *     <dw:Repeater id="rpt" ViewStateMode="Disabled" ...>
+     *
+     * Tre valori. INHERIT (predefinito) fa quello che fa il padre, e la pagina e' ENABLED:
+     * quindi senza scrivere niente si salva tutto. DISABLED spegne questo controllo e, per
+     * eredita', tutto quello che sta sotto; un figlio puo' riaccendersi con ENABLED.
+     *
+     * Cosa succede sotto un DISABLED: i controlli DEL MARKUP ci sono ancora - si ricostruiscono
+     * dal markup, con i valori del markup - ma quello che il codice ci aveva scritto e'
+     * perso; i controlli ATTACCATI DAL CODICE non tornano proprio, e chi li vuole se li ricrea
+     * in OnInit, alla maniera vecchia. Un Repeater spento non porta le righe: la pagina lo
+     * ridatabinda in OnLoad, ed e' la scelta giusta per un elenco che rilegge dal database ad
+     * ogni click - quelle righe nello stato erano solo peso.
+     *
+     * Viene dal markup e non dallo stato, per forza: e' lui a decidere se lo stato esiste.
+     */
+    public string $ViewStateMode = self::INHERIT;
+
+    public const INHERIT  = 'Inherit';
+    public const ENABLED  = 'Enabled';
+    public const DISABLED = 'Disabled';
 
     /**
      * Proprieta' che attraversano il postback. Chi aggiunge una proprieta' che l'utente
@@ -64,49 +92,7 @@ abstract class Control
      */
     protected function ViewStateProperties(): array
     {
-        return ['Visible', 'CssClass', 'Attributes'];
-    }
-
-    /**
-     * Aggiunge o cambia un attributo HTML. Torna il controllo, cosi' se ne possono
-     * concatenare piu' di uno.
-     *
-     * Il valore esce escapato, sempre: e' l'unico modo perche' un titolo che contiene un
-     * apostrofo o un nome che contiene virgolette non spezzino il tag. Il NOME invece deve
-     * essere un nome di attributo e basta, e qui si controlla subito - non al render, dove
-     * l'errore salterebbe fuori lontano da chi l'ha scritto.
-     */
-    public function AttributoAggiungi(string $nome, string $valore): static
-    {
-        self::ControllaNomeAttributo($nome);
-
-        $this->Attributes[$nome] = $valore;
-
-        return $this;
-    }
-
-    /** Toglie un attributo aggiunto prima. */
-    public function AttributoTogli(string $nome): static
-    {
-        unset($this->Attributes[$nome]);
-
-        return $this;
-    }
-
-    private static function ControllaNomeAttributo(string $nome): void
-    {
-        if (preg_match('/^[A-Za-z][A-Za-z0-9_.:-]*$/', $nome) !== 1)
-            throw new \RuntimeException('"' . $nome . '" non e\' un nome di attributo.');
-
-        if (in_array(strtolower($nome), self::RISERVATI, true))
-            throw new \RuntimeException(
-                'L\'attributo "' . $nome . '" lo scrive il controllo: usa Id, CssClass o Visible.'
-            );
-
-        //data-dw-* e' il canale fra il server e il runtime: sovrascriverlo non aggiunge un
-        //attributo, cambia il modo in cui il client interpreta il controllo
-        if (str_starts_with(strtolower($nome), 'data-dw-'))
-            throw new \RuntimeException('"' . $nome . '" appartiene al motore.');
+        return ['Visible', 'CssClass', 'Attributes', 'Style'];
     }
 
     /**
@@ -115,6 +101,24 @@ abstract class Control
      */
     public function ApplyAttributes(array $attr): void
     {
+        foreach ($attr as $chiave => $valore)
+        {
+            if (strcasecmp((string)$chiave, 'ViewStateMode') !== 0)
+                continue;
+
+            //si confronta senza badare alle maiuscole, come WebForms, ma si scrive in forma
+            //canonica: e' quella che IsViewStateEnabled() confronta
+            $modo = array_search(strtolower((string)$valore),
+                array_map('strtolower', [self::INHERIT, self::ENABLED, self::DISABLED]), true);
+
+            if ($modo === false)
+                throw new \RuntimeException(
+                    'ViewStateMode="' . $valore . '" su "' . $this->Id . '": vale Inherit, Enabled o Disabled.'
+                );
+
+            $this->ViewStateMode = [self::INHERIT, self::ENABLED, self::DISABLED][$modo];
+        }
+
         foreach ($this->ViewStateProperties() as $nome)
         {
             foreach ($attr as $chiave => $valore)
@@ -208,7 +212,7 @@ abstract class Control
      * Enabled non si guarda: non sta su Control ma sui controlli che ce l'hanno, e ognuno lo
      * ricontrolla gia' nel proprio RaisePostBackEvent.
      */
-    public function Attivabile(): bool
+    public function CanRaiseEvents(): bool
     {
         for ($nodo = $this; $nodo !== null; $nodo = $nodo->Parent)
             if (!$nodo->Visible)
@@ -217,12 +221,84 @@ abstract class Control
         return true;
     }
 
+    /**
+     * I figli che c'erano appena costruito l'albero: quelli del markup.
+     *
+     * Non e' un dettaglio contabile, e' il confine fra due mondi. Quello che sta qui dentro
+     * si rifa' da solo ad ogni richiesta, perche' il markup non cambia; quello che compare
+     * dopo l'ha messo il codice, e se non lo salva il motore non lo rimette piu' nessuno.
+     *
+     * @var Control[]
+     */
+    private array $markupChildren = [];
+
+    /**
+     * Dichiara che i figli di ADESSO non devono finire nello stato: li rimette chi li ha
+     * messi.
+     *
+     * Lo chiama ControlBuilder su tutto l'albero appena costruito - il markup si rilegge ad
+     * ogni richiesta - e lo chiama chi si ricostruisce i propri figli da se': il Repeater
+     * dalle sue righe, il paginatore dai suoi numeri di pagina. Senza, quei figli
+     * verrebbero salvati due volte: una da chi li sa rifare e una dal motore.
+     *
+     * Non e' ricorsiva: riguarda solo i figli diretti di questo controllo.
+     */
+    public function RebuildsChildren(): void
+    {
+        $this->markupChildren = $this->Controls;
+    }
+
+    /**
+     * I figli messi dal codice, per posizione.
+     *
+     * @return array<int,Control>
+     */
+    public function DynamicChildren(): array
+    {
+        $dinamici = [];
+
+        foreach ($this->Controls as $posizione => $figlio)
+            if (!in_array($figlio, $this->markupChildren, true))
+                $dinamici[$posizione] = $figlio;
+
+        return $dinamici;
+    }
+
+    /**
+     * Lo stato di questo controllo si salva?
+     *
+     * Si risale finche' qualcuno lo dice: il primo Enabled o Disabled che si incontra decide,
+     * e in cima - nessuno ha detto niente - e' acceso.
+     */
+    public function IsViewStateEnabled(): bool
+    {
+        for ($nodo = $this; $nodo !== null; $nodo = $nodo->Parent)
+            if ($nodo->ViewStateMode !== self::INHERIT)
+                return $nodo->ViewStateMode === self::ENABLED;
+
+        return true;
+    }
+
+    /**
+     * Lo stato di questo controllo, e quello dei figli che il codice gli ha attaccato.
+     *
+     * I figli dinamici viaggiano DENTRO lo stato di chi li contiene, con la loro posizione e
+     * il nome della loro classe. E' quello che permette di scriverli dove viene comodo - in
+     * OnLoad, dentro un handler - e ritrovarseli al postback dopo senza ricostruirli a mano:
+     * il vecchio "lo metto in sessione in Page_Init", ma senza sessione e senza Page_Init.
+     */
     public function SaveViewState(): array
     {
         $state = [];
 
+        //le collection viaggiano come array: il pacchetto si riapre senza classi
         foreach ($this->ViewStateProperties() as $nome)
-            $state[$nome] = $this->$nome;
+            $state[$nome] = $this->$nome instanceof NamedCollection ? $this->$nome->ToArray() : $this->$nome;
+
+        $dinamici = self::SaveDynamicChildren($this->DynamicChildren());
+
+        if ($dinamici !== [])
+            $state['Dyn'] = $dinamici;
 
         return $state;
     }
@@ -230,9 +306,131 @@ abstract class Control
     public function LoadViewState(array $state): void
     {
         foreach ($this->ViewStateProperties() as $nome)
-            if (array_key_exists($nome, $state))
+        {
+            if (!array_key_exists($nome, $state))
+                continue;
+
+            if ($this->$nome instanceof NamedCollection)
+                $this->$nome->Replace(is_array($state[$nome]) ? $state[$nome] : []);
+            else
                 $this->$nome = $state[$nome];
+        }
+
+        self::LoadDynamicChildren($this->Controls, $state['Dyn'] ?? [], $this, $this->Page, $this->NamingKey);
     }
+
+    /**
+     * I figli dinamici come vanno nello stato: posizione, classe, id e stato di ognuno.
+     *
+     * E' statica e pubblica perche' la usa anche la pagina per i controlli attaccati alla
+     * sua radice: la regola e' una sola, e sta in un posto solo.
+     *
+     * @param array<int,Control> $figli per posizione, come li da' DynamicChildren()
+     */
+    public static function SaveDynamicChildren(array $figli): array
+    {
+        $dinamici = [];
+
+        foreach ($figli as $posizione => $figlio)
+        {
+            //un figlio dinamico spento non si porta al giro dopo: chi lo vuole lo ricrea in
+            //OnInit, alla maniera vecchia. E' quello che vuol dire spegnerlo.
+            if (!$figlio->IsViewStateEnabled())
+                continue;
+
+            $dinamici[] = [
+                'i' => $posizione,
+                'c' => self::RebuildableName($figlio),
+                'd' => $figlio->Id,
+                's' => $figlio->SaveViewState(),
+            ];
+        }
+
+        return $dinamici;
+    }
+
+    /**
+     * Rimette al loro posto i figli che il codice aveva attaccato.
+     *
+     * Il nome della classe arriva da un pacchetto firmato con HMAC, quindi non e' roba che
+     * un client possa scegliere; il controllo qui sotto e' contro i nostri sbagli - una
+     * classe rinominata, un controllo tolto dal motore - non contro un attacco. In quel caso
+     * si salta il figlio invece di far morire la pagina: manchera' un pezzo, e si vede.
+     *
+     * @param Control[] $controls l'elenco in cui rimetterli: quello di un controllo, o la
+     *                            radice della pagina
+     */
+    public static function LoadDynamicChildren(array &$controls, array $voci, ?Control $parent, ?Page $page, string $namingKey): void
+    {
+        foreach ($voci as $voce)
+        {
+            if (!is_array($voce))
+                continue;
+
+            $classe = self::VIVAIO . (string)($voce['c'] ?? '');
+
+            if (!class_exists($classe) || !is_subclass_of($classe, self::class))
+                continue;
+
+            $id    = (string)($voce['d'] ?? '');
+            $stato = is_array($voce['s'] ?? null) ? $voce['s'] : [];
+
+            //Se c'e' gia' - perche' il codice lo ricrea in OnInit ad ogni richiesta, che e'
+            //il modo classico - non se ne fa un secondo con lo stesso id: gli si rimette
+            //sopra il suo stato e basta. Cosi' le due strade convivono invece di raddoppiare
+            //i controlli, e chi aveva scritto la pagina alla maniera vecchia non deve
+            //cambiare niente.
+            $esistente = null;
+
+            if ($id !== '')
+                foreach ($controls as $c)
+                    if ($c->Id === $id)
+                        $esistente = $c;
+
+            if ($esistente !== null)
+            {
+                $esistente->LoadViewState($stato);
+
+                continue;
+            }
+
+            /** @var Control $figlio */
+            $figlio = new $classe();
+
+            $figlio->Id        = $id;
+            $figlio->Parent    = $parent;
+            $figlio->Page      = $page;
+            $figlio->NamingKey = $namingKey;
+
+            $figlio->LoadViewState($stato);
+
+            array_splice($controls, (int)($voce['i'] ?? count($controls)), 0, [$figlio]);
+        }
+    }
+
+    /**
+     * Solo i controlli del motore si sanno ricostruire da un nome.
+     *
+     * Un UserControl no: e' markup piu' un designer piu' una classe, e un new() nudo darebbe
+     * un guscio vuoto. Chi ne attacca uno a runtime se lo ricrea in OnInit, come si e' sempre
+     * fatto. Meglio dirlo qui, quando lo si scrive, che lasciarlo sparire al primo click.
+     */
+    private static function RebuildableName(Control $figlio): string
+    {
+        $classe = $figlio::class;
+
+        if (!str_starts_with($classe, self::VIVAIO))
+            throw new \RuntimeException(
+                'Il controllo "' . $figlio->Id . '" (' . $classe . ') e\' stato attaccato dal codice, '
+                . 'ma solo i controlli del motore si sanno ricostruire dallo stato: '
+                . 'ricrealo in OnInit ad ogni richiesta.'
+            );
+
+        return substr($classe, strlen(self::VIVAIO));
+    }
+
+    /** Il vivaio da cui si ripescano i controlli dinamici. */
+    private const VIVAIO = __NAMESPACE__ . '\\Controls\\';
 
     /** Applica i valori del form. Solo i controlli di input la implementano. */
     public function LoadPostData(array $post): void
@@ -322,15 +520,15 @@ abstract class Control
         if (!$this->Visible)
             $html .= ' hidden';
 
-        //quelli aggiunti dal codice, per ultimi. Il nome si ricontrolla anche qui: nello
-        //stato ci si arriva anche scrivendo dritto nell'array, e un nome con uno spazio
-        //dentro non sarebbe un attributo in piu' - sarebbe markup iniettato
-        foreach ($this->Attributes as $nome => $valore)
-        {
-            self::ControllaNomeAttributo((string)$nome);
+        //lo stile in linea, in un attributo solo: un solo escape su tutto, cosi' le
+        //virgolette diventano entita' e non possono chiudere l'attributo
+        if (count($this->Style) > 0)
+            $html .= ' style="' . self::HtmlEncode($this->Style->ToCss()) . '"';
 
-            $html .= ' ' . $nome . '="' . self::HtmlEncode((string)$valore) . '"';
-        }
+        //quelli aggiunti dal codice, per ultimi. I nomi li ha gia' controllati la collection
+        //quando ci sono entrati, anche arrivando dallo stato
+        foreach ($this->Attributes as $nome => $valore)
+            $html .= ' ' . $nome . '="' . self::HtmlEncode($valore) . '"';
 
         return $html;
     }

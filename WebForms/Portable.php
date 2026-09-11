@@ -6,10 +6,12 @@ namespace Common\WebForms;
 /**
  * Marca una proprieta' del codebehind che deve sopravvivere anche al CAMBIO DI PAGINA.
  *
- * E' il fratello di #[Persist]:
+ * Le variabili di pagina restano tutte da sole, ma restano DENTRO la pagina:
  *
- *   #[Persist]   vive quanto la pagina.  Cambi pagina, riparte da zero.
- *   #[Portable]  vive quanto la scheda del browser, e attraversa le pagine.
+ *   una variabile  vive quanto la pagina.  Cambi pagina, riparte da zero.
+ *   #[Portable]    vive quanto la scheda del browser, e attraversa le pagine.
+ *
+ * E' l'unico attributo che serve ancora davvero: persistere e' la base, viaggiare si chiede.
  *
  * Dove sta. Non in sessione, non in un cookie, non nel querystring: sta in un pacchetto
  * FIRMATO che il browser tiene in memoria e rimanda ad ogni postback e ad ogni navigazione.
@@ -26,7 +28,7 @@ namespace Common\WebForms;
  * punto. Il rovescio e' che due pagine che intendono cose diverse non devono chiamarle
  * uguale, come per le chiavi di sessione.
  *
- * Ci vanno solo scalari e array, come per #[Persist], e poca roba: il pacchetto viaggia su
+ * Ci vanno solo scalari e array, come per ogni variabile di pagina, e poca roba: il pacchetto viaggia su
  * ogni richiesta, e oltre 4 kB il motore si ferma invece di far viaggiare un'intestazione
  * che qualche proxy taglierebbe per conto suo.
  */

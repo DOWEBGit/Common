@@ -62,7 +62,26 @@ class Designer
 
         $file = self::DesignerPath($markupFile);
 
-        if (is_file($file) && filemtime($file) >= filemtime($markupFile))
+        //si rigenera quando il markup e' piu' recente, MA ANCHE quando lo e' il generatore.
+        //
+        //Senza la seconda condizione un designer scritto ieri resta li' per sempre, e se nel
+        //frattempo e' cambiata una regola su come si ricava il TIPO di un controllo, quel file
+        //dichiara un tipo che non esiste piu': la pagina muore con un "Cannot assign
+        //UserControls\PageNavigator to property of type Controls\PageNavigator", e chi legge
+        //il markup non trova niente di sbagliato. Successo davvero.
+        $quando = max(
+            filemtime($markupFile),
+            filemtime(__FILE__),
+            filemtime(__DIR__ . DIRECTORY_SEPARATOR . 'ControlBuilder.php')
+        );
+
+        //Un designer piu' recente del markup e del generatore di solito e' buono. Non sempre:
+        //lo scrive anche il plugin di PhpStorm, e se il plugin installato e' vecchio scrive
+        //tipi sbagliati - Controls\PageNavigator per un UserControl - DOPO che il motore
+        //aveva scritto quelli giusti. La data lo direbbe fresco e la pagina morirebbe al
+        //primo caricamento. Quindi la data taglia il grosso, e il CONTENUTO decide: se un
+        //tipo dichiarato non esiste, si rigenera. E' il motore la fonte della verita'.
+        if (is_file($file) && filemtime($file) >= $quando && self::TipiEsistono($file))
             return;
 
         $declarations = [];
@@ -113,6 +132,26 @@ class Designer
         @file_put_contents($file, $testo);
     }
 
+    /**
+     * Ogni classe del motore dichiarata nel designer esiste davvero?
+     *
+     * Con un is_file e non con class_exists: quello chiamerebbe l'autoloader per ogni riga
+     * di ogni designer ad ogni richiesta.
+     */
+    private static function TipiEsistono(string $file): bool
+    {
+        $testo = (string)@file_get_contents($file);
+
+        if (preg_match_all('/public \\\\Common\\\\WebForms\\\\Controls\\\\([A-Za-z_][A-Za-z0-9_]*) \$/', $testo, $m) === 0)
+            return true;
+
+        foreach ($m[1] as $classe)
+            if (!is_file(__DIR__ . '/Controls/' . $classe . '.php'))
+                return false;
+
+        return true;
+    }
+
     private static function Collect(array $nodi, array &$declarations, array &$handlers, bool $dentroTemplate = false): void
     {
         foreach ($nodi as $nodo)
@@ -151,7 +190,7 @@ class Designer
             //un UserControl chiamato per nome: <dw:PageNavigator> e' UserControls/PageNavigator,
             //e nel designer va dichiarato con la SUA classe, non con una del motore che non
             //esiste
-            : ControlBuilder::SrcDiTag($nodo['tipo']);
+            : ControlBuilder::TagSrc($nodo['tipo']);
 
         if ($src === '')
             return '\\Common\\WebForms\\Controls\\' . $nodo['tipo'];

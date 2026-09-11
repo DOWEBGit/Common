@@ -39,7 +39,7 @@ class ProveMarkup
         //una radice qui vorrebbe dire provare una strada che in produzione non si percorre -
         //ed e' gia' successo: la prova era verde e il generatore da riga di comando, dove
         //DOCUMENT_ROOT non c'e', dichiarava tipi che non esistono.
-        $cartella = dirname(__DIR__, 3) . '/' . ControlBuilder::CARTELLA;
+        $cartella = dirname(__DIR__, 3) . '/' . ControlBuilder::FOLDER;
 
         $file = $cartella . '/Paginatore.php';
 
@@ -50,18 +50,18 @@ class ProveMarkup
         try
         {
             $p->Uguale('un markup in UserControls/ diventa un tag',
-                'UserControls/Paginatore', ControlBuilder::SrcDiTag('Paginatore'));
+                'UserControls/Paginatore', ControlBuilder::TagSrc('Paginatore'));
 
             //i controlli del motore vincono: un UserControl chiamato "Panel" non deve poter
             //cambiare significato a un tag che tutti danno per scontato
             $p->Uguale('un controllo del motore non si fa scavalcare',
-                '', ControlBuilder::SrcDiTag('Panel'));
+                '', ControlBuilder::TagSrc('Panel'));
 
             $p->Uguale('un nome che non e\' niente resta niente',
-                '', ControlBuilder::SrcDiTag('NonEsisteProprio'));
+                '', ControlBuilder::TagSrc('NonEsisteProprio'));
 
             $p->Uguale('e un nome storto non diventa un percorso',
-                '', ControlBuilder::SrcDiTag('../fuori'));
+                '', ControlBuilder::TagSrc('../fuori'));
         }
         finally
         {
@@ -127,7 +127,7 @@ class ProveMarkup
         $p->Solleva('un Content senza placeholder si ferma subito', 'vuole l\'attributo placeholder',
             static function (): void
             {
-                ControlBuilder::Contenuti(PageParser::ParseTesto('<dw:Content>ciao</dw:Content>'));
+                ControlBuilder::Contents(PageParser::ParseTesto('<dw:Content>ciao</dw:Content>'));
             });
 
         //fuori dai Content, in una pagina con master, il markup non avrebbe un posto dove
@@ -135,10 +135,10 @@ class ProveMarkup
         $p->Solleva('il markup fuori dai Content si ferma subito', 'puo\' contenere solo',
             static function (): void
             {
-                ControlBuilder::Contenuti(PageParser::ParseTesto('<p>fuori</p><dw:Content placeholder="c">x</dw:Content>'));
+                ControlBuilder::Contents(PageParser::ParseTesto('<p>fuori</p><dw:Content placeholder="c">x</dw:Content>'));
             });
 
-        $contenuti = ControlBuilder::Contenuti(
+        $contenuti = ControlBuilder::Contents(
             PageParser::ParseTesto("\n  <dw:Content placeholder=\"corpo\"><dw:Label id=\"l\" /></dw:Content>\n"));
 
         $p->Uguale('lo spazio bianco fuori dai Content non da\' fastidio', ['corpo'], array_keys($contenuti));

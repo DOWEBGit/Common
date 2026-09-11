@@ -59,15 +59,15 @@ class Upload
     ];
 
     /** Le due famiglie, per capire se un file si guarda o si scarica. */
-    public const IMMAGINI = 'immagini';
-    public const DOCUMENTI_SOLO = 'documenti';
+    public const IMAGES = 'immagini';
+    public const DOCUMENTS_ONLY = 'documenti';
 
     /** Riceve il file e risponde con il token. Chiamato da Common/WebForms/FileUploadHandler.php. */
-    public static function Ricevi(): void
+    public static function Receive(): void
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !Csrf::Verifica())
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !Csrf::Verify())
         {
             http_response_code(403);
             echo json_encode(['errore' => 'Richiesta non autorizzata.']);
@@ -124,7 +124,7 @@ class Upload
         //e vale come cortesia - dice subito la cosa giusta nella zona di trascinamento. La
         //guardia vera e' altrove: il controllo ricontrolla al postback col riferimento del
         //markup, e Kestrel al salvataggio.
-        $rifiuto = self::ControllaVincoli($voce, (string)($_POST['vincoli'] ?? ''));
+        $rifiuto = self::CheckConstraints($voce, (string)($_POST['vincoli'] ?? ''));
 
         if ($rifiuto !== '')
         {
@@ -194,7 +194,7 @@ class Upload
      *
      * @param array $voce quello che Info() sa del file
      */
-    public static function ControllaVincoli(array $voce, string $riferimento): string
+    public static function CheckConstraints(array $voce, string $riferimento): string
     {
         $vincoli = \Common\Attribute\VincoliAttribute::Di($riferimento);
 
@@ -271,9 +271,9 @@ class Upload
     }
 
     /** A quale famiglia appartiene un tipo: e' quello che serve per capire come servirlo. */
-    public static function Famiglia(string $tipo): string
+    public static function Family(string $tipo): string
     {
-        return isset(self::TIPI[$tipo]) ? self::IMMAGINI : self::DOCUMENTI_SOLO;
+        return isset(self::TIPI[$tipo]) ? self::IMAGES : self::DOCUMENTS_ONLY;
     }
 
     /**
@@ -282,7 +282,7 @@ class Upload
      * Passa dalla sessione: il token vale solo per chi l'ha caricato, quindi un file non
      * ancora salvato non e' raggiungibile da nessun altro.
      */
-    public static function Mostra(string $token): void
+    public static function Show(string $token): void
     {
         $voce = self::Info($token);
 
@@ -299,7 +299,7 @@ class Upload
         //un documento si scarica col suo nome, un'immagine si guarda: inline per le une,
         //attachment per gli altri. Il nome e' gia' ripulito da NomePulito, quindi non ci
         //puo' finire un a capo che spezzerebbe l'intestazione
-        if (self::Famiglia($voce['tipo']) === self::DOCUMENTI_SOLO)
+        if (self::Family($voce['tipo']) === self::DOCUMENTS_ONLY)
             header('Content-Disposition: attachment; filename="' . $voce['nome'] . '"');
 
         readfile($voce['percorso']);
@@ -334,7 +334,7 @@ class Upload
     }
 
     /** Il contenuto del file, o null. */
-    public static function Contenuto(string $token): ?string
+    public static function Content(string $token): ?string
     {
         $voce = self::Info($token);
 
@@ -347,7 +347,7 @@ class Upload
     }
 
     /** Il file e' stato consumato: si butta, cosi' non resta in giro piu' del necessario. */
-    public static function Consuma(string $token): void
+    public static function Consume(string $token): void
     {
         $voce = self::Info($token);
 

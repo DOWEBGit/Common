@@ -1,0 +1,69 @@
+/* IL MINIMO SENZA CUI QUALCOSA NON FUNZIONA, e nient'altro.
+
+   Non e' il vestito del sito: quello sta nel markup della master page, agganciato con un
+   <dw:Stylesheet>, dove si cambia come si cambia un foglio di stile qualunque. Qui restano
+   solo le regole che tengono in piedi un COMPORTAMENTO - l'attesa che compare dopo un
+   ritardo, il controllo spento mentre il postback viaggia, il campo file invisibile steso
+   sopra la zona di trascinamento, il banner degli errori. Toglierne una non rende una pagina
+   brutta: la rompe.
+
+   I colori passano da var(--dw-...) con un ripiego scritto accanto: se il sito dichiara la
+   sua tavolozza vince quella, se non la dichiara si vede lo stesso qualcosa.
+
+   Lo include Runtime::Styles() in testa, PRIMA di quello che aggiunge la pagina: a parita' di
+   specificita' in CSS vince chi viene dopo, quindi una master o una pagina possono
+   sovrascrivere qualunque regola di qui senza alzare la specificita' e senza toccare Common. */
+
+[hidden]{display:none!important}
+/* il controllo che ha cliccato resta spento finche' non torna la risposta: senza
+   pointer-events il secondo click su un LinkButton partirebbe lo stesso */
+.js-dw-occupato{opacity:.55;cursor:progress}
+a.js-dw-occupato{pointer-events:none;text-decoration:none}
+/* l'attesa: nascosta a riposo, e il ritardo lo fa l'animazione, non un timer - se la
+   risposta arriva prima non c'e' niente da annullare, e un postback di 40ms non lascia
+   un lampo bianco sullo schermo */
+.dw-attesa{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.55);visibility:hidden;opacity:0}
+.dw-attesa-scatola{background:var(--dw-fondo,#fff);border:1px solid var(--dw-bordo,#d8dbe0);border-radius:8px;padding:14px 20px;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+body.js-dw-attesa .dw-attesa{animation:dw-attesa-entra .12s linear var(--dw-attesa-dopo,200ms) forwards}
+/* la durata NON e' zero di proposito: con 0s l'animazione non ha una fase attiva e il
+   riempimento forwards da solo non basta a farla comparire - provato */
+@keyframes dw-attesa-entra{from{visibility:visible;opacity:0}to{visibility:visible;opacity:1}}
+/* la zona di trascinamento: il campo file e' steso sopra e invisibile, ed e' lui a
+   ricevere il click. Il testo non deve rubarglielo, da qui pointer-events:none */
+.dw-drop{position:relative;display:block;border:2px dashed var(--dw-bordo,#d8dbe0);border-radius:8px;padding:16px;text-align:center;background:#fbfcfd;transition:border-color .15s,background .15s}
+.dw-drop input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.dw-drop-testo{color:var(--dw-tenue,#6b7280);font-size:13px;pointer-events:none}
+.dw-drop.js-dw-sopra{border-color:var(--dw-acc,#1f6feb);background:#eef5ff}
+.dw-drop.js-dw-caricando{opacity:.6}
+/* GLI AVVISI. In alto a destra, uno sotto l'altro, il piu' recente in basso: si legge
+   dove si e' guardato l'ultima volta, e i vecchi salgono invece di spostarsi sotto il
+   dito. pointer-events sul contenitore e non sui riquadri, cosi' la colonna vuota non
+   ruba i click alla pagina sotto. */
+.dw-avvisi{position:fixed;top:20px;right:20px;z-index:9997;display:flex;flex-direction:column;gap:10px;pointer-events:none;max-width:min(400px,calc(100vw - 40px))}
+.dw-avviso{pointer-events:auto;display:flex;align-items:flex-start;gap:10px;min-width:280px;padding:12px 14px;border-radius:8px;border:1px solid var(--dw-bordo,#d8dbe0);border-left:4px solid var(--dw-tenue,#6b7280);background:var(--dw-fondo,#fff);box-shadow:0 6px 20px rgba(0,0,0,.14);animation:dw-avviso-entra .28s cubic-bezier(.4,0,.2,1)}
+.dw-avviso-successo{border-left-color:#1a7f37}
+.dw-avviso-fallito{border-left-color:#b42318}
+.dw-avviso-icona{flex:0 0 auto;font-size:16px;line-height:20px}
+.dw-avviso-successo .dw-avviso-icona{color:#1a7f37}
+.dw-avviso-fallito .dw-avviso-icona{color:#b42318}
+.dw-avviso-testo{flex:1;min-width:0;overflow-wrap:anywhere}
+.dw-avviso-chiudi{flex:0 0 auto;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--dw-tenue,#6b7280);font:18px/1 system-ui,sans-serif;cursor:pointer}
+.dw-avviso-chiudi:hover{background:rgba(0,0,0,.06)}
+/* la dissolvenza la fa una classe e non un timer nel JavaScript: cosi' la si cambia da un
+   foglio di stile, e chi la vuole diversa non deve toccare il motore */
+.dw-avviso.js-dw-esce{animation:dw-avviso-esce .35s ease forwards}
+@keyframes dw-avviso-entra{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes dw-avviso-esce{to{transform:translateX(110%);opacity:0;margin-bottom:-46px}}
+/* il modale: oscura e pretende un OK. Non e' un avviso piu' importante, e' un avviso che
+   ferma quello che si stava facendo */
+.dw-modale{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(17,20,24,.45);animation:dw-modale-entra .18s ease}
+.dw-modale-scatola{max-width:520px;width:100%;background:var(--dw-fondo,#fff);border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:22px 24px 16px;animation:dw-modale-sale .22s cubic-bezier(.4,0,.2,1)}
+.dw-modale-riga{display:flex;align-items:flex-start;gap:10px;margin:0 0 10px}
+.dw-modale-piede{display:flex;justify-content:flex-end;margin-top:16px}
+.dw-modale-ok{min-width:96px;padding:8px 16px;border:1px solid var(--dw-bordo,#d8dbe0);border-radius:6px;background:var(--dw-acc,#1f6feb);color:#fff;font:inherit;cursor:pointer}
+.dw-modale-ok:hover{filter:brightness(1.08)}
+@keyframes dw-modale-entra{from{opacity:0}to{opacity:1}}
+@keyframes dw-modale-sale{from{transform:translateY(-14px);opacity:0}to{transform:translateY(0);opacity:1}}
+/* gli errori JavaScript si vedono, sempre: una pagina che smette di rispondere in
+   silenzio si debugga a naso */
+#dw-errore{position:fixed;left:0;right:0;bottom:0;max-height:45vh;overflow:auto;background:#7f1d1d;color:#fff;padding:14px 18px;font:12px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;z-index:9999}

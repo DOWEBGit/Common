@@ -12,9 +12,9 @@ namespace Common\WebForms\Controls;
  *
  *     <link rel="stylesheet" href="/public/php/Layouts/Sito.css?v=1789041657">
  *
- * Il perche' della marca temporale, e come si scrive il percorso, stanno in RisorsaStatica.
+ * Il perche' della marca temporale, e come si scrive il percorso, stanno in StaticResource.
  */
-class Stylesheet extends RisorsaStatica
+class Stylesheet extends StaticResource
 {
     /** Per un foglio che vale solo alla stampa: Media="print". Vuoto = tutti i media. */
     public string $Media = '';
@@ -29,7 +29,7 @@ class Stylesheet extends RisorsaStatica
         if (!$this->Visible)
             return '';
 
-        $html = '<link rel="stylesheet" href="' . self::HtmlEncode($this->IndirizzoConVersione()) . '"';
+        $html = '<link rel="stylesheet" href="' . self::HtmlEncode($this->VersionedUrl()) . '"';
 
         if ($this->Media !== '')
             $html .= ' media="' . self::HtmlEncode($this->Media) . '"';

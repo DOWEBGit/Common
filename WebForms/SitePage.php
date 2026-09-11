@@ -11,8 +11,8 @@ namespace Common\WebForms;
  *
  * @see PageMap per chi lo genera
  */
-interface PaginaDelSito
+interface SitePage
 {
     /** Il percorso con cui la pagina si chiede al server: "/public/php/Northwind/Ordini.php". */
-    public function Percorso(): string;
+    public function Path(): string;
 }

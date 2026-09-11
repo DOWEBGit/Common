@@ -9,7 +9,7 @@ use Common\WebForms\Control;
 /**
  * Dove finiscono gli avvisi: <dw:Alert /> nella master page, una volta sola.
  *
- *     <dw:Alert id="avvisi" Durata="5000" />
+ *     <dw:Alert id="avvisi" Duration="5000" />
  *
  * e nelle pagine, da qualunque handler:
  *
@@ -33,11 +33,11 @@ use Common\WebForms\Control;
 class Alert extends Control
 {
     /** Millisecondi prima che un riquadro se ne vada da solo. 0 = resta finche' non lo si chiude. */
-    public int $Durata = 5000;
+    public int $Duration = 5000;
 
     protected function ViewStateProperties(): array
     {
-        return array_merge(parent::ViewStateProperties(), ['Durata']);
+        return array_merge(parent::ViewStateProperties(), ['Duration']);
     }
 
     public function Render(): string
@@ -50,7 +50,7 @@ class Alert extends Control
         $volanti = '';
         $modali  = '';
 
-        foreach ($coda->Messaggi() as $messaggio)
+        foreach ($coda->Messages() as $messaggio)
         {
             if ($messaggio['modale'])
                 $modali .= $this->Riga($messaggio);
@@ -60,13 +60,13 @@ class Alert extends Control
 
         //appena disegnati, la coda si svuota: il pacchetto portatile parte DOPO il render, e
         //cosi' non se li porta dietro alla pagina successiva facendoli vedere due volte
-        $coda->Svuota();
+        $coda->ClearItems();
 
         //il contenitore c'e' sempre, anche vuoto: e' il nodo che il morph aggiorna, e senza
         //di lui un avviso che arriva da un postback non avrebbe un posto dove comparire
         $html = '<div id="' . self::HtmlEncode($this->Id) . '" class="dw-avvisi'
             . ($this->CssClass !== '' ? ' ' . self::HtmlEncode($this->CssClass) : '') . '"'
-            . ' data-dw-durata="' . max(0, $this->Durata) . '" aria-live="polite">'
+            . ' data-dw-duration="' . max(0, $this->Duration) . '" aria-live="polite">'
             . $volanti
             . '</div>';
 
@@ -103,7 +103,7 @@ class Alert extends Control
 
     private static function Classe(string $tipo): string
     {
-        return $tipo === Coda::SUCCESSO ? 'dw-avviso-successo' : 'dw-avviso-fallito';
+        return $tipo === Coda::SUCCESS ? 'dw-avviso-successo' : 'dw-avviso-fallito';
     }
 
     /**
@@ -112,6 +112,6 @@ class Alert extends Control
      */
     private static function Icona(string $tipo): string
     {
-        return $tipo === Coda::SUCCESSO ? '&#10003;' : '&#9888;';
+        return $tipo === Coda::SUCCESS ? '&#10003;' : '&#9888;';
     }
 }

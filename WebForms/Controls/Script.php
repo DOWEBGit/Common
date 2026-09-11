@@ -12,7 +12,7 @@ namespace Common\WebForms\Controls;
  *
  *     <script src="/public/php/Layouts/Sito.js?v=1789041657" defer></script>
  *
- * Il perche' della marca temporale, e come si scrive il percorso, stanno in RisorsaStatica.
+ * Il perche' della marca temporale, e come si scrive il percorso, stanno in StaticResource.
  *
  * DEFER E' ACCESO DI SUA INIZIATIVA. Uno script che blocca l'analisi del documento ritarda
  * tutto quello che viene dopo, e in una master page "dopo" e' la pagina intera. Con defer il
@@ -28,7 +28,7 @@ namespace Common\WebForms\Controls;
  * l'evento dw:pagina), non codice che cerca i suoi elementi all'avvio e se li tiene: quelli
  * al primo morph diventano nodi che non stanno piu' in pagina.
  */
-class Script extends RisorsaStatica
+class Script extends StaticResource
 {
     /** Non blocca l'analisi del documento; esecuzione a documento pronto, in ordine. */
     public bool $Defer = true;
@@ -49,7 +49,7 @@ class Script extends RisorsaStatica
         if (!$this->Visible)
             return '';
 
-        $html = '<script src="' . self::HtmlEncode($this->IndirizzoConVersione()) . '"';
+        $html = '<script src="' . self::HtmlEncode($this->VersionedUrl()) . '"';
 
         if ($this->Module)
             $html .= ' type="module"';

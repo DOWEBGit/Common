@@ -17,7 +17,7 @@ class ControlBuilder
      * Dove si cercano gli UserControl chiamati per nome: <dw:PageNavigator> e' il markup
      * UserControls/PageNavigator.php. La cartella E' la registrazione.
      */
-    public const CARTELLA = 'UserControls';
+    public const FOLDER = 'UserControls';
 
     /**
      * @param array $nodi        nodi prodotti da PageParser::Parse()
@@ -25,6 +25,27 @@ class ControlBuilder
      * @return Control[]
      */
     public static function Build(array $nodi, ?Page $pagina, array $tokens = []): array
+    {
+        $controls = self::Costruisci($nodi, $pagina, $tokens);
+
+        //quello che viene dal markup si rifa' da solo alla richiesta dopo, quindi non deve
+        //finire nello stato: si marca qui, in un posto solo, appena finito di costruire
+        foreach ($controls as $control)
+            self::SegnaDiMarkup($control);
+
+        return $controls;
+    }
+
+    /** Marca tutto il sottoalbero come nato dal markup. */
+    private static function SegnaDiMarkup(Control $control): void
+    {
+        $control->RebuildsChildren();
+
+        foreach ($control->Controls as $child)
+            self::SegnaDiMarkup($child);
+    }
+
+    private static function Costruisci(array $nodi, ?Page $pagina, array $tokens = []): array
     {
         $controls = [];
 
@@ -60,7 +81,7 @@ class ControlBuilder
             {
                 //non e' un controllo del motore: puo' essere un UserControl chiamato per
                 //nome, <dw:PageNavigator>, che e' il modo in cui si scrivono in WK
-                $src = self::SrcDiTag($nodo['tipo']);
+                $src = self::TagSrc($nodo['tipo']);
 
                 if ($src !== '')
                 {
@@ -75,7 +96,7 @@ class ControlBuilder
                 //deve vedersi, non sparire
                 throw new \RuntimeException(
                     'Controllo <dw:' . $nodo['tipo'] . '> non riconosciuto: non e\' un controllo del '
-                    . 'motore e non c\'e\' un UserControl ' . self::CARTELLA . '/' . $nodo['tipo'] . '.php.'
+                    . 'motore e non c\'e\' un UserControl ' . self::FOLDER . '/' . $nodo['tipo'] . '.php.'
                 );
             }
 
@@ -154,9 +175,14 @@ class ControlBuilder
         foreach (self::Build(PageParser::Parse($markupFile), $pagina) as $child)
             $master->Add($child);
 
+        //anche la cornice viene dal markup: senza questa riga i suoi controlli passerebbero
+        //per figli attaccati dal codice, e il motore smetterebbe di salvarne lo stato per
+        //conto suo - il titolo scritto dalla pagina sparirebbe al primo click
+        $master->RebuildsChildren();
+
         $master->BindDesignerFields();
 
-        $contenuti = self::Contenuti($nodiPagina);
+        $contenuti = self::Contents($nodiPagina);
 
         $riempiti = [];
 
@@ -186,7 +212,7 @@ class ControlBuilder
      * Pubblica perche' e' una funzione pura sui nodi e le prove la chiamano da sola: farla
      * passare da BuildMaster vorrebbe dire tirarsi dietro una master vera e una Page.
      */
-    public static function Contenuti(array $nodi): array
+    public static function Contents(array $nodi): array
     {
         $contenuti = [];
 
@@ -229,6 +255,10 @@ class ControlBuilder
             foreach (self::Build($contenuti[$control->Id], $pagina) as $child)
                 $control->Add($child);
 
+            //il contenuto della pagina ha preso il posto di quello predefinito, e viene dal
+            //markup tanto quanto lui: la marcatura va rifatta su quello nuovo
+            $control->RebuildsChildren();
+
             $riempiti[] = $control->Id;
 
             return;
@@ -258,7 +288,7 @@ class ControlBuilder
      *
      * @return string il src da usare, o stringa vuota se quel nome non e' un UserControl
      */
-    public static function SrcDiTag(string $tipo): string
+    public static function TagSrc(string $tipo): string
     {
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $tipo) !== 1)
             return '';
@@ -269,7 +299,7 @@ class ControlBuilder
         if (is_file(self::Radice() . '/Common/WebForms/Controls/' . $tipo . '.php'))
             return '';
 
-        $src = self::CARTELLA . '/' . $tipo;
+        $src = self::FOLDER . '/' . $tipo;
 
         return is_file(self::Radice() . '/' . $src . '.php') ? $src : '';
     }
@@ -325,12 +355,12 @@ class ControlBuilder
                 continue;
             }
 
-            $voci[$child->Value] = $child->Etichetta();
+            $voci[$child->Value] = $child->Label();
 
             if (!$child->Selected)
                 continue;
 
-            if ($control instanceof Controls\ListBox && $control->SelectionMode === Controls\ListBox::MULTIPLA)
+            if ($control instanceof Controls\ListBox && $control->SelectionMode === Controls\ListBox::MULTIPLE)
                 $control->SelectedValues[] = $child->Value;
             else
                 $control->SelectedValue = $child->Value;

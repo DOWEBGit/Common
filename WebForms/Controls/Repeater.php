@@ -26,12 +26,15 @@ use Common\WebForms\ControlBuilder;
  *
  *    - con i segnaposto del template - <td>{{Nome}}</td> - quando il valore e' gia' nel
  *      DataSource e va solo scritto;
- *    - con OnItemDataBound, quando la cella si calcola: un conteggio, un colore, un link,
- *      qualcosa che dipende da altre letture. E' la forma delle pagine WK, dove il template
- *      contiene <dw:Literal> vuoti e a riempirli e' il codice.
+ *    - dal codice, quando la cella si calcola: un conteggio, un colore, un link, qualcosa
+ *      che dipende da altre letture. Di solito in OnItemDataBound, che e' la forma delle
+ *      pagine WK - template con <dw:Literal> vuoti, e a riempirli e' il codice - ma va bene
+ *      anche dopo il DataBind(), pescando la riga con Items().
  *
- *    Il secondo modo costa uno stato in piu' (vedi SaveViewState), il primo no: chi puo'
- *    usare i segnaposto li usi.
+ *    QUELLO CHE IL CODICE HA MESSO SOPRAVVIVE, comunque sia arrivato li'. Il Repeater
+ *    fotografa ogni riga appena costruita e a fine richiesta salva solo cio' che non
+ *    combacia piu': chi usa i segnaposto e basta non paga niente, chi tocca i controlli di
+ *    riga paga esattamente quello che ha toccato. Vedi SaveViewState.
  */
 class Repeater extends Control
 {
@@ -65,6 +68,18 @@ class Repeater extends Control
 
     /** @var array<int,array{k:string,d:array}> le righe cosi' come sono state rese */
     private array $items = [];
+
+    /**
+     * Lo stato dei controlli di riga COM'ERANO APPENA COSTRUITI, per id.
+     *
+     * E' il metro di paragone di SaveViewState: quello che a fine richiesta non combacia piu'
+     * l'ha messo il codice, e va portato al postback dopo. Si rifa' ad ogni CreateItems, sia
+     * al DataBind sia ricostruendo dallo stato, e in tutti e due i casi viene dagli stessi
+     * dati - quindi le due fotografie sono la stessa.
+     *
+     * @var array<string,array>
+     */
+    private array $nascita = [];
 
     protected function ViewStateProperties(): array
     {
@@ -110,13 +125,37 @@ class Repeater extends Control
     }
 
     /**
-     * Oltre alle righe si salva lo stato dei controlli DENTRO le righe, ma solo quando c'e'
-     * un OnItemDataBound.
+     * Via tutte le righe, come Items.Clear() in WebForms.
      *
-     * Il motivo: con i segnaposto il contenuto di una cella si ricava dai dati della riga,
-     * che sono gia' nello stato, e salvarlo due volte sarebbe spreco. Riempendo le celle in
-     * codice invece il contenuto non e' ricavabile da niente, e un postback che non
-     * ridatabinda - si apre una scheda, si annulla - renderebbe la griglia vuota.
+     * Serve quando l'elenco va rifatto da capo per un motivo che non e' un evento della
+     * pagina: e' cambiata la querystring - un altro mese, un altro filtro nell'indirizzo - e
+     * le righe tenute nello stato descrivono il mese di prima. Si svuota e si ridatabinda in
+     * OnLoad; senza svuotare, DataBind() rimpiazzerebbe comunque le righe, ma questo dice
+     * l'intenzione e lascia l'elenco vuoto anche se poi non c'e' niente da rilegare.
+     */
+    public function ClearItems(): void
+    {
+        $this->items    = [];
+        $this->Controls = [];
+        $this->nascita  = [];
+
+        $this->RebuildsChildren();
+    }
+
+    /**
+     * Oltre alle righe si salva quello che il CODICE ha cambiato nei controlli di riga.
+     *
+     * Non tutto lo stato di riga, e non niente: la differenza. Un template a segnaposto
+     * ricostruisce le celle dai dati della riga, che sono gia' in 'Items', e salvarle di
+     * nuovo sarebbe spreco puro; ma un testo scritto in un handler, un colore messo secondo
+     * lo stato, un bottone spento perche' l'ordine e' partito non sono ricavabili da niente,
+     * e senza di loro un postback che non ridatabinda - si apre una scheda, si annulla, si
+     * preme un bottone fuori dall'elenco - renderebbe la griglia diversa da com'era.
+     *
+     * Il confronto e' con la fotografia scattata alla nascita delle righe, quindi la regola
+     * non ha eccezioni da ricordare: vale per OnItemDataBound, per le modifiche fatte dopo il
+     * DataBind(), e per quelle che una pagina fara' fra un anno in un modo che oggi non
+     * esiste.
      */
     public function SaveViewState(): array
     {
@@ -124,8 +163,25 @@ class Repeater extends Control
 
         $state['Items'] = $this->items;
 
-        if ($this->OnItemDataBound !== '')
-            $state['Rows'] = $this->StatoRighe();
+        //Un Repeater costruito dal codice non ha un markup da cui rileggere il template: al
+        //giro dopo rinascerebbe con un ItemTemplate vuoto e le righe uscirebbero senza niente
+        //dentro. Quindi il template viaggia con lui - ma SOLO se e' dinamico: per quelli del
+        //markup sarebbe la stessa informazione scritta due volte ad ogni postback.
+        if ($this->Dinamico())
+            $state['Tpl'] = $this->ItemTemplate;
+
+        $cambiati = [];
+
+        foreach ($this->Controls as $riga)
+            self::RaccogliRamo($riga, $cambiati);
+
+        //via tutto quello che una ricostruzione rifarebbe uguale
+        foreach ($cambiati as $id => $stato)
+            if (($this->nascita[$id] ?? null) === $stato)
+                unset($cambiati[$id]);
+
+        if ($cambiati !== [])
+            $state['Rows'] = $cambiati;
 
         return $state;
     }
@@ -133,6 +189,9 @@ class Repeater extends Control
     public function LoadViewState(array $state): void
     {
         parent::LoadViewState($state);
+
+        if (isset($state['Tpl']) && is_array($state['Tpl']))
+            $this->ItemTemplate = $state['Tpl'];
 
         $this->items = $state['Items'] ?? [];
 
@@ -152,6 +211,8 @@ class Repeater extends Control
     {
         $this->Controls = [];
 
+        $this->nascita = [];
+
         $indice = 0;
 
         foreach ($this->items as $riga)
@@ -163,7 +224,7 @@ class Repeater extends Control
             $contenitore->Page = $this->Page;
             $contenitore->NamingKey = $riga['k'];
             $contenitore->ItemIndex = $indice;
-            $contenitore->ItemType = $indice % 2 === 0 ? RepeaterItem::ITEM : RepeaterItem::ALTERNATO;
+            $contenitore->ItemType = $indice % 2 === 0 ? RepeaterItem::ITEM : RepeaterItem::ALTERNATING_ITEM;
 
             $tokens = $riga['d'];
 
@@ -174,7 +235,15 @@ class Repeater extends Control
                 $contenitore->Add($child);
             }
 
+            //i figli della riga vengono dall'ItemTemplate, che si rilegge ad ogni richiesta:
+            //non sono roba messa dal codice e non vanno salvati come figli dinamici
+            $contenitore->RebuildsChildren();
+
             $this->Add($contenitore);
+
+            //la fotografia si scatta PRIMA dell'handler: quello che scrive lui e' gia' una
+            //modifica del codice, e come tale deve finire nello stato
+            self::RaccogliRamo($contenitore, $this->nascita);
 
             if ($bind && $this->OnItemDataBound !== '')
             {
@@ -192,23 +261,30 @@ class Repeater extends Control
 
             $indice++;
         }
+
+        //e le righe se le rifa' il Repeater da Items: stessa ragione, un livello piu' su
+        $this->RebuildsChildren();
     }
 
-    /** @return array<string,array> lo stato dei controlli di tutte le righe, per id */
-    private function StatoRighe(): array
+    /** Questo Repeater l'ha attaccato il codice? Lo sa chi lo contiene, o la pagina. */
+    private function Dinamico(): bool
     {
-        $stato = [];
+        $contenitore = $this->Parent ?? $this->Page;
 
-        foreach ($this->Controls as $riga)
-            self::RaccogliRamo($riga, $stato);
-
-        return $stato;
+        return $contenitore !== null && in_array($this, $contenitore->DynamicChildren(), true);
     }
 
     private static function RaccogliRamo(Control $control, array &$stato): void
     {
-        if ($control->Id !== '')
+        if ($control->Id !== '' && $control->IsViewStateEnabled())
             $stato[$control->Id] = $control->SaveViewState();
+
+        //un Repeater annidato si e' gia' salvato tutto da solo nella riga qui sopra - le sue
+        //righe comprese - e ricostruira' i propri figli nel suo LoadViewState: scendere qui
+        //vorrebbe dire salvare una seconda volta dei controlli che rinasceranno comunque.
+        //E' la stessa regola che segue Page quando gira l'albero.
+        if ($control instanceof self)
+            return;
 
         foreach ($control->Controls as $child)
             self::RaccogliRamo($child, $stato);

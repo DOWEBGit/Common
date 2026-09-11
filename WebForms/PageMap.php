@@ -8,7 +8,7 @@ namespace Common\WebForms;
  *
  * A cosa serve: a scrivere
  *
- *     $this->RedirectToPage(\Pagine::Northwind_Categorie);
+ *     $this->RedirectToPage(\Pages::Northwind_Categorie);
  *
  * invece di
  *
@@ -32,7 +32,7 @@ namespace Common\WebForms;
 class PageMap
 {
     /** Il nome dell'enum generato, e quindi anche del file: /public/php/Pagine.php. */
-    public const CLASSE = 'Pagine';
+    public const ENUM = 'Pages';
 
     /** Cartelle che non contengono pagine e che non ha senso attraversare. */
     private const SALTA = ['Common', 'vendor', 'Model', 'node_modules'];
@@ -43,7 +43,7 @@ class PageMap
      * Non solleva mai: un elenco che non si riesce a scrivere - sito in sola lettura, disco
      * pieno - e' un fastidio per chi programma, non un motivo per non servire la pagina.
      */
-    public static function Assicura(string $markupFile): void
+    public static function Ensure(string $markupFile): void
     {
         try
         {
@@ -52,7 +52,7 @@ class PageMap
             if ($percorso === '' || self::Contiene($percorso))
                 return;
 
-            self::Aggiorna();
+            self::Refresh();
         }
         catch (\Throwable)
         {
@@ -64,15 +64,23 @@ class PageMap
      *
      * @return string il percorso del file scritto
      */
-    public static function Aggiorna(): string
+    public static function Refresh(): string
     {
         $radice = self::Radice();
 
         $pagine = [];
 
+        //l'enum generato nomina Page::Run() nel proprio commento in cima, e il
+        //riconoscimento di una pagina e' proprio quella riga: senza questo salto l'elenco
+        //conterrebbe se stesso, e Pages::Pagine sarebbe una destinazione che non esiste
+        $generato = self::ENUM . '.php';
+
         foreach (self::Markup($radice) as $file)
         {
             $relativo = trim(str_replace('\\', '/', substr($file, strlen($radice))), '/');
+
+            if ($relativo === $generato)
+                continue;
 
             $nome = self::NomeCaso(substr($relativo, 0, -strlen('.php')));
 
@@ -83,7 +91,20 @@ class PageMap
             for ($n = 2; isset($pagine[$unico]); $n++)
                 $unico = $nome . '_' . $n;
 
-            $pagine[$unico] = self::PercorsoUrl($file);
+            $percorso = self::PercorsoUrl($file);
+
+            //Un indirizzo vuoto vuol dire che non si sa dove sta la radice dei documenti -
+            //e' quello che succede lanciando la rigenerazione da riga di comando, dove non
+            //c'e' nessun server. Scriverlo lo stesso darebbe un enum di percorsi vuoti:
+            //RedirectToPage manderebbe alla radice del sito, in silenzio, da ogni pagina.
+            //Meglio non toccare l'elenco che c'e' gia'.
+            if ($percorso === '')
+                throw new \RuntimeException(
+                    'PageMap: non so a che indirizzo risponde "' . $relativo . '". '
+                    . 'La rigenerazione va fatta servendo una pagina, non da riga di comando.'
+                );
+
+            $pagine[$unico] = $percorso;
         }
 
         ksort($pagine, SORT_NATURAL | SORT_FLAG_CASE);
@@ -94,7 +115,7 @@ class PageMap
     /** L'elenco contiene gia' questo percorso? */
     private static function Contiene(string $percorso): bool
     {
-        $classe = '\\' . self::CLASSE;
+        $classe = '\\' . self::ENUM;
 
         if (!enum_exists($classe))
             return false;
@@ -187,7 +208,7 @@ class PageMap
     /** @param array<string,string> $pagine */
     private static function Scrivi(array $pagine): string
     {
-        $file = self::Radice() . '/' . self::CLASSE . '.php';
+        $file = self::Radice() . '/' . self::ENUM . '.php';
 
         $casi = '';
 
@@ -201,13 +222,13 @@ class PageMap
             . " * Ci sono solo i file che chiamano Page::Run(), cioe' le pagine vere: si rigenera da\n"
             . " * solo quando se ne apre una che non c'e'.\n"
             . " *\n"
-            . " *     \$this->RedirectToPage(Pagine::Northwind_Categorie);\n"
+            . " *     \$this->RedirectToPage(Pages::Northwind_Categorie);\n"
             . " */\n"
-            . 'enum ' . self::CLASSE . ": string implements \\Common\\WebForms\\PaginaDelSito\n"
+            . 'enum ' . self::ENUM . ": string implements \\Common\\WebForms\\SitePage\n"
             . "{\n"
             . $casi
             . "\n"
-            . "    public function Percorso(): string\n"
+            . "    public function Path(): string\n"
             . "    {\n"
             . "        return \$this->value;\n"
             . "    }\n"

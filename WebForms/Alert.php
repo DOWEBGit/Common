@@ -30,8 +30,8 @@ namespace Common\WebForms;
  */
 class Alert
 {
-    public const SUCCESSO = 'successo';
-    public const FALLITO  = 'fallito';
+    public const SUCCESS = 'successo';
+    public const FAILURE  = 'fallito';
 
     /**
      * Quanti se ne tengono in coda. E' anche il tetto di quelli che si vedono insieme, ed
@@ -52,29 +52,29 @@ class Alert
      */
     public function Success(string $testo, bool $modale = false): void
     {
-        $this->Aggiungi(self::SUCCESSO, $testo, $modale);
+        $this->Aggiungi(self::SUCCESS, $testo, $modale);
     }
 
     public function Fail(string $testo, bool $modale = false): void
     {
-        $this->Aggiungi(self::FALLITO, $testo, $modale);
+        $this->Aggiungi(self::FAILURE, $testo, $modale);
     }
 
     /** @return array<int,array{tipo:string,testo:string,modale:bool,chiave:string}> */
-    public function Messaggi(): array
+    public function Messages(): array
     {
-        return $this->pagina->DwAvvisi;
+        return $this->pagina->DwAlerts;
     }
 
-    public function Vuoto(): bool
+    public function IsEmpty(): bool
     {
-        return $this->pagina->DwAvvisi === [];
+        return $this->pagina->DwAlerts === [];
     }
 
     /** Li butta via: lo chiama chi li ha appena disegnati, e nessun altro. */
-    public function Svuota(): void
+    public function ClearItems(): void
     {
-        $this->pagina->DwAvvisi = [];
+        $this->pagina->DwAlerts = [];
     }
 
     private function Aggiungi(string $tipo, string $testo, bool $modale): void
@@ -84,7 +84,7 @@ class Alert
         if ($testo === '')
             return;
 
-        $coda = $this->pagina->DwAvvisi;
+        $coda = $this->pagina->DwAlerts;
 
         $coda[] = [
             'tipo'   => $tipo,
@@ -104,6 +104,6 @@ class Alert
 
         //si tengono gli ultimi: se ne arrivano sei, quello vecchio e' anche quello che
         //l'utente ha gia' avuto il tempo di leggere
-        $this->pagina->DwAvvisi = array_slice($coda, -self::MASSIMO);
+        $this->pagina->DwAlerts = array_slice($coda, -self::MASSIMO);
     }
 }

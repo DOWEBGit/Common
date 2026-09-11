@@ -39,7 +39,7 @@ class ProveRepeater
         $p->Uguale('le righe rese sono i RepeaterItem', 3, count($rpt->Items()));
 
         $p->Uguale('la prima riga e\' Item', RepeaterItem::ITEM, $rpt->Items()[0]->ItemType);
-        $p->Uguale('la seconda riga e\' AlternatingItem', RepeaterItem::ALTERNATO, $rpt->Items()[1]->ItemType);
+        $p->Uguale('la seconda riga e\' AlternatingItem', RepeaterItem::ALTERNATING_ITEM, $rpt->Items()[1]->ItemType);
         $p->Uguale('l\'indice di riga segue la posizione nella pagina', 2, $rpt->Items()[2]->ItemIndex);
 
         //la riga trova i propri controlli con l'id NUDO del markup: chi scrive la pagina non
@@ -67,18 +67,97 @@ class ProveRepeater
         //li vuole se li rilegge dall'id come fanno le pagine WK
         $p->Uguale('fuori dal DataBind la riga non tiene i dati', [], $rpt->Items()[0]->DataItem);
 
-        // --- senza handler lo stato resta magro
+        // --- lo stato porta la differenza, non tutto
 
-        $senza = self::Costruisci(self::Pagina(), '');
+        //nessuno ha toccato niente: le celle si ricavano dai segnaposto, che si rifanno dai
+        //dati della riga, che sono gia' nello stato. Salvarle di nuovo sarebbe spreco puro.
+        $intatto = self::Costruisci(self::Pagina(), '');
 
-        $senza->DataSource = [['Id' => 7], ['Id' => 9]];
-        $senza->DataBind();
+        $intatto->DataSource = [['Id' => 7], ['Id' => 9]];
+        $intatto->DataBind();
 
-        $p->Uguale('senza OnItemDataBound lo stato non porta i controlli di riga',
-            false, array_key_exists('Rows', $senza->SaveViewState()));
+        $p->Uguale('righe non toccate: lo stato non porta i controlli di riga',
+            false, array_key_exists('Rows', $intatto->SaveViewState()));
 
-        $p->Uguale('con OnItemDataBound li porta',
+        $p->Uguale('quello che ha scritto l\'handler invece lo porta',
             true, array_key_exists('Rows', $rpt->SaveViewState()));
+
+        //e porta SOLO i controlli cambiati: l'handler tocca litNome, non hidId ne' lnkApri
+        $p->Uguale('e porta solo i controlli che il codice ha cambiato',
+            ['litNome__7', 'litNome__9', 'litNome__11'],
+            array_keys($rpt->SaveViewState()['Rows']));
+
+        // --- lo stile messo dal codice sui controlli DENTRO le righe
+
+        //Un LinkButton di riga colorato secondo il dato - un ordine in ritardo, una scorta
+        //sotto soglia - e' il caso normale del Repeater riempito in codice. Lo stile e' stato
+        //dei controlli come tutto il resto, quindi vive dove vive lo stato di riga: nel
+        //ramo 'Rows', che c'e' solo se c'e' un OnItemDataBound.
+        $vestito = self::Costruisci(self::Pagina(), 'OnItemDataBound="Riempi"');
+
+        $vestito->DataSource = [['Id' => 7], ['Id' => 9]];
+        $vestito->DataBind();
+
+        $apri = $vestito->Items()[0]->FindControl('lnkApri');
+
+        $apri->Style->Add('color', 'crimson');
+        $apri->Attributes->Add('title', 'in ritardo');
+        $apri->CssClass = 'rosso';
+
+        $dopo = self::Costruisci(self::Pagina(), 'OnItemDataBound="Riempi"');
+
+        $dopo->LoadViewState($vestito->SaveViewState());
+
+        $p->Contiene('lo stile in linea di un controllo di riga sopravvive al postback',
+            'style="color:crimson"', $dopo->Render());
+
+        $p->Contiene('e cosi' . "'" . ' l\'attributo aggiunto dal codice',
+            'title="in ritardo"', $dopo->Render());
+
+        $p->Contiene('e la classe', 'class="rosso"', $dopo->Render());
+
+        //E vale anche SENZA handler, vestendo le righe dopo il DataBind(): il Repeater non
+        //guarda da dove arriva la modifica, guarda se la riga e' diversa da com'e' nata.
+        $nudo = self::Costruisci(self::Pagina(), '');
+
+        $nudo->DataSource = [['Id' => 7]];
+        $nudo->DataBind();
+
+        $nudo->Items()[0]->FindControl('lnkApri')->Style->Add('color', 'crimson');
+
+        $rifatto = self::Costruisci(self::Pagina(), '');
+
+        $rifatto->LoadViewState($nudo->SaveViewState());
+
+        $p->Contiene('lo stile messo dopo il DataBind, senza handler, sopravvive lo stesso',
+            'color:crimson', $rifatto->Render());
+
+        //due giri di postback di fila: la differenza salvata non deve sciogliersi per strada
+        $terzo = self::Costruisci(self::Pagina(), '');
+
+        $terzo->LoadViewState($rifatto->SaveViewState());
+
+        $p->Contiene('e sopravvive anche al postback dopo, e a quello dopo ancora',
+            'color:crimson', $terzo->Render());
+
+        // --- un Repeater dentro l'altro
+
+        //Il caso della griglia con le sottorighe: un ordine e le sue voci. Quello annidato si
+        //salva tutto da solo, quindi quello di fuori non deve scendere nelle sue righe -
+        //altrimenti le stesse righe finirebbero nello stato due volte, e a ogni livello in
+        //piu' si moltiplicherebbero.
+        $fuori = self::Annidati();
+
+        $stato = $fuori->SaveViewState();
+
+        $p->Uguale('lo stato di fuori si ferma sul Repeater annidato, non scende nelle sue righe',
+            ['dentro__1', 'dentro__2'], array_keys($stato['Rows']));
+
+        $rifatto = self::Annidati(false);
+
+        $rifatto->LoadViewState($stato);
+
+        $p->Uguale('e nonostante questo le sottorighe tornano tutte', $fuori->Render(), $rifatto->Render());
 
         // --- la chiave e' obbligatoria
 
@@ -100,6 +179,7 @@ class ProveRepeater
             . '<ItemTemplate>'
             . '<td><dw:Literal id="litNome" /></td>'
             . '<td><dw:HiddenField id="hidId" Value="{{Id}}" /></td>'
+            . '<td><dw:LinkButton id="lnkApri" Text="apri" /></td>'
             . '</ItemTemplate>'
             . '</dw:Repeater>';
 
@@ -109,6 +189,43 @@ class ProveRepeater
         $rpt = $controlli[0];
 
         return $rpt;
+    }
+
+    /**
+     * Un Repeater dentro l'ItemTemplate di un altro, riempito su due livelli.
+     *
+     * @param bool $riempi false per averlo vuoto, da ricostruire poi dallo stato
+     */
+    private static function Annidati(bool $riempi = true): Repeater
+    {
+        $markup = '<dw:Repeater id="fuori" Tag="div" ItemTag="div" DataKeyField="Id">'
+            . '<ItemTemplate>'
+            . '<b>{{Nome}}</b>'
+            . '<dw:Repeater id="dentro" Tag="ul" ItemTag="li" DataKeyField="Id">'
+            . '<ItemTemplate>{{Voce}}</ItemTemplate>'
+            . '</dw:Repeater>'
+            . '</ItemTemplate>'
+            . '</dw:Repeater>';
+
+        /** @var Repeater $fuori */
+        $fuori = ControlBuilder::Build(PageParser::ParseTesto($markup), self::Pagina())[0];
+
+        if (!$riempi)
+            return $fuori;
+
+        $fuori->DataSource = [['Id' => 1, 'Nome' => 'Alfa'], ['Id' => 2, 'Nome' => 'Beta']];
+        $fuori->DataBind();
+
+        foreach ($fuori->Items() as $riga)
+        {
+            /** @var Repeater $dentro */
+            $dentro = $riga->FindControl('dentro');
+
+            $dentro->DataSource = [['Id' => 10, 'Voce' => 'x'], ['Id' => 11, 'Voce' => 'y']];
+            $dentro->DataBind();
+        }
+
+        return $fuori;
     }
 
     /** Una pagina finta: conta le chiamate e riempie la cella come farebbe una pagina vera. */
@@ -122,7 +239,7 @@ class ProveRepeater
             {
                 $this->Chiamate++;
 
-                if ($riga->ItemType !== RepeaterItem::ITEM && $riga->ItemType !== RepeaterItem::ALTERNATO)
+                if ($riga->ItemType !== RepeaterItem::ITEM && $riga->ItemType !== RepeaterItem::ALTERNATING_ITEM)
                     return;
 
                 /** @var Literal $nome */

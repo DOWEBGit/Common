@@ -13,7 +13,16 @@ namespace Common\WebForms;
  */
 class Response
 {
-    public static function Document(Page $pagina, string $html): never
+    /** Il campo nascosto dello stato, fuori da dw-root e quindi fuori dal morph. */
+    public static function StateField(string $stato): string
+    {
+        return $stato === ''
+            ? ''
+            : '<input type="hidden" name="__dw_state" id="__dw_state" value="'
+                . Control::HtmlEncode($stato) . '">';
+    }
+
+    public static function Document(Page $pagina, string $html, string $stato = ''): never
     {
         header('Content-Type: text/html; charset=utf-8');
 
@@ -33,17 +42,25 @@ class Response
             echo $riga;
         echo '</head><body>';
         echo $html;
+
+        //fuori da dw-root: il morph non lo tocca, e chi lo cerca lo trova sempre allo stesso
+        //posto - a fianco della radice, non dentro il contenuto che cambia ad ogni click
+        echo self::StateField($stato);
+
         echo Runtime::Scripts();
         echo '</body></html>';
 
         exit;
     }
 
-    public static function Fragment(string $html): never
+    public static function Fragment(string $html, string $stato = ''): never
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        echo json_encode(['html' => $html], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        echo json_encode(
+            ['html' => $html, 'stato' => $stato],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
 
         exit;
     }
@@ -61,7 +78,7 @@ class Response
      *   \\altrosito.it\x   c'e' chi la normalizza come sopra
      *   javascript:...     non e' una navigazione, e' codice
      */
-    public static function Interno(string $url): bool
+    public static function IsLocalUrl(string $url): bool
     {
         //un a capo spezzerebbe l'intestazione Location e ne farebbe aggiungere altre.
         //header() lo rifiuta gia' per conto suo, ma sul ramo del postback l'indirizzo non
@@ -104,7 +121,7 @@ class Response
      */
     public static function Redirect(string $url, bool $postback, string $portatile = ''): never
     {
-        if (!self::Interno($url))
+        if (!self::IsLocalUrl($url))
             throw new \RuntimeException('Redirect fuori dal sito: "' . $url . '".');
 
         if (!$postback)

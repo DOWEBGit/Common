@@ -26,7 +26,7 @@ use Common\WebForms\Control;
  * un refuso nel markup, e un sito che si comporta male e' piu' difficile da capire di un
  * errore che dice quale file manca.
  */
-abstract class RisorsaStatica extends Control
+abstract class StaticResource extends Control
 {
     /** Percorso del file dalla radice dei sorgenti php: "Layouts/Sito.css". */
     public string $Src = '';
@@ -37,21 +37,33 @@ abstract class RisorsaStatica extends Control
     }
 
     /** L'indirizzo da mettere nel tag, con la marca temporale. Solleva se il file non c'e'. */
-    protected function IndirizzoConVersione(): string
+    protected function VersionedUrl(): string
     {
-        $tag = '<dw:' . (new \ReflectionClass($this))->getShortName() . '>';
+        return self::Url($this->Src, '<dw:' . (new \ReflectionClass($this))->getShortName() . '>');
+    }
 
+    /**
+     * Dal percorso di un file dei sorgenti al suo indirizzo, con la marca temporale.
+     *
+     * E' pubblica perche' non serve solo ai tag: anche il motore include il proprio
+     * runtime.js, e deve farlo con le stesse regole - stessa radice, stessa versione
+     * nell'indirizzo, stesso errore parlante se il file non c'e'.
+     *
+     * @param string $chi come chiamarsi nel messaggio d'errore
+     */
+    public static function Url(string $src, string $chi): string
+    {
         //il percorso viene dal markup, non dalla richiesta, ma un ".." ci arriverebbe lo
         //stesso da una svista e servirebbe un file che sta fuori dal sito
-        if ($this->Src === '' || str_contains($this->Src, '..'))
-            throw new \RuntimeException($tag . ': src non valido: "' . $this->Src . '".');
+        if ($src === '' || str_contains($src, '..'))
+            throw new \RuntimeException($chi . ': src non valido: "' . $src . '".');
 
-        $relativo = ltrim(str_replace('\\', '/', $this->Src), '/');
+        $relativo = ltrim(str_replace('\\', '/', $src), '/');
 
         $file = self::Radice() . '/' . $relativo;
 
         if (!is_file($file))
-            throw new \RuntimeException($tag . ': non trovo "' . $relativo . '".');
+            throw new \RuntimeException($chi . ': non trovo "' . $relativo . '".');
 
         return self::Prefisso() . '/' . $relativo . '?v=' . filemtime($file);
     }

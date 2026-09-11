@@ -55,16 +55,16 @@ class FileUpload extends Control
      * Senza Vincoli il campo accetta tutto quello che il canale sa riconoscere: va bene per
      * una vetrina, non per un campo che finisce in un database.
      */
-    public string $Vincoli = '';
+    public string $Constraints = '';
 
     /** Perche' il file e' stato rifiutato. Vuoto se non c'e' niente da dire. */
-    public string $Errore = '';
+    public string $Error = '';
 
     protected function ViewStateProperties(): array
     {
         return array_merge(
             parent::ViewStateProperties(),
-            ['Accept', 'AllowDrop', 'Text', 'Enabled', 'OnFileUploaded', 'Token', 'Vincoli']
+            ['Accept', 'AllowDrop', 'Text', 'Enabled', 'OnFileUploaded', 'Token', 'Constraints']
         );
     }
 
@@ -90,13 +90,13 @@ class FileUpload extends Control
     /** Il contenuto del file, letto dal temporaneo solo quando serve davvero. */
     public function Bytes(): ?string
     {
-        return Upload::Contenuto($this->Token);
+        return Upload::Content($this->Token);
     }
 
     /** Dopo il salvataggio: butta il temporaneo e dimentica il token. */
     public function Clear(): void
     {
-        Upload::Consuma($this->Token);
+        Upload::Consume($this->Token);
 
         $this->Token = '';
     }
@@ -108,7 +108,7 @@ class FileUpload extends Control
 
         $this->Token = (string)$post[$this->Id . '__token'];
 
-        $this->Errore = '';
+        $this->Error = '';
 
         $info = Upload::Info($this->Token);
 
@@ -118,9 +118,9 @@ class FileUpload extends Control
         //si ricontrolla anche qui e non solo al caricamento: quello passa dal client, che
         //potrebbe aver dichiarato i vincoli di un altro campo. Qui il riferimento arriva dal
         //markup, e il markup non lo scrive il browser
-        $this->Errore = Upload::ControllaVincoli($info, $this->Vincoli);
+        $this->Error = Upload::CheckConstraints($info, $this->Constraints);
 
-        if ($this->Errore !== '')
+        if ($this->Error !== '')
             $this->Clear();
     }
 
@@ -137,7 +137,7 @@ class FileUpload extends Control
             . ' value="' . self::HtmlEncode($this->Token) . '">';
 
         $marcatori = ' data-dw-upload="1" data-dw-id="' . self::HtmlEncode($this->Id) . '"'
-            . ($this->Vincoli === '' ? '' : ' data-dw-vincoli="' . self::HtmlEncode($this->Vincoli) . '"');
+            . ($this->Constraints === '' ? '' : ' data-dw-vincoli="' . self::HtmlEncode($this->Constraints) . '"');
 
         $scegli = '<input type="file" accept="' . self::HtmlEncode($this->Accept) . '"'
             . ($this->Enabled ? '' : ' disabled');

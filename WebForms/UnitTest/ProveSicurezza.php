@@ -44,19 +44,19 @@ class ProveSicurezza
 
         $bottone = $scheda->FindControl('btnSalva');
 
-        $p->Uguale('un controllo visibile risponde', true, $bottone->Attivabile());
+        $p->Uguale('un controllo visibile risponde', true, $bottone->CanRaiseEvents());
 
         $scheda->Visible = false;
 
         $p->Uguale('un controllo dentro un pannello chiuso non risponde, per quanto sia visibile lui',
-            false, $bottone->Attivabile());
+            false, $bottone->CanRaiseEvents());
 
-        $p->Uguale('il pannello chiuso non risponde nemmeno lui', false, $scheda->Attivabile());
+        $p->Uguale('il pannello chiuso non risponde nemmeno lui', false, $scheda->CanRaiseEvents());
 
         $scheda->Visible = true;
         $bottone->Visible = false;
 
-        $p->Uguale('un controllo nascosto per conto suo non risponde', false, $bottone->Attivabile());
+        $p->Uguale('un controllo nascosto per conto suo non risponde', false, $bottone->CanRaiseEvents());
 
         //e resta comunque nella pagina: e' esattamente il motivo per cui la guardia serve
         $bottone->Visible = false;
@@ -81,7 +81,7 @@ class ProveSicurezza
         ];
 
         foreach ($dentro as $url)
-            $p->Uguale('e\' dentro il sito: ' . $url, true, Response::Interno($url));
+            $p->Uguale('e\' dentro il sito: ' . $url, true, Response::IsLocalUrl($url));
 
         $fuori = [
             '//altrosito.example/x'                => 'due barre sono un indirizzo assoluto travestito da percorso',
@@ -95,7 +95,7 @@ class ProveSicurezza
         ];
 
         foreach ($fuori as $url => $perche)
-            $p->Uguale('si rifiuta: ' . $perche, false, Response::Interno($url));
+            $p->Uguale('si rifiuta: ' . $perche, false, Response::IsLocalUrl($url));
     }
 
     /**
@@ -114,21 +114,21 @@ class ProveSicurezza
         $_COOKIE['dw_csrf'] = $cookie;
         $_SERVER['HTTP_X_CSRF_TOKEN'] = $cookie;
 
-        $p->Uguale('intestazione uguale al cookie: passa', true, Csrf::Verifica());
+        $p->Uguale('intestazione uguale al cookie: passa', true, Csrf::Verify());
 
         $_SERVER['HTTP_X_CSRF_TOKEN'] = str_repeat('b', 64);
 
-        $p->Uguale('intestazione diversa: non passa', false, Csrf::Verifica());
+        $p->Uguale('intestazione diversa: non passa', false, Csrf::Verify());
 
         unset($_SERVER['HTTP_X_CSRF_TOKEN']);
 
-        $p->Uguale('nessuna intestazione: non passa', false, Csrf::Verifica());
+        $p->Uguale('nessuna intestazione: non passa', false, Csrf::Verify());
 
         $_SERVER['HTTP_X_CSRF_TOKEN'] = $cookie;
         unset($_COOKIE['dw_csrf']);
 
         $p->Uguale('nessun cookie: NON passa (e\' il caso della POST cross-site)',
-            false, Csrf::Verifica());
+            false, Csrf::Verify());
 
         unset($_SERVER['HTTP_X_CSRF_TOKEN']);
     }
