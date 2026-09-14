@@ -194,6 +194,40 @@ function ritaglio(da, a, dipendenze) {
     uguale('un messaggio che non e\' JSON e\' un errore in console, non un\'eccezione', 1, errori.length);
 }
 
+// ---------------------------------------------------------------- gli script di una pagina raggiunta navigando
+{
+    console.log('\n--- javascript: gli script dopo una navigazione ---');
+
+    // un DOM finto: gli script gia' in pagina, e quelli che il morph ha appena messo
+    const creati = [];
+    const nodo = (src, testo) => ({ src: src || '', textContent: testo || '', type: '', sostituito: null, replaceWith(n) { this.sostituito = n; } });
+
+    const scena = {
+        document: {
+            scripts: [nodo('http://x/Common/WebForms/runtime.js?v=1'), nodo('http://x/Layouts/Sito.js?v=5')],
+            createElement: () => { const n = { src: '', textContent: '', type: '', async: true }; creati.push(n); return n; },
+        },
+        __esporta: 'eseguiScript',
+    };
+
+    const s = ritaglio('const scriptCaricati', "        vecchio.replaceWith(nuovo);\n    }\n}", scena);
+
+    const inline  = nodo('', 'console.log(1)');
+    const nuovo   = nodo('http://x/Common/WebForms/Examples/Resources.js?v=9');
+    const vecchio = nodo('http://x/Layouts/Sito.js?v=6');            // marca diversa, stesso file: e' gia' in memoria
+
+    s.eseguiScript({ querySelectorAll: () => [inline, nuovo, vecchio] });
+
+    uguale('uno script inline si ricrea, cosi\' il browser lo esegue', 'console.log(1)', inline.sostituito && inline.sostituito.textContent);
+    uguale('uno script esterno mai visto si carica, in ordine', { src: 'http://x/Common/WebForms/Examples/Resources.js?v=9', async: false },
+        { src: nuovo.sostituito && nuovo.sostituito.src, async: nuovo.sostituito && nuovo.sostituito.async });
+    uguale('uno gia\' caricato al primo arrivo NON si ricarica, anche con una marca diversa', null, vecchio.sostituito);
+
+    s.eseguiScript({ querySelectorAll: () => [nodo('http://x/Common/WebForms/Examples/Resources.js?v=9')] });
+
+    uguale('e la seconda volta nemmeno quello nuovo: e\' in memoria', 2, creati.length);
+}
+
 // ---------------------------------------------------------------- il 500 di PHP, leggibile
 {
     console.log('\n--- javascript: l\'errore del server, com\'e\' arrivato ---');

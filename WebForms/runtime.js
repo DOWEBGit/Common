@@ -762,9 +762,28 @@ DW.navigate = async (url, push) => {
 // pagina non parte" senza alcun errore. Ricrearne il nodo lo fa eseguire.
 // Solo in navigazione: nel postback la pagina e' la stessa e rieseguirli ad ogni click
 // significherebbe far girare due volte cose scritte per girare una volta sola.
+// Gli script esterni gia' caricati in questa scheda, per indirizzo senza la marca temporale:
+// uno <dw:Script src> di una pagina raggiunta navigando va caricato la prima volta - il morph
+// lo mette nel DOM ma il browser non esegue uno <script src> inserito cosi' - e mai piu' dopo,
+// perche' e' gia' in memoria e girerebbe due volte.
+const scriptCaricati = new Set([...document.scripts].filter(s => s.src).map(s => s.src.split('?')[0]));
+
 function eseguiScript(radice) {
     for (const vecchio of radice.querySelectorAll('script')) {
-        if (vecchio.src) continue;
+        if (vecchio.src) {
+            const chiave = vecchio.src.split('?')[0];
+            if (scriptCaricati.has(chiave)) continue;
+
+            scriptCaricati.add(chiave);
+
+            const nuovo = document.createElement('script');
+            nuovo.src = vecchio.src;
+            if (vecchio.type) nuovo.type = vecchio.type;
+            nuovo.async = false;
+
+            vecchio.replaceWith(nuovo);
+            continue;
+        }
 
         const nuovo = document.createElement('script');
         nuovo.textContent = vecchio.textContent;
