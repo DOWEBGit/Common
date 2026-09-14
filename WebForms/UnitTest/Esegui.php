@@ -44,6 +44,7 @@ else
 
 use Common\WebForms\UnitTest\Prova;
 use Common\WebForms\UnitTest\ProveControlli;
+use Common\WebForms\UnitTest\ProveDatePicker;
 use Common\WebForms\UnitTest\ProveDinamici;
 use Common\WebForms\UnitTest\ProveMarkup;
 use Common\WebForms\UnitTest\ProveMemoria;
@@ -62,6 +63,7 @@ if (PHP_SAPI !== 'cli')
 $prova = new Prova();
 
 ProveControlli::Esegui($prova);
+ProveDatePicker::Esegui($prova);
 ProveOgniControllo::Esegui($prova);
 ProveDinamici::Esegui($prova);
 ProveVariabili::Esegui($prova);

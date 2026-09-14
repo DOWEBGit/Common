@@ -45,6 +45,9 @@ class ProveOgniControllo
         'ItemTemplate' => 'viene dal markup, che si rilegge ogni volta',
         'DataSource'   => 'le righe rese stanno nello stato del Repeater, non qui',
         'DataItem'     => 'vale solo dentro OnItemDataBound',
+        'Value'        => 'Text riletto come data: nello stato sta Text',
+        'Min'          => 'idem, su MinText',
+        'Max'          => 'idem, su MaxText',
     ];
 
     /**
@@ -217,6 +220,12 @@ class ProveOgniControllo
         //le collection: un nome buono per tutte e due le grammatiche, e un valore riconoscibile
         if (is_subclass_of($tipo, \Common\WebForms\NamedCollection::class))
             return new $tipo(['data-sonda' => 'valore']);
+
+        //un enum: un caso diverso da quello di adesso, cosi' si vede se torna davvero
+        if (is_subclass_of($tipo, \UnitEnum::class))
+            foreach ($tipo::cases() as $caso)
+                if ($caso !== $controllo->$proprieta)
+                    return $caso;
 
         return match ($tipo) {
             'bool'  => !$controllo->$proprieta,

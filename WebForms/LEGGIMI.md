@@ -360,6 +360,7 @@ Scelti contando l'uso reale nelle pagine WebForms del gestionale WK
 | `PostBackTrigger` | 32 | non serve |
 | `Button` | 21 | si' |
 | `Panel` | 16 | si' |
+| `DatePicker` | — | si': non c'era in WebForms, in WK erano TextBox con un calendario JavaScript |
 | `ListBox` | 6 | si' |
 | `TreeView` | 4 | manca, e con quattro usi non vale il prezzo |
 
@@ -470,6 +471,43 @@ Rende uno `<span>`.
 `AutoPostBackDelay` a 0 aspetta il blur, come WebForms; sopra 0 il runtime ascolta ogni tasto
 e trattiene il postback per quella pausa. Digitando "color" parte **una** richiesta, non
 cinque. Il codebehind non distingue i due casi.
+
+### `DatePicker`
+
+```html
+<dw:DatePicker id="dtDal" Mode="Date" AutoPostBack="true" OnDateChanged="DalCambiato" />
+<dw:DatePicker id="dtQuando" Mode="DateTime" />
+```
+
+```php
+$this->dtDal->Value = new \DateTimeImmutable('2026-09-14');
+$quando = $this->dtQuando->Value;   // ?DateTimeImmutable, null se vuoto
+$this->dtDal->Min = new \DateTimeImmutable('2026-01-01');
+```
+
+| proprieta' | |
+|---|---|
+| `Mode` | `DateTimeMode::Date` (predefinito) o `DateTimeMode::DateTime`: `<input type="date">` o `type="datetime-local"`. Nel markup `Mode="Date"` / `Mode="DateTime"`, senza badare alle maiuscole; un nome sbagliato si ferma al markup |
+| `Value` `Min` `Max` | **date**, `?DateTimeImmutable`. Nello stato viaggia il testo nel formato dell'input (`Text`, `MinText`, `MaxText`): il pacchetto si riapre senza classi |
+| `AutoPostBack` | scegliere una data fa partire il postback |
+| `OnDateChanged` | handler di pagina, `(DatePicker $sender)` |
+| `Enabled` | |
+
+**Il calendario e' quello del browser**, nativo: niente librerie, niente formato locale da
+indovinare, niente touch da gestire — lo sa il browser, e mostra il calendario giusto per
+l'utente. Il server parla solo in date.
+
+Quello che arriva dal browser si **rilegge come data e si riscrive**: un valore che non e'
+una data (dalla console, da uno script) diventa vuoto; il 30 febbraio diventa vuoto, non il 2
+marzo; un'ora mandata a un `Mode="Date"` cade. Si accettano anche i formati di un database
+— con lo spazio, con i secondi — e si normalizzano. Cambiando `Mode` a runtime il valore resta
+e si adegua al tipo nuovo: senza, il browser rifiuterebbe `2026-09-14T10:30` in un
+`type="date"` e mostrerebbe il campo vuoto senza dire niente.
+
+`Mode` e' il primo caso di **proprieta' enum** in un controllo, e il motore ora le tratta
+da solo: dal markup si sceglie il caso per nome, nello stato viaggia il valore e torna
+come enum, e la prova generica su tutti i controlli sonda anche quelle. Il prossimo controllo
+con due o tre valori possibili li dichiari come enum, non come costanti stringa.
 
 ### `Button` e `LinkButton`
 
@@ -1369,6 +1407,7 @@ campo con il focus non viene mai calpestato.
     UnitTest/Esegui.php            si lancia da URL, risponde 200 se e' tutto verde e 500 se no
     UnitTest/Prova.php             confronto, conto, e "deve sollevare"
     UnitTest/ProveControlli.php    cosa rendono i controlli, e cosa diventano col POST
+    UnitTest/ProveDatePicker.php   date vere, i due Mode, cosa entra dal browser, l'evento, l'enum nello stato
     UnitTest/ProveDinamici.php     i controlli attaccati dal codice, e come tornano indietro
     UnitTest/ProvePaginaVuota.php  markup vuoto, tutto dal codice: un CRUD intero a postback
     UnitTest/ProveQuerystring.php  la querystring cambia, lo stato resta, la pagina rilega

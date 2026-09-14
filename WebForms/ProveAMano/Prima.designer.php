@@ -10,6 +10,8 @@ namespace Common\WebForms\ProveAMano;
  * @see \Common\WebForms\ProveAMano\Prima::ContaClick()
  * @see \Common\WebForms\ProveAMano\Prima::RileggiClick()
  * @see \Common\WebForms\ProveAMano\Prima::PortaClick()
+ * @see \Common\WebForms\ProveAMano\Prima::DataCambiata()
+ * @see \Common\WebForms\ProveAMano\Prima::CambiaModoClick()
  */
 trait PrimaDesigner
 {
@@ -22,5 +24,9 @@ trait PrimaDesigner
     public \Common\WebForms\Controls\TextBox $txtNome;
     public \Common\WebForms\Controls\Button $btnPorta;
     public \Common\WebForms\Controls\Literal $litPortato;
+    public \Common\WebForms\Controls\DatePicker $dtGiorno;
+    public \Common\WebForms\Controls\DatePicker $dtQuando;
+    public \Common\WebForms\Controls\Button $btnCambiaModo;
+    public \Common\WebForms\Controls\Literal $litDate;
     public \Common\WebForms\Controls\CheckBox $chkTieni;
 }

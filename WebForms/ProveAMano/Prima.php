@@ -46,6 +46,25 @@
     </div>
 
     <div class="pm-card">
+        <h2>Il DatePicker: il calendario del browser, date vere sul server</h2>
+
+        <p class="pm-tenue">
+            Due selettori nativi — solo giorno, e giorno con ora — con <code>AutoPostBack</code>:
+            scegli e il server rilegge una <code>DateTimeImmutable</code>, non una stringa, e la
+            riscrive qui sotto nel suo formato. Il terzo cambia il modo del primo al volo:
+            il valore resta e si adegua al tipo dell'input.
+        </p>
+
+        <p>
+            <dw:DatePicker id="dtGiorno" Mode="Date" AutoPostBack="true" OnDateChanged="DataCambiata" />
+            <dw:DatePicker id="dtQuando" Mode="DateTime" AutoPostBack="true" OnDateChanged="DataCambiata" />
+            <dw:Button id="btnCambiaModo" Text="Cambia il modo del primo" OnClick="CambiaModoClick" />
+        </p>
+
+        <p class="pm-tenue"><dw:Literal id="litDate" /></p>
+    </div>
+
+    <div class="pm-card">
         <h2>Il modo WinForms</h2>
 
         <p>

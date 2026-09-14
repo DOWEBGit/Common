@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Common\WebForms\ProveAMano;
 
+use Common\WebForms\Control;
+use Common\WebForms\Controls\DatePicker;
+use Common\WebForms\DateTimeMode;
 use Common\WebForms\Page;
 use Common\WebForms\Portable;
 
@@ -67,8 +70,29 @@ class Prima extends Page
             : '"' . $this->NomePortato . '" viaggia con te: vai sulla seconda pagina.');
     }
 
+    /** Uno dei due selettori ha cambiato data: si rilegge come data e si riscrive. */
+    protected function DataCambiata(Control $sender): void
+    {
+        $this->Alert->Success(($sender->Id === 'dtGiorno' ? 'Giorno' : 'Quando') . ' cambiato.');
+    }
+
+    /** Il primo selettore passa da solo giorno a giorno e ora, e viceversa, tenendo il valore. */
+    protected function CambiaModoClick(): void
+    {
+        $this->dtGiorno->Mode = $this->dtGiorno->Mode === DateTimeMode::Date
+            ? DateTimeMode::DateTime
+            : DateTimeMode::Date;
+    }
+
     protected function OnPreRender(): void
     {
+        $scrivi = static fn(DatePicker $dt): string => $dt->Value === null
+            ? '(vuoto)'
+            : $dt->Value->format($dt->Mode === DateTimeMode::Date ? 'l j F Y' : 'l j F Y, H:i');
+
+        $this->litDate->Text = 'dtGiorno [' . $this->dtGiorno->Mode->name . ']: ' . $scrivi($this->dtGiorno)
+            . ' — dtQuando [' . $this->dtQuando->Mode->name . ']: ' . $scrivi($this->dtQuando);
+
         //la casella si decide da se' se questa pagina si tiene o no
         $this->KeepState = $this->chkTieni->Checked;
 

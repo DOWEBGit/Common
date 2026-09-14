@@ -125,6 +125,16 @@ abstract class Control
                 if (strcasecmp($chiave, $nome) !== 0)
                     continue;
 
+                //una proprieta' enum si sceglie per NOME del caso, senza badare alle maiuscole:
+                //Mode="datetime" e Mode="DateTime" sono la stessa cosa, e un nome che non
+                //esiste si ferma qui con l'elenco di quelli buoni
+                if ($this->$nome instanceof \UnitEnum)
+                {
+                    $this->$nome = self::CasoEnum($this->$nome::class, (string)$valore, $nome);
+
+                    continue;
+                }
+
                 $this->$nome = match (gettype($this->$nome)) {
                     'boolean' => $valore === 'true' || $valore === '1',
                     'integer' => (int)$valore,
@@ -132,6 +142,23 @@ abstract class Control
                 };
             }
         }
+    }
+
+    /**
+     * Il caso di un enum dal suo nome, come lo si scrive nel markup.
+     *
+     * @param class-string<\UnitEnum> $enum
+     */
+    private function CasoEnum(string $enum, string $nome, string $proprieta): \UnitEnum
+    {
+        foreach ($enum::cases() as $caso)
+            if (strcasecmp($caso->name, $nome) === 0)
+                return $caso;
+
+        throw new \RuntimeException(
+            $proprieta . '="' . $nome . '" su "' . $this->Id . '": vale '
+            . implode(', ', array_map(static fn(\UnitEnum $c): string => $c->name, $enum::cases())) . '.'
+        );
     }
 
     public function Add(Control $child): Control
@@ -289,7 +316,13 @@ abstract class Control
 
         //le collection viaggiano come array: il pacchetto si riapre senza classi
         foreach ($this->ViewStateProperties() as $nome)
-            $state[$nome] = $this->$nome instanceof NamedCollection ? $this->$nome->ToArray() : $this->$nome;
+            $state[$nome] = match (true) {
+                $this->$nome instanceof NamedCollection => $this->$nome->ToArray(),
+                //un enum non attraversa il pacchetto - si riapre senza classi - ma il suo
+                //valore si'
+                $this->$nome instanceof \BackedEnum   => $this->$nome->value,
+                default                                => $this->$nome,
+            };
 
         $dinamici = self::SaveDynamicChildren($this->DynamicChildren());
 
@@ -308,6 +341,10 @@ abstract class Control
 
             if ($this->$nome instanceof NamedCollection)
                 $this->$nome->Replace(is_array($state[$nome]) ? $state[$nome] : []);
+            elseif ($this->$nome instanceof \BackedEnum)
+                //un valore che l'enum non conosce piu' - un caso tolto - lascia quello di
+                //adesso invece di far morire la pagina
+                $this->$nome = $this->$nome::tryFrom($state[$nome]) ?? $this->$nome;
             else
                 $this->$nome = $state[$nome];
         }
