@@ -29,6 +29,8 @@
     .pm-grande{font-size:22px;font-weight:600}
     .pm-pie{padding:12px 24px;border-top:1px solid #e2e8f0;font-size:12px}
     td.pm-azione{width:80px;text-align:right}
+    .pm-popup-testata{margin:-20px -24px 12px;padding:10px 24px;background:#0f172a;color:#e2e8f0;border-radius:10px 10px 0 0;cursor:move;user-select:none;font-weight:600}
+    .pm-popup-piede{display:flex;justify-content:flex-end;gap:8px;margin:16px 0 0}
     tbody:empty + tfoot .pm-vuoto{display:table-cell}
     .pm-vuoto{display:none;color:#94a3b8;font-style:italic}
     th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b}

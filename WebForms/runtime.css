@@ -64,6 +64,16 @@ body.js-dw-attesa .dw-attesa{animation:dw-attesa-entra .12s linear var(--dw-atte
 .dw-modale-ok:hover{filter:brightness(1.08)}
 @keyframes dw-modale-entra{from{opacity:0}to{opacity:1}}
 @keyframes dw-modale-sale{from{transform:translateY(-14px);opacity:0}to{transform:translateY(0);opacity:1}}
+/* --- popup modali: <dw:ModalPopup>. Chiuso finche' il runtime non mette js-dw-aperto; sotto
+   gli avvisi (9998), che devono potersi leggere anche sopra un popup */
+.dw-popup{display:none;position:fixed;inset:0;z-index:9990}
+.dw-popup.js-dw-aperto{display:block;animation:dw-modale-entra .18s ease}
+.dw-popup-fondo{position:absolute;inset:0;background:rgba(17,20,24,.45)}
+.dw-popup-scatola{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:calc(100vw - 40px);max-height:calc(100vh - 40px);overflow:auto;background:var(--dw-fondo,#fff);border-radius:10px;padding:20px 24px;outline:none}
+.dw-popup-scatola.dw-popup-ombra{box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.dw-popup.js-dw-aperto .dw-popup-scatola{animation:dw-popup-sale .22s cubic-bezier(.4,0,.2,1)}
+@keyframes dw-popup-sale{from{opacity:0;margin-top:-14px}to{opacity:1;margin-top:0}}
+
 /* gli errori JavaScript si vedono, sempre: una pagina che smette di rispondere in
    silenzio si debugga a naso */
 #dw-errore{position:fixed;left:0;right:0;bottom:0;max-height:45vh;overflow:auto;background:#7f1d1d;color:#fff;padding:14px 18px;font:12px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;z-index:9999}

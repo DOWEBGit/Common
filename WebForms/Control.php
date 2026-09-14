@@ -540,13 +540,18 @@ abstract class Control
     /**
      * id, class e hidden: hidden invece di non renderizzare, cosi' il nodo resta al suo
      * posto con il suo id e il morph lo ritrova quando torna visibile.
+     *
+     * @param string $baseClass la classe che il controllo porta sempre, PRIMA di CssClass:
+     *                          quella che lo fa funzionare, non una decorazione
      */
-    protected function RenderAttributes(): string
+    protected function RenderAttributes(string $baseClass = ''): string
     {
         $html = ' id="' . self::HtmlEncode($this->Id) . '"';
 
-        if ($this->CssClass !== '')
-            $html .= ' class="' . self::HtmlEncode($this->CssClass) . '"';
+        $classe = trim($baseClass . ' ' . $this->CssClass);
+
+        if ($classe !== '')
+            $html .= ' class="' . self::HtmlEncode($classe) . '"';
 
         if (!$this->Visible)
             $html .= ' hidden';

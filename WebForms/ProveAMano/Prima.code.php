@@ -136,6 +136,35 @@ class Prima extends Page
     }
 
     /** Il primo selettore passa da solo giorno a giorno e ora, e viceversa, tenendo il valore. */
+    /** Dal server: e' Show() che lo apre, con la risposta di questo postback. */
+    protected function ApriDalServerClick(): void
+    {
+        $this->__TextBox_Scheda->Text = 'aperto dal server alle ' . date('H:i:s');
+
+        $this->__ModalPopup_Scheda->Show();
+    }
+
+    /**
+     * Un bottone qualunque dentro il popup: postback normale, e il popup resta aperto finche'
+     * il server non dice Hide(). Se il testo e' vuoto non lo dice, e l'avviso compare SOPRA il
+     * popup ancora aperto: e' il giro di una scheda che non passa la validazione.
+     */
+    protected function SalvaSchedaClick(): void
+    {
+        if (trim($this->__TextBox_Scheda->Text) === '')
+        {
+            $this->Alert->Fail('Scrivi qualcosa prima di salvare: il popup resta aperto.');
+
+            return;
+        }
+
+        $this->__Literal_Salvato->Text = $this->__TextBox_Scheda->Text;
+
+        $this->__ModalPopup_Scheda->Hide();
+
+        $this->Alert->Success('Salvato: il server ha chiuso il popup con Hide().');
+    }
+
     protected function CambiaModoClick(): void
     {
         $this->__DatePicker_Giorno->Mode = $this->__DatePicker_Giorno->Mode === DateTimeMode::Date

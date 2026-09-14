@@ -1,7 +1,7 @@
 // Il pezzo di motore che gira nel browser: intercettazione degli eventi, postback, morph del
 // DOM, navigazione senza ricarico, notifiche push.
 //
-// Lo include Runtime::Scripts(), in coda al body, con "defer" e con la marca temporale del
+// Lo include Runtime::Scripts(), nella testa del documento, con "defer" e con la marca temporale del
 // file nell'indirizzo: il browser lo tiene in cache finche' non lo si tocca, e appena lo si
 // tocca l'indirizzo cambia da solo.
 //
@@ -441,6 +441,7 @@ async function esegui(target, evento, arg) {
     leggiPortatile();
 
     armaAvvisi();
+    armaPopup();
 
     riepilogoStato();
 }
@@ -738,6 +739,7 @@ DW.navigate = async (url, push) => {
     leggiPortatile();
 
     armaAvvisi();
+    armaPopup();
 
     riepilogoStato();
 
@@ -774,8 +776,9 @@ function eseguiScript(radice) {
 //il pacchetto della prima pagina: da qui in poi lo tiene la memoria
 leggiPortatile();
 
-//e gli avvisi che il server ha gia' messo in pagina
+//e gli avvisi che il server ha gia' messo in pagina, e i popup che ha gia' aperto
 armaAvvisi();
+armaPopup();
 
 riepilogoStato();
 
@@ -948,6 +951,125 @@ function arma(avviso, durata) {
 
     parti();
 }
+
+// ---------------------------------------------------------------- popup modali
+// <dw:ModalPopup>: un contenitore che compare sopra la pagina e, finche' e' aperto, e' l'unica
+// cosa che si tocca. Lo stato aperto/chiuso sta QUI, nella classe js-dw-aperto che il morph
+// rispetta: il server da' ordini per una risposta (data-dw-modal-open 1/0) e per il resto
+// lascia fare. Target, OK e Annulla non fanno postback: il loro click si ferma qui, prima che
+// il gestore dei controlli lo veda - e' la fase di cattura, per questo arriva per primo.
+
+const popupFuoco = new WeakMap();
+
+function popupApri(popup) {
+    if (popup.classList.contains('js-dw-aperto')) return;
+
+    popupFuoco.set(popup, document.activeElement);
+    popup.classList.add('js-dw-aperto');
+
+    // il fuoco entra: il primo campo, o il popup stesso, cosi' Esc e Tab lavorano dentro
+    const primo = popup.querySelector('.dw-popup-scatola').querySelector('input:not([type=hidden]),select,textarea,button,a[href],[tabindex]');
+    (primo || popup.querySelector('.dw-popup-scatola')).focus?.();
+}
+
+function popupChiudi(popup, esito) {
+    if (!popup.classList.contains('js-dw-aperto')) return;
+
+    popup.classList.remove('js-dw-aperto');
+
+    const prima = popupFuoco.get(popup);
+    if (prima && document.contains(prima)) prima.focus?.();
+
+    // esito vuoto: l'ha chiuso il server, e non e' un OK ne' un Annulla di nessuno
+    if (!esito) return;
+
+    const script = popup.dataset[esito === 'ok' ? 'dwModalOkScript' : 'dwModalCancelScript'];
+
+    if (script) {
+        try { new Function(script)(); } catch (e) { DW.error('ModalPopup ' + popup.id + ' On' + esito + 'Script: ' + e); }
+    }
+
+    popup.dispatchEvent(new CustomEvent('dw:' + esito, { bubbles: true }));
+}
+
+// il popup a cui l'elemento cliccato fa da target, OK, Annulla o maniglia
+function popupPer(bersaglio, ruolo) {
+    for (const popup of document.querySelectorAll('[data-dw-modal]')) {
+        const id = popup.dataset['dwModal' + ruolo];
+        if (id && bersaglio.closest('#' + CSS.escape(id))) return popup;
+    }
+    return null;
+}
+
+document.addEventListener('click', e => {
+    if (!(e.target instanceof Element)) return;
+
+    const target = popupPer(e.target, 'Target');
+    const ok     = popupPer(e.target, 'Ok');
+    const cancel = popupPer(e.target, 'Cancel');
+
+    if (!target && !ok && !cancel) return;
+
+    // consumato qui: niente postback, niente href
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (target) popupApri(target);
+    if (ok)     popupChiudi(ok, 'ok');
+    if (cancel) popupChiudi(cancel, 'cancel');
+}, true);
+
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+
+    const aperti = [...document.querySelectorAll('[data-dw-modal].js-dw-aperto')];
+    if (aperti.length === 0) return;
+
+    // Esc chiude l'ultimo aperto, come un Annulla. Non arriva agli altri: un modale degli
+    // avvisi sopra il popup si chiude per conto suo, questo tocca solo i popup
+    popupChiudi(aperti[aperti.length - 1], 'cancel');
+});
+
+// la maniglia: si afferra la testata e il popup segue il puntatore. La posizione resta in
+// uno style in linea sulla scatola, quindi il postback dopo la rimette dov'era il server.
+document.addEventListener('pointerdown', e => {
+    if (!(e.target instanceof Element) || e.button !== 0) return;
+
+    const popup = popupPer(e.target, 'Handle');
+    if (!popup || e.target.closest('input,select,textarea,button,a')) return;
+
+    const scatola = popup.querySelector('.dw-popup-scatola');
+    const r = scatola.getBoundingClientRect();
+    const dx = e.clientX - r.left, dy = e.clientY - r.top;
+
+    e.preventDefault();
+
+    const muovi = ev => {
+        scatola.style.left = Math.max(0, ev.clientX - dx) + 'px';
+        scatola.style.top = Math.max(0, ev.clientY - dy) + 'px';
+        scatola.style.transform = 'none';
+    };
+    const lascia = () => {
+        removeEventListener('pointermove', muovi);
+        removeEventListener('pointerup', lascia);
+    };
+
+    addEventListener('pointermove', muovi);
+    addEventListener('pointerup', lascia);
+});
+
+// dopo ogni render: gli ordini del server per questa risposta
+function armaPopup() {
+    for (const popup of document.querySelectorAll('[data-dw-modal]')) {
+        const ordine = popup.dataset.dwModalOpen;
+
+        if (ordine === '1') popupApri(popup);
+        if (ordine === '0') popupChiudi(popup, '');
+    }
+}
+
+DW.showModal = id => { const p = document.getElementById(id); if (p) popupApri(p); };
+DW.hideModal = id => { const p = document.getElementById(id); if (p) popupChiudi(p, 'cancel'); };
 
 history.scrollRestoration = 'manual';
 

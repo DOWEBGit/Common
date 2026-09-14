@@ -365,6 +365,7 @@ Scelti contando l'uso reale nelle pagine WebForms del gestionale WK
 | `Panel` | 16 | si' |
 | `DatePicker` | — | si': non c'era in WebForms, in WK erano TextBox con un calendario JavaScript |
 | `ListBox` | 6 | si' |
+| `ModalPopupExtender` | 0 | si', come `<dw:ModalPopup>`: WK non lo usa, ma una scheda sopra l'elenco e' il caso piu' comune |
 | `TreeView` | 4 | manca, e con quattro usi non vale il prezzo |
 
 Piu' quelli che una pagina non scrive ma il sito si': `Alert`, `UpdateProgress`, `Stylesheet`,
@@ -398,6 +399,7 @@ PascalCase che dice **cosa contiene**, non com'e' fatto.
 | `HiddenField` | `__Hidden_` | e dentro una riga di Repeater e' sempre `__Hidden_Id` |
 | `Repeater` | `__Repeater_` | `__Repeater_Elenco` quando in pagina ce n'e' uno solo |
 | `Panel` / `PlaceHolder` | `__Panel_` / `__PlaceHolder_` | |
+| `ModalPopup` | `__ModalPopup_` | |
 | `FileUpload` | `__FileUpload_` | |
 | UserControl | `__NomeDelControllo` | `__Menu`, `__PageNavigator`; con due istanze `__PageNavigator_Sopra`, `__PageNavigator_Sotto` |
 | `Alert`, `UpdateProgress` | `__Alert`, `__UpdateProgress` | uno per master, senza nome |
@@ -712,6 +714,69 @@ i suoi segnaposto, che vengono dal markup.
 
 `ProveAMano/Stato.php` fa vedere le tre cose una accanto all'altra; `Tabella.php` e' il caso
 piu' severo, righe di tabella che nascono solo da click.
+
+### `ModalPopup`
+
+Un pezzo di pagina che compare **sopra** il resto e, finche' e' aperto, e' l'unica cosa che si
+tocca: il `ModalPopupExtender` dell'AjaxControlToolkit, senza l'extender — qui il popup **e'**
+il contenitore, un `Panel` che sa aprirsi.
+
+```html
+<dw:Button id="__Button_Apri" Text="Modifica" />
+
+<dw:ModalPopup id="__ModalPopup_Scheda" TargetControlID="__Button_Apri"
+               OkControlID="__Button_Ok" CancelControlID="__Button_Annulla"
+               DragHandleControlID="__Panel_Testata" DropShadow="true">
+    <dw:Panel id="__Panel_Testata" CssClass="testata">Scheda</dw:Panel>
+    <dw:TextBox id="__TextBox_Nome" />
+    <dw:Button id="__Button_Salva" Text="Salva" OnClick="SalvaClick" />
+    <button type="button" id="__Button_Ok">Ok</button>
+    <button type="button" id="__Button_Annulla">Annulla</button>
+</dw:ModalPopup>
+```
+
+| proprieta' | |
+|---|---|
+| `TargetControlID` | l'elemento che, cliccato, lo apre **nel browser**, senza postback. Vuoto: si apre solo da `Show()` |
+| `OkControlID` / `CancelControlID` | gli elementi che lo chiudono nel browser, **senza postback**; il secondo vale anche per Esc |
+| `OnOkScript` / `OnCancelScript` | JavaScript che gira alla chiusura; il popup solleva anche gli eventi DOM `dw:ok` e `dw:cancel` |
+| `DragHandleControlID` | l'elemento dentro il popup — la testata — che si afferra per trascinarlo |
+| `BackgroundCssClass` | classe in piu' sullo sfondo che copre la pagina |
+| `DropShadow` | ombra sulla scatola |
+| `X` `Y` | angolo in alto a sinistra, in pixel; `-1` (predefinito) = centrato su quell'asse. Solo `X`: fisso in orizzontale e centrato in verticale, e viceversa |
+
+| metodo | |
+|---|---|
+| `Show()` | apri, da un handler: il browser lo mostra con la risposta di questo postback |
+| `Hide()` | chiudi, da un handler: quando il salvataggio e' andato bene |
+
+**Chi lo apre e chi lo chiude, e dove.** Il click sul `TargetControlID` lo apre nel browser;
+OK e Annulla lo chiudono nel browser; nessuno dei tre fa postback — come nel toolkit, dove
+l'extender annulla il click di quei controlli. Un controllo qualunque **dentro** il popup fa
+il suo postback normale, e il popup **resta aperto**: e' il server a decidere se chiuderlo con
+`Hide()`, tipicamente quando il salvataggio e' andato bene — e a lasciarlo aperto con un
+`Alert->Fail()` quando non passa la validazione. L'avviso compare sopra il popup, che sta
+sotto gli avvisi di proposito.
+
+**Lo stato aperto/chiuso vive nel browser**, in una classe `js-` che il morph rispetta, non
+nel ViewState: `Show()` e `Hide()` sono ordini per **questa** risposta, non uno stato che si
+porta dietro. Se fosse nello stato, un Annulla fatto nel browser lascerebbe il server
+convinto che il popup e' aperto, e al postback dopo lo riaprirebbe. Il rovescio: un ritorno
+sulla pagina con il modo WinForms lo trova chiuso, e va bene cosi' — un popup e' un lavoro in
+corso, non un dato.
+
+Cliccare sullo sfondo **non fa niente**, di proposito: e' un lavoro da finire o da annullare,
+non un avviso da far sparire. Il fuoco entra nel primo campo del popup e torna dov'era alla
+chiusura. Il trascinamento lascia la posizione in uno stile in linea sulla scatola, quindi il
+postback dopo la rimette dov'era il server. `RepositionMode` del toolkit non serve: la
+posizione e' `fixed`, e resiste a scroll e ridimensionamento da sola.
+
+Dentro un UserControl i riferimenti (`TargetControlID` e gli altri) prendono il suffisso del
+contenitore come gli id, quindi si scrivono nudi, come in `FindControl()`. `DW.showModal(id)`
+e `DW.hideModal(id)` per aprirlo e chiuderlo da uno script di pagina.
+
+`ProveAMano/Prima.php` ha il banco: apertura dal browser e dal server, Salva che chiude solo
+se c'e' del testo, Ok e Annulla che scrivono in pagina cosa e' successo, testata trascinabile.
 
 ### `Stylesheet` e `Script`
 
@@ -1657,6 +1722,7 @@ non e' un cambio di pagina.
     UnitTest/ProveViewStateMode.php Inherit/Enabled/Disabled, e cosa resta sotto uno spento
     UnitTest/ProveQuerystring.php  la querystring cambia, lo stato resta, la pagina rilega
     UnitTest/ProveMemoria.php      lo stato cala con i dati: ClearItems e rimpiazzi non lasciano niente
+    UnitTest/ProveModalPopup.php   i marcatori che il server scrive per il runtime, Show/Hide, X e Y, i riferimenti in un UserControl
     UnitTest/ProveEventiConDati.php Notify con un oggetto: il messaggio firmato che parte e il postback che torna
     UnitTest/ProveErrori.php       l'eccezione di una pagina nel log del sito, una volta, e poi fuori com'era
     UnitTest/ProveMarkup.php       il compilatore, i segnaposto {{Campo}}, i <dw:Content>, gli id __Tipo_Nome
@@ -1664,13 +1730,13 @@ non e' un cambio di pagina.
     UnitTest/ProveSicurezza.php    controlli nascosti, redirect fuori sito, CSRF
     UnitTest/ProveStato.php        il pacchetto firmato: soprattutto cosa RIFIUTA
     ProveAMano/Cornice.php         la master dei banchi: menu, titolo, piede, e l'iscrizione a «Saluti»
-    ProveAMano/Prima.php           eventi fra schede, DatePicker, #[Portable]: cosa attraversa la navigazione
+    ProveAMano/Prima.php           eventi fra schede, DatePicker, ModalPopup, #[Portable]: cosa attraversa la navigazione
     ProveAMano/Seconda.php         e cosa invece resta di la'; riceve l'utente mandato dalla prima
     ProveAMano/Utente.php          l'oggetto che viaggia con Notify()
     ProveAMano/Tabella.php         righe di tabella costruite a mano, e nient'altro
     ProveAMano/Stato.php           il banco dello stato: cosa sopravvive a un postback, un riquadro per domanda
 
-Sono 383 prove PHP e 20 JavaScript. Si lanciano nei due modi, e l'esito e' un numero:
+Sono 412 prove PHP e 20 JavaScript. Si lanciano nei due modi, e l'esito e' un numero:
 **uscita 1** da riga di comando, **500** sull'HTTP, cosi' le puo' guardare uno script senza
 leggerle a occhio.
 
@@ -1725,7 +1791,7 @@ col tasto indietro.
 `Prima.php` e `Seconda.php` sono la coppia degli eventi: aperte in due schede, «Saluta tutti»
 nella prima arriva nella seconda — e in tutte le altre, tramite la cornice — e «Manda un
 utente» porta un oggetto con la foto. Prima ha anche il banco del `DatePicker` e un campo
-`#[Portable]` che Seconda legge e riscrive.
+`#[Portable]` che Seconda legge e riscrive, e il `ModalPopup` con la scheda che si salva.
 
 **Stanno in `Common` di proposito.** Niente Model, niente database, nessun foglio di stile
 del sito: e' una prova **del motore**, quindi viaggia con il motore e si apre uguale su un
