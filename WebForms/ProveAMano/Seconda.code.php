@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Common\WebForms\ProveAMano;
 
+use Common\WebForms\Control;
 use Common\WebForms\Page;
 use Common\WebForms\Portable;
 
@@ -35,6 +36,28 @@ class Seconda extends Page
             $this->SalutiRicevuti++;
 
             $this->Alert->Success('Saluto numero ' . $this->SalutiRicevuti . ' dalla prima pagina.');
+        });
+
+        //l'evento con dati: $dati e' l'oggetto mandato di la', appiattito in array. Il
+        //pacchetto e' firmato, quindi e' quello che il server ha scritto; ma il contenuto lo
+        //si tratta come qualunque cosa arrivi dal browser - si escapa, si controlla
+        $this->Subscribe('Utente', function (array $dati): void
+        {
+            $nome  = (string)($dati['Nome'] ?? '');
+            $email = (string)($dati['Email'] ?? '');
+            $foto  = (string)($dati['Immagine'] ?? '');
+
+            $this->litNomeUtente->Text = trim($nome . ' ' . ($dati['Cognome'] ?? ''));
+            $this->litEmail->Text      = $email;
+
+            //solo un data URI di immagine passa nel src: e' l'unica cosa che ci si aspetta
+            $this->litFoto->Text = str_starts_with($foto, 'data:image/')
+                ? '<img src="' . Control::HtmlEncode($foto) . '" width="48" height="48" alt="" style="vertical-align:middle;margin-right:8px">'
+                : '';
+
+            $this->pnlUtente->Visible = true;
+
+            $this->Alert->Success('E\' arrivato ' . $this->litNomeUtente->Text . '.');
         });
     }
 

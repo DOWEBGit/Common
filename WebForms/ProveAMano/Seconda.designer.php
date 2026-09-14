@@ -18,6 +18,10 @@ trait SecondaDesigner
     public \Common\WebForms\Controls\Button $btnMaiuscolo;
     public \Common\WebForms\Controls\Button $btnSvuota;
     public \Common\WebForms\Controls\Literal $litSaluti;
+    public \Common\WebForms\Controls\Panel $pnlUtente;
+    public \Common\WebForms\Controls\Literal $litFoto;
+    public \Common\WebForms\Controls\Literal $litNomeUtente;
+    public \Common\WebForms\Controls\Literal $litEmail;
     public \Common\WebForms\Controls\Literal $litContatore;
     public \Common\WebForms\Controls\Button $btnConta;
 }

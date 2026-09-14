@@ -25,7 +25,12 @@ namespace Common\WebForms;
  */
 class EntityEvents
 {
-    /** @var array<string,bool> topic accumulati nella richiesta, gia' deduplicati */
+    /**
+     * Topic accumulati nella richiesta, gia' deduplicati. Il valore e' true per un evento
+     * senza dati, o i dati stessi - come array - per uno che li porta.
+     *
+     * @var array<string,true|array>
+     */
     private static array $queue = [];
 
     private static bool $suspended = false;
@@ -48,16 +53,38 @@ class EntityEvents
     /**
      * @param string $entita nome della classe modello, es. "Prodotti"
      * @param int    $id     0 per segnalare solo il tipo (utile dopo un'importazione)
+     * @param mixed  $dati   un oggetto o un array da consegnare agli iscritti INSIEME al nome:
+     *                       arriva all'handler di Subscribe() come array, com'era, in ogni
+     *                       pagina aperta. Vedi sotto prima di usarlo.
+     *
+     * SUI DATI. La regola del motore e' che l'evento non li porta: chi riceve rilegge con i
+     * suoi permessi. Quando li si passa, quella regola si sospende PER QUEL TOPIC: i dati
+     * escono dal contesto di chi salva ed entrano in ogni browser del dominio, e da li'
+     * tornano al server di ogni pagina iscritta. Quindi ci va cio' che tutti gli utenti del
+     * sito possono vedere. Il pacchetto e' FIRMATO come il ViewState - un browser non puo'
+     * cambiarlo ne' inventarne uno - ma la firma protegge l'integrita', non la riservatezza.
+     *
+     * Un oggetto passa da json_encode, quindi escono le sue proprieta' pubbliche; l'handler
+     * riceve un array con quelle chiavi. Niente risorse, connessioni, closure.
      */
-    public static function Notify(string $entita, int $id = 0): void
+    public static function Notify(string $entita, int $id = 0, mixed $dati = null): void
     {
         if (self::$suspended || $entita === '')
             return;
 
-        self::$queue[$entita] = true;
+        //i dati si appiattiscono subito in array: cosi' un oggetto qualunque passa, e a
+        //destinazione non c'e' nessuna classe da ricostruire
+        $carico = $dati === null ? true : json_decode(json_encode($dati, JSON_THROW_ON_ERROR), true);
+
+        if (!is_array($carico) && $carico !== true)
+            $carico = ['valore' => $carico];
+
+        //un secondo Notify dello stesso topic senza dati non deve cancellare i dati del primo
+        if ($carico !== true || !isset(self::$queue[$entita]))
+            self::$queue[$entita] = $carico;
 
         if ($id !== 0)
-            self::$queue[$entita . '/' . $id] = true;
+            self::$queue[$entita . '/' . $id] = $carico;
 
         if (self::$registered)
             return;
@@ -114,16 +141,54 @@ class EntityEvents
         }
     }
 
-    public static function Flush(): void
+    /**
+     * Il messaggio da mandare al hub, e la coda si svuota. Null se non c'e' niente.
+     *
+     *   o  chi manda, per non farlo rimbalzare al mittente
+     *   t  i topic
+     *   d  per i topic che portano dati, il pacchetto FIRMATO con il segreto del ViewState:
+     *      il browser lo riporta al server di ogni pagina iscritta, e il server lo accetta
+     *      solo se la firma regge. Un client non puo' inventare dati, ne' toccarli.
+     *
+     * E' pubblico per poterlo provare senza un hub davanti.
+     */
+    public static function Compose(): ?string
     {
         if (self::$queue === [])
-            return;
+            return null;
 
-        $topic = array_keys(self::$queue);
+        $messaggio = ['o' => self::$Origin, 't' => array_keys(self::$queue)];
+
+        foreach (self::$queue as $topic => $carico)
+            if ($carico !== true)
+                $messaggio['d'][$topic] = ViewState::Pack(['topic' => $topic, 'dati' => $carico]);
 
         self::$queue = [];
 
-        $messaggio = json_encode(['o' => self::$Origin, 't' => $topic]);
+        return json_encode($messaggio, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * I dati di un evento arrivato dal browser, se il pacchetto e' buono e parla di QUEL
+     * topic. Un pacchetto manomesso, o preso da un altro topic, da' niente: l'handler gira
+     * come per un evento senza dati.
+     */
+    public static function Dati(string $topic, string $pacchetto): array
+    {
+        $aperto = ViewState::Unpack($pacchetto);
+
+        if ($aperto === null || ($aperto['topic'] ?? null) !== $topic || !is_array($aperto['dati'] ?? null))
+            return [];
+
+        return $aperto['dati'];
+    }
+
+    public static function Flush(): void
+    {
+        $messaggio = self::Compose();
+
+        if ($messaggio === null)
+            return;
 
         try
         {

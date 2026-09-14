@@ -13,6 +13,7 @@ namespace Common\WebForms\ProveAMano;
  * @see \Common\WebForms\ProveAMano\Prima::DataCambiata()
  * @see \Common\WebForms\ProveAMano\Prima::CambiaModoClick()
  * @see \Common\WebForms\ProveAMano\Prima::SalutaClick()
+ * @see \Common\WebForms\ProveAMano\Prima::UtenteClick()
  */
 trait PrimaDesigner
 {
@@ -30,6 +31,7 @@ trait PrimaDesigner
     public \Common\WebForms\Controls\Button $btnCambiaModo;
     public \Common\WebForms\Controls\Literal $litDate;
     public \Common\WebForms\Controls\Button $btnSaluta;
+    public \Common\WebForms\Controls\Button $btnUtente;
     public \Common\WebForms\Controls\Literal $litSaluti;
     public \Common\WebForms\Controls\CheckBox $chkTieni;
 }

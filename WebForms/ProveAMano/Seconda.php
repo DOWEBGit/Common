@@ -37,6 +37,16 @@
         </p>
 
         <p class="pm-grande"><dw:Literal id="litSaluti" /></p>
+
+        <h2>E a «Utente»: l'oggetto arriva qui, sul server, e si mostra</h2>
+
+        <dw:Panel id="pnlUtente" Visible="false">
+            <p>
+                <dw:Literal id="litFoto" Mode="PassThrough" />
+                <b><dw:Literal id="litNomeUtente" /></b>
+                <span class="pm-tenue">&lt;<dw:Literal id="litEmail" />&gt;</span>
+            </p>
+        </dw:Panel>
     </div>
 
     <div class="pm-card">

@@ -932,6 +932,7 @@ addEventListener('popstate', () => DW.navigate(location.href, false));
 // altro utente non puo' far arrivare qui niente che non si potesse gia' vedere.
 
 let attesi = new Set();
+let carichi = {};
 let timer = null;
 
 // Il nostro static non ha risposto: si riprova dal CDN pubblico. Senza libreria le notifiche
@@ -988,18 +989,33 @@ window.DWEventi = (messaggio) => {
     // l'evento nato da questa stessa pagina si scarta: si e' gia' aggiornata col suo postback
     if (dato.o && dato.o === root.dataset.dwPush) return;
 
-    for (const topic of (dato.t || [])) attesi.add(topic);
+    // solo i topic a cui QUESTA pagina e' iscritta: gli altri non le riguardano, e un postback
+    // per ogni salvataggio del sito sarebbe un carico sul server senza nessun effetto
+    let iscritti = null;
 
-    if (timer) return;
+    try { iscritti = root.dataset.dwTopics ? JSON.parse(root.dataset.dwTopics) : []; } catch (e) { iscritti = []; }
+
+    for (const topic of (dato.t || [])) {
+        if (!iscritti.includes(topic)) continue;
+
+        attesi.add(topic);
+
+        // i dati che il server ha allegato: firmati, si riportano com'erano
+        if (dato.d && dato.d[topic]) carichi[topic] = dato.d[topic];
+    }
+
+    if (attesi.size === 0 || timer) return;
 
     // raffica di salvataggi = un postback solo, e con un ritardo casuale cosi' i browser
     // collegati non partono tutti nello stesso istante
     timer = setTimeout(() => {
         const elenco = Array.from(attesi);
+        const dati = carichi;
         attesi = new Set();
+        carichi = {};
         timer = null;
 
-        DW.postback('__push', 'push', JSON.stringify(elenco));
+        DW.postback('__push', 'push', JSON.stringify({ t: elenco, d: dati }));
     }, 150 + Math.random() * 250);
 };
 

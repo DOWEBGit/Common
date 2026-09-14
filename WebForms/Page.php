@@ -467,9 +467,16 @@ abstract class Page
         //eventi locali, cambia solo la porta d'ingresso
         if ($target === '__push')
         {
-            foreach (json_decode((string)($_POST['__dw_arg'] ?? '[]'), true) ?: [] as $topic)
+            $arrivato = json_decode((string)($_POST['__dw_arg'] ?? '[]'), true) ?: [];
+
+            //la forma nuova e' {t: [topic], d: {topic: pacchetto firmato}}; quella vecchia un
+            //elenco di topic e basta, e si accetta ancora
+            $topics = is_array($arrivato['t'] ?? null) ? $arrivato['t'] : $arrivato;
+            $carichi = is_array($arrivato['d'] ?? null) ? $arrivato['d'] : [];
+
+            foreach ($topics as $topic)
                 if (is_string($topic))
-                    $this->Raise($topic);
+                    $this->Raise($topic, is_string($carichi[$topic] ?? null) ? EntityEvents::Dati($topic, $carichi[$topic]) : []);
 
             return;
         }
@@ -875,9 +882,16 @@ abstract class Page
         //glielo rimanda quando ci si torna
         $tieni = $this->KeepState ? ' data-dw-tieni="1"' : '';
 
+        //a quali topic risponde questa pagina: il runtime fa il postback di notifica SOLO se
+        //ne arriva uno di questi, invece di svegliare il server per ogni salvataggio del sito
+        $topics = $this->subscriptions === []
+            ? ''
+            : ' data-dw-topics="' . Control::HtmlEncode(json_encode(array_keys($this->subscriptions), JSON_UNESCAPED_UNICODE)) . '"';
+
         return '<div id="dw-root"'
             . ' data-dw-push="' . Control::HtmlEncode($this->PushId) . '"'
             . $tieni
+            . $topics
             . $portatile . '>'
             . $html
             . '</div>';

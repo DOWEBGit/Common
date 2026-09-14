@@ -20,6 +20,9 @@ codice.
   la prova generica le sonda. D'ora in poi due o tre valori possibili sono un enum. (§3)
 - **Ispezioni PhpStorm a zero** sul motore: costanti tipate, eccezioni checked fermate alla
   sorgente come `RuntimeException`, `__DIR__` al posto di `DOCUMENT_ROOT` in `Bootstrap`.
+- **`Notify()` porta un oggetto**: terzo argomento, arriva all'handler di `Subscribe()` come
+  array, firmato; `data-dw-topics` sulla radice fa partire il postback solo per i topic
+  iscritti. Banco: Prima manda un utente con foto, Seconda lo mostra. (§6)
 - **`EntityEvents::Broadcast()`** manda un messaggio con dati a tutti i browser del dominio,
   subito; `DW.on()` lo riceve in pagina; `data-dw-client` protegge dal morph quello che uno
   script aggiunge. Gli script del motore sono passati nella testa del documento. (§6)
@@ -49,7 +52,7 @@ Per chi conosceva il motore com'era: le cose sono cambiate in profondita', e i n
   Tutta l'API e' in inglese, con i nomi di WebForms; i commenti restano in italiano. (§3)
 - **`runtime.js` e `runtime.css`** sono file veri accanto al motore, non piu' `const` PHP. (§1)
 - **`Pages::`** e' il nuovo nome dell'enum delle pagine (`Pagine::`), `SitePage` dell'interfaccia.
-- **Prove**: 356, di cui sessantatre per riflessione su tutti i controlli, piu' i banchi a mano in
+- **Prove**: 373, di cui sessantatre per riflessione su tutti i controlli, piu' i banchi a mano in
   `ProveAMano/` — due pagine con un menu, la tabella costruita a mano, lo stato. (§10)
 
 ---
@@ -1301,6 +1304,36 @@ che due browser sulla stessa griglia restano allineati senza che nessuno abbia s
 riga di JavaScript. `ProveAMano/Prima.php` e `Seconda.php` aperte in due schede lo fanno
 vedere: si preme nella prima, la seconda mostra l'avviso e sale il contatore.
 
+**E l'evento puo' portare un oggetto.** Terzo argomento di `Notify()`:
+
+```php
+$utente = new Utente('Anna', 'Bianchi', 'anna@esempio.it', $immagine);
+
+EntityEvents::Notify('Utente', dati: $utente);
+
+//chi riceve: l'oggetto arriva come array, con le proprieta' pubbliche
+$this->Subscribe('Utente', function (array $dati): void
+{
+    $this->litNome->Text = $dati['Nome'] . ' ' . $dati['Cognome'];
+    $this->Alert->Success('E\' arrivato ' . $dati['Nome']);
+});
+```
+
+Un oggetto qualunque passa da `json_encode` — escono le proprieta' pubbliche, non le
+private — e arriva come array con le stesse chiavi; un array arriva com'e', uno scalare
+sotto la chiave `valore`. Il pacchetto viaggia **firmato** con il segreto del ViewState: il
+browser lo riporta al server com'e', e se lo tocca, o lo attacca a un altro topic, la firma
+non regge e l'handler gira senza dati. Un secondo `Notify` dello stesso topic senza dati
+non cancella quelli del primo.
+
+La firma protegge l'**integrita'**, non la riservatezza: quello che si passa esce dal
+contesto di chi salva ed entra in ogni browser del dominio. Ci va cio' che tutti gli utenti
+del sito possono vedere; per il resto il nome e basta, e ognuno rilegge il suo.
+
+La radice della pagina porta `data-dw-topics` con i topic a cui e' iscritta: il runtime fa
+il postback di notifica **solo** se ne arriva uno di quelli, invece di svegliare il server
+a ogni salvataggio del sito. Prima lo faceva sempre, e il server scartava.
+
 La libreria arriva da **`static.doweb.site`**, non da un CDN pubblico: un sito che per
 funzionare dipende da un dominio di qualcun altro smette di funzionare quando quel dominio
 ha una brutta giornata, e intanto racconta a lui chi visita le nostre pagine. L'indirizzo
@@ -1504,6 +1537,7 @@ campo con il focus non viene mai calpestato.
     UnitTest/Prova.php             confronto, conto, e "deve sollevare"
     UnitTest/ProveControlli.php    cosa rendono i controlli, e cosa diventano col POST
     UnitTest/ProveDatePicker.php   date vere, i due Mode, cosa entra dal browser, l'evento, l'enum nello stato
+    UnitTest/ProveEventiConDati.php Notify con un oggetto: il messaggio firmato che parte e il postback che torna
     UnitTest/ProveDinamici.php     i controlli attaccati dal codice, e come tornano indietro
     UnitTest/ProvePaginaVuota.php  markup vuoto, tutto dal codice: un CRUD intero a postback
     UnitTest/ProveQuerystring.php  la querystring cambia, lo stato resta, la pagina rilega

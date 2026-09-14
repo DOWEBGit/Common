@@ -78,7 +78,16 @@
 
         <p>
             <dw:Button id="btnSaluta" Text="Saluta tutti" OnClick="SalutaClick" />
+            <dw:Button id="btnUtente" Text="Manda un utente (nome, cognome, email, immagine)" OnClick="UtenteClick" />
             <span class="pm-tenue">saluti ricevuti da questa pagina: <b><dw:Literal id="litSaluti" /></b></span>
+        </p>
+
+        <p class="pm-tenue">
+            Il secondo bottone passa un <b>oggetto</b> — <code>new Utente(...)</code> — come terzo
+            argomento di <code>Notify('Utente', dati: $utente)</code>. Arriva all'handler iscritto
+            della seconda pagina come array con le stesse chiavi, e lei lo mostra con la foto.
+            Il pacchetto viaggia firmato: un browser non puo' cambiarlo. Ma lo vede chiunque abbia
+            una pagina aperta: ci va solo cio' che tutti possono vedere.
         </p>
     </div>
 

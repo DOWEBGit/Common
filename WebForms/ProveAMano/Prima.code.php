@@ -113,6 +113,27 @@ class Prima extends Page
         $this->Alert->Success('Saluto mandato: chi e\' iscritto lo riceve sul suo server.');
     }
 
+    /**
+     * Un oggetto in giro per il dominio: chi e' iscritto a "Utente" lo riceve sul suo server
+     * come array, con le chiavi Nome, Cognome, Email, Immagine.
+     */
+    protected function UtenteClick(): void
+    {
+        $utenti = [
+            ['Anna',  'Bianchi', 'anna.bianchi@esempio.it',  '#1d4ed8'],
+            ['Marco', 'Rossi',   'marco.rossi@esempio.it',   '#15803d'],
+            ['Giulia','Verdi',   'giulia.verdi@esempio.it',  '#b91c1c'],
+        ];
+
+        [$nome, $cognome, $email, $colore] = $utenti[array_rand($utenti)];
+
+        $utente = new Utente($nome, $cognome, $email, Utente::Avatar($nome[0] . $cognome[0], $colore));
+
+        EntityEvents::Notify('Utente', dati: $utente);
+
+        $this->Alert->Success('Mandato ' . $nome . ' ' . $cognome . ' a chi e\' iscritto.');
+    }
+
     /** Il primo selettore passa da solo giorno a giorno e ora, e viceversa, tenendo il valore. */
     protected function CambiaModoClick(): void
     {
