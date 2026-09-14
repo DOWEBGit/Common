@@ -14,10 +14,13 @@ use Common\WebForms\Control;
  */
 class LinkButton extends Control
 {
+    /** Il testo del link. */
     public string $Text = '';
 
+    /** Spento degrada a <span>, non a un link morto. Il server ricontrolla comunque. */
     public bool $Enabled = true;
 
+    /** Il nome del metodo del codebehind che gira al click: (Control $sender, string $argument). */
     public string $OnClick = '';
 
     /** Cosa ha cliccato l'utente: qui ci finisce il nome della colonna, l'id della riga, ... */

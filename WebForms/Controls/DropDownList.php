@@ -10,12 +10,16 @@ class DropDownList extends Control
     /** @var array<int|string,string> valore => testo. Una chiave numerica PHP la fa int: si confronta come testo */
     public array $Items = [];
 
+    /** Il valore della voce scelta. Torna dal browser, e si accetta solo se e' una delle voci rese. */
     public string $SelectedValue = '';
 
+    /** Spento rende disabled; il server ricontrolla comunque. */
     public bool $Enabled = true;
 
+    /** Cambiare voce e' un postback: OnSelectedIndexChanged gira subito. */
     public bool $AutoPostBack = false;
 
+    /** Il nome del metodo del codebehind che gira quando cambia la voce, con AutoPostBack. */
     public string $OnSelectedIndexChanged = '';
 
     /** Come sui bottoni: comando verso il contenitore invece di un metodo della pagina. */

@@ -18,21 +18,28 @@ class ListBox extends Control
     /** @var array<int|string,string> valore => testo. Una chiave numerica PHP la fa int: si confronta come testo */
     public array $Items = [];
 
+    /** La prima voce scelta; con la selezione multipla si usa SelectedValues. */
     public string $SelectedValue = '';
 
     /** @var string[] usato quando SelectionMode e' Multiple */
     public array $SelectedValues = [];
 
+    /** Single (predefinito) o Multiple: con Multiple il campo si chiama id[] e SelectedValues porta tutte le scelte. */
     public string $SelectionMode = self::SINGLE;
 
+    /** Le righe visibili dell'elenco. */
     public int $Rows = 6;
 
+    /** Spento rende disabled; il server ricontrolla comunque. */
     public bool $Enabled = true;
 
+    /** Cambiare la scelta e' un postback: OnSelectedIndexChanged gira subito. */
     public bool $AutoPostBack = false;
 
+    /** Il nome del metodo del codebehind che gira quando cambia la scelta, con AutoPostBack. */
     public string $OnSelectedIndexChanged = '';
 
+    /** Alternativa a OnSelectedIndexChanged: un comando che sale verso il contenitore, per gli UserControl. */
     public string $CommandName = '';
 
     protected function ViewStateProperties(): array

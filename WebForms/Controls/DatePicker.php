@@ -41,8 +41,10 @@ class DatePicker extends Control
     /** Il primo e l'ultimo giorno scelto: il browser non fa scegliere fuori. Vuoti = senza limite. */
     public string $MinText = '';
 
+    /** Il massimo com'e' nell'input: e' quello che viaggia nello stato. Di solito si usa Max. */
     public string $MaxText = '';
 
+    /** Spento rende disabled; il server ricontrolla comunque. */
     public bool $Enabled = true;
 
     /** Se true, scegliere una data fa partire un postback e scatta OnDateChanged. */
@@ -67,11 +69,13 @@ class DatePicker extends Control
         set { $this->Text = $this->Scrivi($value); }
     }
 
+    /** La prima data che il calendario lascia scegliere, o null. */
     public ?\DateTimeImmutable $Min {
         get => self::Leggi($this->MinText);
         set { $this->MinText = $this->Scrivi($value); }
     }
 
+    /** L'ultima data che il calendario lascia scegliere, o null. */
     public ?\DateTimeImmutable $Max {
         get => self::Leggi($this->MaxText);
         set { $this->MaxText = $this->Scrivi($value); }

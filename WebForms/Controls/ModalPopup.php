@@ -60,11 +60,13 @@ class ModalPopup extends Control
     /** Classe in piu' sullo sfondo che copre la pagina. */
     public string $BackgroundCssClass = '';
 
+    /** Ombra sulla scatola: la classe dw-popup-ombra. */
     public bool $DropShadow = false;
 
     /** Posizione fissa dell'angolo in alto a sinistra, in pixel. -1 = centrato su quell'asse. */
     public int $X = -1;
 
+    /** Come X, sull'asse verticale. */
     public int $Y = -1;
 
     /** L'ordine per questa risposta: true apri, false chiudi, null lascia com'e'. */

@@ -7,20 +7,26 @@ use Common\WebForms\Control;
 
 class TextBox extends Control
 {
+    /** Il valore. Torna dal browser a ogni postback; in TextMode Password non si rimostra mai. */
     public string $Text = '';
 
+    /** Il suggerimento nella casella vuota. */
     public string $Placeholder = '';
 
+    /** Il type dell'input quando non e' text: email, number, tel... Per le date c'e' il DatePicker. */
     public string $Type = 'text';
 
     /** Come in WebForms: SingleLine, MultiLine (textarea), Password. */
     public const string SINGLELINE = 'SingleLine';
     public const string MULTILINE = 'MultiLine';
     public const string PASSWORD = 'Password';
+    /** SingleLine (predefinito), MultiLine (una textarea) o Password. */
     public string $TextMode = self::SINGLELINE;
 
+    /** Le righe della textarea, con TextMode MultiLine. */
     public int $Rows = 4;
 
+    /** Spento rende disabled; il server ricontrolla comunque. */
     public bool $Enabled = true;
 
     /** Se true il cambio di valore fa partire un postback. */
@@ -37,6 +43,7 @@ class TextBox extends Control
      */
     public int $AutoPostBackDelay = 0;
 
+    /** Il nome del metodo del codebehind che gira quando il testo cambia, con AutoPostBack. */
     public string $OnTextChanged = '';
 
     protected function ViewStateProperties(): array

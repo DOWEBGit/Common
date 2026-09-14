@@ -32,6 +32,7 @@ class FileUpload extends Control
     /** Testo dell'area di trascinamento. Ignorato se AllowDrop e' falso. */
     public string $Text = 'Trascina qui un file, o clicca per sceglierlo';
 
+    /** Spento rende disabled l'input e spegne il trascinamento. */
     public bool $Enabled = true;
 
     /** Handler chiamato appena il file e' stato messo da parte: serve per l'anteprima. */
