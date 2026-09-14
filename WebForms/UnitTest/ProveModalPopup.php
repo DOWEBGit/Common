@@ -10,7 +10,7 @@ use Common\WebForms\PageParser;
 /**
  * <dw:ModalPopup>: quello che il server scrive perche' il runtime sappia chi lo apre, chi lo
  * chiude e dove metterlo. Il resto - l'apertura, il trascinamento, il click che non fa
- * postback - e' JavaScript e si guarda in ProveAMano/Prima.php.
+ * postback - e' JavaScript e si guarda in Examples/ModalPopup.php.
  */
 class ProveModalPopup
 {

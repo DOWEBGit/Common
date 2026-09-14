@@ -77,12 +77,12 @@ function ritaglio(da, a, dipendenze) {
     console.log('\n--- javascript: navigazione, e il tasto indietro ---');
 
     // un DOM finto: la radice con dwTieni, il campo dello stato, il documento che arriva
-    const location = { href: 'http://x/Tabella.php' };
-    let campo = { value: 'STATO-TABELLA' };
+    const location = { href: 'http://x/DynamicControls.php' };
+    let campo = { value: 'STATO-DYNAMIC' };
     const richieste = [];
     const documenti = {
-        'http://x/Stato.php':   { titolo: 'Stato',   stato: 'STATO-STATO' },
-        'http://x/Tabella.php': { titolo: 'Tabella', stato: 'STATO-TABELLA-DAL-SERVER' },
+        'http://x/State.php':   { titolo: 'State',   stato: 'STATO-STATE' },
+        'http://x/DynamicControls.php': { titolo: 'DynamicControls', stato: 'STATO-DYNAMIC-DAL-SERVER' },
     };
 
     const scena = {
@@ -112,6 +112,7 @@ function ritaglio(da, a, dipendenze) {
         DW: { teardown() {}, morph() {} },
         leggiPortatile: () => {},
         armaAvvisi: () => {},
+        armaPopup: () => {},
         eseguiScript: () => {},
         console: { info: () => {} },
         __esporta: 'tenute, navigate: DW.navigate',
@@ -120,43 +121,43 @@ function ritaglio(da, a, dipendenze) {
     const s = ritaglio('const TENUTE_BYTE', "document.dispatchEvent(new CustomEvent('dw:pagina'));\n};", scena);
 
     // 1. da Tabella si clicca il link verso Stato
-    await s.navigate('Stato.php', true);
+    await s.navigate('State.php', true);
 
-    uguale('lasciando Tabella il suo stato finisce nel SUO cassetto', 'STATO-TABELLA', s.tenute.get('http://x/Tabella.php'));
+    uguale('lasciando Tabella il suo stato finisce nel SUO cassetto', 'STATO-DYNAMIC', s.tenute.get('http://x/DynamicControls.php'));
     uguale('verso una pagina mai vista si fa una GET', 'GET', richieste[0].metodo);
-    uguale('e il campo dello stato ora e\' quello di Stato', 'STATO-STATO', campo.value);
+    uguale('e il campo dello stato ora e\' quello di Stato', 'STATO-STATE', campo.value);
 
     // 2. il tasto INDIETRO: il browser cambia l'indirizzo PRIMA di avvisare, e solo poi parte
     //    la navigazione verso quell'indirizzo - il DOM e' ancora quello di Stato
-    location.href = 'http://x/Tabella.php';
+    location.href = 'http://x/DynamicControls.php';
 
     await s.navigate(location.href, false);
 
     uguale('sull\'indietro lo stato di Stato va nel cassetto di STATO, non in quello dell\'indirizzo nuovo',
-        'STATO-STATO', s.tenute.get('http://x/Stato.php'));
-    uguale('e il cassetto di Tabella e\' ancora il suo', 'STATO-TABELLA', s.tenute.get('http://x/Tabella.php'));
-    uguale('il ritorno su Tabella e\' un ripristino: POST con il SUO stato', { metodo: 'POST', stato: 'STATO-TABELLA' },
+        'STATO-STATE', s.tenute.get('http://x/State.php'));
+    uguale('e il cassetto di Tabella e\' ancora il suo', 'STATO-DYNAMIC', s.tenute.get('http://x/DynamicControls.php'));
+    uguale('il ritorno su Tabella e\' un ripristino: POST con il SUO stato', { metodo: 'POST', stato: 'STATO-DYNAMIC' },
         { metodo: richieste[1].metodo, stato: richieste[1].stato });
 
     // 3. avanti di nuovo: anche Stato torna col suo
-    location.href = 'http://x/Stato.php';
+    location.href = 'http://x/State.php';
 
     await s.navigate(location.href, false);
 
-    uguale('e avanti su Stato e\' un ripristino con lo stato di Stato', 'STATO-STATO', richieste[2].stato);
+    uguale('e avanti su Stato e\' un ripristino con lo stato di Stato', 'STATO-STATE', richieste[2].stato);
 
     // 4. "aggiungo una riga e clicco il link": il postback e' ancora in volo quando parte la
     //    navigazione. Lo stato da tenere e' quello di DOPO il postback, non quello di prima.
-    const corsa = { ...scena, location: { href: 'http://x/Tabella.php' },
+    const corsa = { ...scena, location: { href: 'http://x/DynamicControls.php' },
         inCorso: new Promise(r => setTimeout(() => { campo.value = 'STATO-CON-LA-RIGA'; r(); }, 30)) };
     campo = { value: 'STATO-SENZA-LA-RIGA' };
 
     const s2 = ritaglio('const TENUTE_BYTE', "document.dispatchEvent(new CustomEvent('dw:pagina'));\n};", corsa);
 
-    await s2.navigate('Stato.php', true);
+    await s2.navigate('State.php', true);
 
     uguale('con un postback in volo, la navigazione aspetta e tiene lo stato di DOPO',
-        'STATO-CON-LA-RIGA', s2.tenute.get('http://x/Tabella.php'));
+        'STATO-CON-LA-RIGA', s2.tenute.get('http://x/DynamicControls.php'));
 }
 
 // ---------------------------------------------------------------- i messaggi con dati: DW.on

@@ -200,7 +200,7 @@ class ProveDinamici
         $p->Uguale('quindi il suo stato non porta figli da ricostruire',
             false, array_key_exists('Dyn', $master->SaveViewState()));
 
-        $titolo = $master->FindControl('__Literal_Titolo');
+        $titolo = $master->FindControl('__Literal_Title');
 
         $titolo->Text = 'scritto dalla pagina';
 
@@ -237,7 +237,7 @@ class ProveDinamici
         $pagina = new class extends \Common\WebForms\Page {
         };
 
-        return ControlBuilder::BuildMaster('Common/WebForms/ProveAMano/Cornice', [], $pagina);
+        return ControlBuilder::BuildMaster('Common/WebForms/Examples/Site', [], $pagina);
     }
 
     /** Un PlaceHolder vuoto, come lo costruirebbe il markup. */
