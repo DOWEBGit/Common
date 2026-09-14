@@ -631,12 +631,19 @@ const dimentica = (chiave) => {
     tenute.delete(chiave);
 };
 
+// La pagina di cui il DOM e' fatto ADESSO. Non e' location.href: sul tasto indietro il
+// browser cambia l'indirizzo PRIMA di avvisare, e per un istante l'indirizzo dice "Tabella"
+// mentre in pagina c'e' ancora "Stato". Salvare con quell'indirizzo metteva lo stato di
+// Stato nel cassetto di Tabella: al ritorno Tabella riceveva uno stato non suo, e ne usciva
+// vuota e col titolo dell'altra. Provato, tre righe perse.
+let paginaCorrente = location.href;
+
 const tieniStato = () => {
     const root = radice();
 
     if (!root) return;
 
-    const chiave = chiaveDi(location.href);
+    const chiave = chiaveDi(paginaCorrente);
 
     // La pagina ha smesso di volersi tenere - una casella spenta, una condizione cambiata:
     // quello che c'era in serbo va buttato, o al ritorno si rimetterebbe in piedi uno stato
@@ -720,6 +727,9 @@ DW.navigate = async (url, push) => {
     eseguiScript(radice());
 
     document.title = doc.title;
+
+    // da qui in poi il DOM e' della pagina nuova: e' lei che si tiene, quando si andra' via
+    paginaCorrente = new URL(url, location.href).href;
 
     if (push) history.pushState({ url }, '', url);
 
