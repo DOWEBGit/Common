@@ -1133,8 +1133,10 @@ Un controllo composto ha markup, codebehind e designer suoi, come una pagina —
     PageNavigator.code.php      la classe                    (.ascx.cs)
     PageNavigator.designer.php  generato                     (.ascx.designer.cs)
 
-Vive in una cartella del sito, non qui dentro: gli UserControl sono dell'applicazione, il
-motore sa solo montarli.
+Vive in una cartella del sito: gli UserControl sono dell'applicazione, il motore sa solo
+montarli. I due che stanno dentro `Common` — `Examples/PropertyTable` e `Examples/SourceView`
+— sono degli esempi, non del motore, e si chiamano con `src=` come qualunque controllo che
+sta fuori da `UserControls/`.
 
 **Si scrive col suo nome**, come in WK:
 
@@ -1608,7 +1610,9 @@ con ctrl/cmd/shift o tasto centrale — sbagliarlo romperebbe "apri in nuova sch
 
 Gli `<script>` inline della pagina vengono **rieseguiti**: uno `<script>` inserito nel DOM da
 codice non parte da solo, ed e' la sorpresa classica di chi aggiorna una pagina senza
-ricaricarla. Solo in navigazione, mai nel postback.
+ricaricarla. Quelli con `src` si **caricano la prima volta** che si vedono in questa scheda e
+mai piu' dopo, cosi' lo script di una pagina raggiunta navigando parte e non gira due volte.
+Solo in navigazione, mai nel postback.
 
 Il codice di pagina che apre qualcosa (timer, editor, osservatori) lo chiude con
 `DW.onLeave(fn)`, altrimenti dopo venti navigazioni se ne trascinano venti copie vive.
@@ -1766,7 +1770,7 @@ non e' un cambio di pagina.
 
     UnitTest/prove.cmd             TUTTE le prove: quelle PHP e quelle del JavaScript
     UnitTest/Esegui.php            le prove PHP: da URL risponde 200 se e' tutto verde e 500 se no
-    UnitTest/prove.mjs             le prove del JavaScript, con node: il cassetto, la navigazione, DW.on, il 500
+    UnitTest/prove.mjs             le prove del JavaScript, con node: il cassetto, la navigazione, gli script, DW.on, il 500
     UnitTest/Prova.php             confronto, conto, e "deve sollevare"
     UnitTest/ProveControlli.php    cosa rendono i controlli, e cosa diventano col POST
     UnitTest/ProveDatePicker.php   date vere, i due Mode, cosa entra dal browser, l'evento, l'enum nello stato
@@ -1807,8 +1811,8 @@ verso Kestrel. Si registra il minimo per trovare le classi e le prove girano su 
 che e' esattamente quello che devono provare.
 
 **Il JavaScript si prova ritagliandolo.** `runtime.js` e' scritto per il DOM, ma i pezzi con una
-logica propria — il cassetto delle pagine tenute, la navigazione e il tasto indietro, la
-consegna dei messaggi, il testo di un 500 — si tagliano fra due marcatori e girano in node con
+logica propria — il cassetto delle pagine tenute, la navigazione e il tasto indietro, gli
+script da caricare dopo una navigazione, la consegna dei messaggi, il testo di un 500 — si tagliano fra due marcatori e girano in node con
 un DOM finto grande quanto basta. Non e' il morph, che si guarda nel browser: e' quello che si
 puo' sbagliare senza che il browser lo dica — la chiave sbagliata sul tasto indietro, il
 postback in volo durante la navigazione. `prove.mjs` va lanciato con node; `Esegui.php` non
