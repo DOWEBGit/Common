@@ -72,8 +72,11 @@
             un postback e l'handler chiama <code>EntityEvents::Notify('Saluti')</code>: e' un nome,
             niente dati. Ogni pagina aperta che in <code>OnInit</code> ha fatto
             <code>$this->Subscribe('Saluti', ...)</code> riceve l'evento <b>sul server</b>, dentro
-            un postback suo, e fa quello che vuole — qui un avviso, di la' anche un contatore. Zero
-            JavaScript scritto dalla pagina: il runtime porta solo il nome, il codebehind risponde.
+            un postback suo, e fa quello che vuole. L'avviso e il contatore in testata li fa la
+            <b>cornice</b>, iscritta una volta per tutte le pagine che la ereditano — anche
+            Tabella e Stato, che di «Saluti» non sanno niente; queste due pagine tengono in piu'
+            un conto loro. Zero JavaScript scritto dalla pagina: il runtime porta solo il nome, il
+            codebehind risponde.
         </p>
 
         <p>

@@ -9,6 +9,8 @@ namespace Common\WebForms\ProveAMano;
 trait CorniceDesigner
 {
     public \Common\WebForms\Controls\Literal $litMenu;
+    public \Common\WebForms\Controls\Panel $pnlSalutiCornice;
+    public \Common\WebForms\Controls\Literal $litSalutiCornice;
     public \Common\WebForms\Controls\Literal $litTitolo;
     public \Common\WebForms\Controls\Literal $litSottotitolo;
     public \Common\WebForms\Controls\ContentPlaceHolder $corpo;

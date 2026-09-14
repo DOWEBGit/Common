@@ -17,6 +17,10 @@ use Common\WebForms\MasterPage;
  *
  * Il menu e' fatto di <a> normali: il runtime intercetta i link interni e li trasforma in
  * navigazione senza ricarico da se', quindi non c'e' niente da dichiarare.
+ *
+ * E' iscritta a «Saluti»: un evento che deve arrivare su OGNI pagina - un avviso a tutti,
+ * un contatore in testata - si ascolta qui una volta, non in ogni codebehind. La master
+ * ha OnInit come la pagina, e $this->Page->Subscribe() e' la stessa iscrizione.
  */
 class Cornice extends MasterPage
 {
@@ -29,6 +33,27 @@ class Cornice extends MasterPage
     ];
 
     use CorniceDesigner;
+
+    /**
+     * L'iscrizione della cornice, ad ogni richiesta: quando un altro browser chiama
+     * Notify('Saluti'), il runtime di QUALUNQUE pagina sotto questa cornice fa il suo
+     * postback e l'handler gira qui, sul server, con la pagina in mano.
+     *
+     * Il conteggio sta nel Literal, non in una proprieta' della classe: e' lo stato di un
+     * controllo, quindi torna a ogni postback e resta nel cassetto quando si cambia pagina.
+     */
+    public function OnInit(): void
+    {
+        $this->Page->Subscribe('Saluti', function (): void
+        {
+            $arrivati = (int)$this->litSalutiCornice->Text + 1;
+
+            $this->litSalutiCornice->Text = (string)$arrivati;
+            $this->pnlSalutiCornice->Visible = true;
+
+            $this->Page->Alert->Success('Qualcuno ha salutato alle ' . date('H:i:s') . ': lo dice la cornice, su qualunque pagina.');
+        });
+    }
 
     public function OnPreRender(): void
     {

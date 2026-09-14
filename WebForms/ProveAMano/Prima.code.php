@@ -47,15 +47,16 @@ class Prima extends Page
      * dice a cosa risponde. Quando un altro browser chiama Notify('Saluti'), il runtime di
      * QUESTA pagina fa un postback vuoto con quel nome, e il motore chiama l'handler qui
      * dentro - sul server, con lo stato di questa pagina in mano. Da qui si fa quello che si
-     * farebbe in un click qualunque: un avviso, una rilettura, un DataBind.
+     * farebbe in un click qualunque: una rilettura, un DataBind.
+     *
+     * L'avviso non lo da' questa pagina: lo da' la Cornice, che e' iscritta anche lei allo
+     * stesso evento e lo mostra su qualunque pagina la erediti. Qui si tiene solo il conto.
      */
     protected function OnInit(): void
     {
         $this->Subscribe('Saluti', function (): void
         {
             $this->SalutiRicevuti++;
-
-            $this->Alert->Success('Qualcuno ha salutato alle ' . date('H:i:s') . '.');
         });
     }
 

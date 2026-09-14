@@ -11,12 +11,14 @@
 
 <style>
     body{margin:0;padding:0;font:14px/1.6 system-ui,Segoe UI,sans-serif;color:#1f2937;background:#f8fafc}
-    .pm-testata{display:flex;align-items:center;gap:24px;padding:12px 24px;background:#0f172a;color:#e2e8f0}
+    .pm-testata{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:12px 24px;background:#0f172a;color:#e2e8f0}
     .pm-marchio{font-weight:600;letter-spacing:.02em}
     .pm-menu{display:flex;gap:16px}
     .pm-menu a{color:#94a3b8;text-decoration:none;padding:4px 0;border-bottom:2px solid transparent}
     .pm-menu a:hover{color:#e2e8f0}
     .pm-menu a.pm-qui{color:#fff;border-bottom-color:#38bdf8}
+    .pm-saluti{margin-left:auto;font-size:12px;color:#94a3b8}
+    .pm-saluti b{display:inline-block;min-width:20px;padding:1px 7px;border-radius:10px;background:#38bdf8;color:#0f172a;text-align:center}
     .pm-corpo{padding:24px;max-width:900px}
     h1{font-size:20px;margin:0 0 4px}
     h2{font-size:15px;margin:0 0 10px}
@@ -42,6 +44,10 @@
     <nav class="pm-menu">
         <dw:Literal id="litMenu" Mode="PassThrough" />
     </nav>
+
+    <dw:Panel id="pnlSalutiCornice" Tag="span" CssClass="pm-saluti" Visible="false">
+        saluti arrivati alla cornice: <b><dw:Literal id="litSalutiCornice" Text="0" /></b>
+    </dw:Panel>
 </header>
 
 <div class="pm-corpo">

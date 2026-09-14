@@ -26,6 +26,9 @@ codice.
 - **`EntityEvents::Broadcast()`** manda un messaggio con dati a tutti i browser del dominio,
   subito; `DW.on()` lo riceve in pagina; `data-dw-client` protegge dal morph quello che uno
   script aggiunge. Gli script del motore sono passati nella testa del documento. (§6)
+- **La master si iscrive agli eventi**: `$this->Page->Subscribe()` in `OnInit` della
+  `MasterPage`, e l'handler gira su ogni pagina che la eredita. Banco: la Cornice ascolta
+  «Saluti» e mostra avviso e contatore anche su Tabella e Stato. (§6)
 - **Gli errori vanno nel log del sito.** Quello che scappa da `Page::Run` - un handler che
   lancia, un tipo sbagliato nel designer, la memoria finita - finisce in `Log::Error` con
   pagina, metodo, URL, file:riga e pila, e la risposta e' un **500**: il runtime lo mostra
@@ -1307,6 +1310,31 @@ si fa quello che si farebbe in un click: un avviso, una rilettura, un `DataBind(
 che due browser sulla stessa griglia restano allineati senza che nessuno abbia scritto una
 riga di JavaScript. `ProveAMano/Prima.php` e `Seconda.php` aperte in due schede lo fanno
 vedere: si preme nella prima, la seconda mostra l'avviso e sale il contatore.
+
+**Un evento che deve arrivare su ogni pagina si ascolta nella master**, una volta:
+
+```php
+class Cornice extends MasterPage
+{
+    public function OnInit(): void
+    {
+        $this->Page->Subscribe('Saluti', function (): void
+        {
+            $this->litSalutiCornice->Text = (string)((int)$this->litSalutiCornice->Text + 1);
+            $this->Page->Alert->Success('Qualcuno ha salutato.');
+        });
+    }
+}
+```
+
+La master ha `OnInit` come la pagina e `$this->Page->Subscribe()` e' la stessa iscrizione:
+cosi' anche `Tabella.php` e `Stato.php`, che di «Saluti» non sanno niente, mostrano l'avviso
+e il contatore in testata. Una pagina puo' iscriversi allo stesso evento per conto suo - lo
+fanno Prima e Seconda, per tenere un conto loro - e girano tutti e due gli handler.
+
+Il conteggio sta in un `Literal` della master e non in una proprieta' della classe: le
+variabili che restano da sole sono quelle della **pagina** (§2), la master e' un controllo e
+il suo stato e' quello dei suoi controlli.
 
 **E l'evento puo' portare un oggetto.** Terzo argomento di `Notify()`:
 

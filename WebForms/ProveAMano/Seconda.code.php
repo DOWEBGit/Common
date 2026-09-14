@@ -28,14 +28,12 @@ class Seconda extends Page
 
     public int $SalutiRicevuti = 0;
 
-    /** L'evento arriva sul server di questa pagina: si aggiorna lo stato e si avvisa. */
+    /** L'evento arriva sul server di questa pagina: si aggiorna lo stato. L'avviso e' della Cornice. */
     protected function OnInit(): void
     {
         $this->Subscribe('Saluti', function (): void
         {
             $this->SalutiRicevuti++;
-
-            $this->Alert->Success('Saluto numero ' . $this->SalutiRicevuti . ' dalla prima pagina.');
         });
 
         //l'evento con dati: $dati e' l'oggetto mandato di la', appiattito in array. Il

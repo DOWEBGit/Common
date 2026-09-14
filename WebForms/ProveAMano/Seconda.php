@@ -32,8 +32,10 @@
 
         <p class="pm-tenue">
             Premi «Saluta tutti» sulla prima pagina in un'altra scheda: qui compare l'avviso e il
-            contatore sale, senza che questa pagina abbia fatto niente. Il numero lo aggiorna il
-            codebehind di questa pagina, sul server, dentro l'handler iscritto in <code>OnInit</code>.
+            contatore sale, senza che questa pagina abbia fatto niente. L'avviso e il numero in
+            testata sono della cornice, iscritta per tutte; questo numero lo aggiorna il codebehind
+            di questa pagina, sul server, dentro l'handler iscritto in <code>OnInit</code>: allo
+            stesso evento si iscrivono in due, e girano tutti e due.
         </p>
 
         <p class="pm-grande"><dw:Literal id="litSaluti" /></p>
