@@ -193,6 +193,29 @@ function ritaglio(da, a, dipendenze) {
     uguale('un messaggio che non e\' JSON e\' un errore in console, non un\'eccezione', 1, errori.length);
 }
 
+// ---------------------------------------------------------------- il 500 di PHP, leggibile
+{
+    console.log('\n--- javascript: l\'errore del server, com\'e\' arrivato ---');
+
+    // il DOMParser finto fa quello che fa il vero su un testo: via i tag, entita' decodificate
+    const scena = {
+        DOMParser: class {
+            parseFromString(html) {
+                return { body: { textContent: html.replace(/<[^>]+>/g, '').replace(/&gt;/g, '>').replace(/&lt;/g, '<') } };
+            }
+        },
+        __esporta: 'testoErrore',
+    };
+
+    const s = ritaglio('function testoErrore', "+ '…' : testo;\n}", scena);
+
+    uguale('il corpo HTML di PHP diventa una riga di testo, con le frecce vere',
+        'Fatal error: Uncaught TypeError: x in Page.php:589 Stack trace: #0 Page->Run()',
+        s.testoErrore('<br />\n<b>Fatal error</b>:  Uncaught TypeError: x in Page.php:589\nStack trace:\n#0 Page-&gt;Run()'));
+
+    uguale('e non piu\' di 600 caratteri: lo stack intero sta nel log', 601, s.testoErrore('x'.repeat(2000)).length);
+}
+
 console.log('');
 
 if (rosse.length === 0) {

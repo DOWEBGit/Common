@@ -26,6 +26,10 @@ codice.
 - **`EntityEvents::Broadcast()`** manda un messaggio con dati a tutti i browser del dominio,
   subito; `DW.on()` lo riceve in pagina; `data-dw-client` protegge dal morph quello che uno
   script aggiunge. Gli script del motore sono passati nella testa del documento. (§6)
+- **Gli errori vanno nel log del sito.** Quello che scappa da `Page::Run` - un handler che
+  lancia, un tipo sbagliato nel designer, la memoria finita - finisce in `Log::Error` con
+  pagina, metodo, URL, file:riga e pila, e la risposta e' un **500**: il runtime lo mostra
+  nel riquadro degli errori invece di ricaricare in silenzio. (§7)
 - Il **designer** si rigenera anche quando un tipo dichiarato non esiste: un plugin vecchio non
   puo' piu' lasciare una pagina rotta con un 200. Plugin **1.21.0**: UserControl per nome nel
   designer, `ViewStateMode` nel completamento. (§11)
@@ -52,7 +56,7 @@ Per chi conosceva il motore com'era: le cose sono cambiate in profondita', e i n
   Tutta l'API e' in inglese, con i nomi di WebForms; i commenti restano in italiano. (§3)
 - **`runtime.js` e `runtime.css`** sono file veri accanto al motore, non piu' `const` PHP. (§1)
 - **`Pages::`** e' il nuovo nome dell'enum delle pagine (`Pagine::`), `SitePage` dell'interfaccia.
-- **Prove**: 373, di cui sessantatre per riflessione su tutti i controlli, piu' i banchi a mano in
+- **Prove**: 379, di cui sessantatre per riflessione su tutti i controlli, piu' i banchi a mano in
   `ProveAMano/` — due pagine con un menu, la tabella costruita a mano, lo stato. (§10)
 
 ---
@@ -1416,6 +1420,34 @@ tutte e due.
 
 # 7. Navigazione e accesso
 
+## Gli errori si leggono nel log, non solo sullo schermo
+
+`Page::Run` e' l'unico punto da cui passa ogni richiesta, e quello che ne scappa e' un errore
+del codice della pagina: l'eccezione di un handler, il `TypeError` di un designer che dichiara
+un `Panel` dove il markup ha messo un `ContentPlaceHolder`, la memoria finita a meta' render.
+Prima di rilanciarlo a PHP lo scrive in **`\Common\Log::Error`**, il log del sito che si
+legge dal pannello:
+
+    WebForms Tabella.php [POST /public/php/.../Tabella.php]: TypeError: Cannot assign
+    Common\WebForms\Controls\ContentPlaceHolder to property ...::$corpo of type
+    Common\WebForms\Controls\Panel in C:\...\Page.php:589
+    #0 C:\...\Page.php(310): Common\WebForms\Page->BindControls()
+    ...
+
+Pagina, metodo, URL, tipo, messaggio, file con la riga e la pila. Una volta sola per
+richiesta: gli errori che un `catch` non prende - `E_ERROR`, `E_PARSE`, la memoria - li
+raccoglie una funzione di chiusura, che tace se il `catch` ha gia' scritto.
+
+Non si inghiotte niente: l'eccezione riparte com'era, PHP la scrive anche nel suo log e la
+mostra se `display_errors` e' acceso. Ma la risposta e' un **500**, messo a mano: il SAPI
+del pipe lascia il 200 anche su un fatal, e con un 200 il runtime provava a leggere la
+pagina d'errore come se fosse il frammento della pagina. Con il 500 il runtime la mette nel
+riquadro degli errori (`#dw-errore`, quello degli errori JavaScript), com'e' arrivata e
+senza tag; i 403 e gli stati scaduti continuano a ricaricare pulito.
+
+Dal cli - le prove - il pipe non c'e' e `Log::Error` lancia: il motore lo prende e ripiega
+su `error_log`, perche' un errore nel loggare non deve coprire quello vero.
+
 ## Senza ricarico
 
 I link interni non ricaricano: il documento viene chiesto al server e fuso nel DOM, con
@@ -1540,6 +1572,7 @@ campo con il focus non viene mai calpestato.
     UnitTest/ProveControlli.php    cosa rendono i controlli, e cosa diventano col POST
     UnitTest/ProveDatePicker.php   date vere, i due Mode, cosa entra dal browser, l'evento, l'enum nello stato
     UnitTest/ProveEventiConDati.php Notify con un oggetto: il messaggio firmato che parte e il postback che torna
+    UnitTest/ProveErrori.php       l'eccezione di una pagina nel log del sito, una volta, e poi fuori com'era
     UnitTest/ProveDinamici.php     i controlli attaccati dal codice, e come tornano indietro
     UnitTest/ProvePaginaVuota.php  markup vuoto, tutto dal codice: un CRUD intero a postback
     UnitTest/ProveQuerystring.php  la querystring cambia, lo stato resta, la pagina rilega

@@ -155,28 +155,91 @@ abstract class Page
      */
     public static function Run(string $markupFile, string $codeClass, string $masterSrc = ''): void
     {
-        //Il designer si scrive PRIMA che la classe di logica venga caricata: e' un trait che
-        //quella classe usa, e senza il file l'autoload fallirebbe al primo avvio di una
-        //pagina nuova.
-        Designer::Update($markupFile, $codeClass, $masterSrc);
+        //Gli errori che PHP non lascia arrivare a un catch - memoria finita, tempo scaduto -
+        //si leggono solo alla chiusura: si registra chi li guarda PRIMA di fare qualunque cosa
+        register_shutdown_function(static function () use ($markupFile): void
+        {
+            $ultimo = error_get_last();
 
-        //codebehind e designer non hanno nomi di classe come nomi di file, quindi
-        //l'autoloader non li vede: si includono per percorso, designer per primo
-        Designer::RequireCode($markupFile);
+            //un'eccezione rilanciata dal catch qui sotto arriva anche qui, come "Uncaught":
+            //quella e' gia' scritta
+            if (self::$errorLogged || $ultimo === null || ($ultimo['type'] & (E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR)) === 0)
+                return;
 
-        //e l'elenco delle pagine si aggiorna se questa non c'e' dentro: una pagina nuova
-        //entra da sola la prima volta che la si apre
-        PageMap::Ensure($markupFile);
+            self::LogError($markupFile, $ultimo['message'] . ' in ' . $ultimo['file'] . ':' . $ultimo['line']);
+        });
 
-        if (!is_subclass_of($codeClass, self::class))
-            throw new \RuntimeException($codeClass . ' deve estendere ' . self::class . '.');
+        try
+        {
+            //Il designer si scrive PRIMA che la classe di logica venga caricata: e' un trait
+            //che quella classe usa, e senza il file l'autoload fallirebbe al primo avvio di
+            //una pagina nuova.
+            Designer::Update($markupFile, $codeClass, $masterSrc);
 
-        /** @var Page $pagina */
-        $pagina = new $codeClass();
+            //codebehind e designer non hanno nomi di classe come nomi di file, quindi
+            //l'autoloader non li vede: si includono per percorso, designer per primo
+            Designer::RequireCode($markupFile);
 
-        $pagina->MasterSrc = $masterSrc;
+            //e l'elenco delle pagine si aggiorna se questa non c'e' dentro: una pagina nuova
+            //entra da sola la prima volta che la si apre
+            PageMap::Ensure($markupFile);
 
-        $pagina->ProcessRequest($markupFile);
+            if (!is_subclass_of($codeClass, self::class))
+                throw new \RuntimeException($codeClass . ' deve estendere ' . self::class . '.');
+
+            /** @var Page $pagina */
+            $pagina = new $codeClass();
+
+            $pagina->MasterSrc = $masterSrc;
+
+            $pagina->ProcessRequest($markupFile);
+        }
+        catch (\Throwable $e)
+        {
+            //Nel log del sito, dove si guarda; poi a PHP com'era, che lo scrive nel suo log e
+            //lo mostra se display_errors e' acceso. Non si inghiotte, e si risponde 500: il
+            //SAPI del pipe lascia il 200 anche su un fatal, e con un 200 il runtime prova a
+            //leggere l'errore come se fosse il frammento della pagina.
+            self::LogError($markupFile, get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString());
+
+            self::$errorLogged = true;
+
+            if (!headers_sent())
+                http_response_code(500);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Dove vanno gli errori al posto del log del sito: lo usano le prove, che non hanno il
+     * pipe e vogliono leggere cosa sarebbe stato scritto.
+     *
+     * @var null|callable(string): void
+     */
+    private static $errorSink = null;
+
+    /** L'errore di questa richiesta e' gia' nel log: la chiusura non lo riscrive. */
+    private static bool $errorLogged = false;
+
+    /** L'errore nel log del sito, quello che si legge dal pannello. */
+    private static function LogError(string $markupFile, string $testo): void
+    {
+        $riga = 'WebForms ' . basename($markupFile) . ' [' . ($_SERVER['REQUEST_METHOD'] ?? 'cli') . ' ' . ($_SERVER['REQUEST_URI'] ?? '') . ']: ' . $testo;
+
+        try
+        {
+            if (self::$errorSink !== null)
+                (self::$errorSink)($riga);
+            else
+                \Common\Log::Error($riga);
+        }
+        catch (\Throwable)
+        {
+            //senza il pipe - dal cli - resta il log di PHP. Un errore nel loggare non deve
+            //coprire quello vero, ne' fermare la chiusura
+            error_log($riga);
+        }
     }
 
     private function ProcessRequest(string $markupFile): void

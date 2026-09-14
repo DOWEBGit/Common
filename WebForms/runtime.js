@@ -37,6 +37,13 @@ DW.error = (messaggio) => {
     box.textContent += messaggio + '\n';
 };
 
+// Il corpo di un 500 di PHP e' HTML (html_errors): si tiene il testo, e non tutto - lo
+// stack completo sta nel log, qui serve la riga che dice cosa e dove.
+function testoErrore(html) {
+    const testo = (new DOMParser().parseFromString(html, 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim();
+    return testo.length > 600 ? testo.slice(0, 600) + '…' : testo;
+}
+
 addEventListener('error', e => DW.error('JS: ' + (e.message || e.error) + '  @' + e.filename + ':' + e.lineno));
 addEventListener('unhandledrejection', e => DW.error('Promise non gestita: ' + e.reason));
 
@@ -400,6 +407,11 @@ async function esegui(target, evento, arg) {
     } finally {
         document.body.classList.remove('js-dw-attesa');
     }
+
+    // un 500 e' un errore del codice della pagina: si mostra, com'e' arrivato, invece di
+    // ricaricare e farlo sparire - nel log del sito c'e' gia', qui deve vederlo chi sviluppa.
+    // Gli altri (403 CSRF, stato scaduto) si risolvono ricaricando pulito.
+    if (risposta.status >= 500) { DW.error('postback ' + risposta.status + ': ' + testoErrore(await risposta.text())); return; }
 
     if (!risposta.ok) { location.reload(); return; }
 
