@@ -6,8 +6,7 @@ namespace Common;
 class Master
 {
     //chiave di sessione in cui si segna la giornata gia' registrata da AggiornaAccessoGiornaliero
-    private const SESSIONE_ACCESSO = 'MasterAccessoRegistrato';
-
+    private const string SESSIONE_ACCESSO = 'MasterAccessoRegistrato';
     public static function GetMasterLoggato(): \stdClass | null
     {
         $obj = PHPDOWEB();

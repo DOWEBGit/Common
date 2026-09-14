@@ -51,7 +51,7 @@ class DictionaryStringInt implements \IteratorAggregate
     /**
      * Rimuove un elemento dal dizionario.
      *
-     * @param int $key La chiave dell'elemento da rimuovere.
+     * @param string $key La chiave dell'elemento da rimuovere.
      * @return bool True se l'elemento è stato rimosso con successo, altrimenti false.
      */
     public function Remove(string $key): bool
@@ -85,7 +85,7 @@ class DictionaryStringInt implements \IteratorAggregate
     /**
      * Restituisce un iteratore per il dizionario.
      *
-     * @return \ArrayIterator
+     * @return \Iterator
      */
 
     /** @var $servizi \Common\Collection\StringIntValue[] */

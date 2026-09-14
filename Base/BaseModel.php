@@ -6,6 +6,7 @@ namespace Common\Base;
 
 use Common\Attribute;
 use Common\Attribute\PropertyAttribute;
+use Common\Attribute\VincoliAttribute;
 use Common\Response\SaveResponse;
 use DateTime;
 use ReflectionClass;
@@ -228,7 +229,10 @@ class BaseModel
         $meta = [];
 
         foreach (self::ReflectionDi($tableName)->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
-            foreach ($property->getAttributes() as $attribute) {
+            //SOLO il PropertyAttribute: sopra una proprieta' ce n'e' anche un altro, quello
+            //dei vincoli, e i suoi argomenti sono nominali - letti per posizione darebbero
+            //una colonna senza nome, cioe' metadati sbagliati per tutta la classe
+            foreach ($property->getAttributes(PropertyAttribute::class) as $attribute) {
                 $arguments = $attribute->getArguments();
 
                 $nome = $arguments['0'];
@@ -540,6 +544,15 @@ class BaseModel
     {
         $nuovo = $this->Id == 0;
 
+        //Prima di scomodare il pipe: i vincoli sono gia' qui, scritti dagli attributi che il
+        //generatore copia dal pannello. Un salvataggio che sbaglia si ferma adesso, con la
+        //stessa frase che direbbe Kestrel - che ricontrolla comunque: questo taglia il
+        //viaggio, non la guardia.
+        $vincoli = $this->Valida($nuovo);
+
+        if (!$vincoli->Success)
+            return $vincoli;
+
         $tableName = get_class($this);
 
         \Common\Cache::ResetDati($tableName);
@@ -552,9 +565,11 @@ class BaseModel
 
         //recupero le colonne della classe dalle etichette sulle variabili
         foreach ($properties as $property) {
-            $attributes = $property->getAttributes();
+            //SOLO il PropertyAttribute: sopra la stessa proprieta' c'e' anche quello dei
+            //vincoli, che ha argomenti nominali - preso per posizione darebbe una colonna
+            //senza nome, e la si scriverebbe nel database
+            $attributes = $property->getAttributes(PropertyAttribute::class);
 
-            //c'è massimo un solo attributo che è il nome del database, per adesso
             foreach ($attributes as $attribute) {
                 $nome = $attribute->getArguments()['0'];
                 $tipo = $attribute->getArguments()['1'];
@@ -575,9 +590,9 @@ class BaseModel
                         } else {
                             if ($property->name == "Id") {
                                 $colonne[] = [$nome, $propertyValue];
-                            } elseif ($property->name == "ParentId" || $property->name == "Visibile") {
-                                // gestiti separatamente tramite $parentId e $visible
-                            } else {
+                            } elseif ($property->name != "ParentId" && $property->name != "Visibile") {
+                                // ParentId e Visibile non passano di qui: viaggiano nei loro
+                                // parametri, e scriverli anche fra le colonne li manderebbe due volte
                                 $setFlag = $reflection->getProperty('_' . $property->name . "Set");
                                 if ($setFlag->getValue($this)) {
                                     $colonne[] = [$nome, $propertyValue];
@@ -725,8 +740,155 @@ class BaseModel
 
         $this->Id = $result->Id;
 
+        //l'entita' e' cambiata: le pagine aperte altrove che si erano iscritte a questo topic
+        //se ne accorgono e rileggono. Sta DOPO l'assegnazione dell'Id perche' su un
+        //inserimento prima di qui l'Id e' ancora 0, e un topic "Categorie/0" non lo aspetta
+        //nessuno. L'evento parte a fine richiesta e non porta dati, vedi EntityEvents
+        \Common\WebForms\EntityEvents::Notify(self::NomeEntita($tableName), $this->Id);
+
         $saveRespone->Success = true;
         return $saveRespone;
+    }
+
+    /**
+     * Il nome con cui l'entita' si annuncia: la classe senza il namespace.
+     *
+     * Le pagine si iscrivono a "Categorie", non a "Model\Categorie": il topic e' il nome del
+     * dato, e chi ascolta non deve sapere in che namespace sta la classe che l'ha scritto.
+     */
+    private static function NomeEntita(string $tableName): string
+    {
+        $taglio = strrpos($tableName, '\\');
+
+        return $taglio === false ? $tableName : substr($tableName, $taglio + 1);
+    }
+
+    /**
+     * Controlla i valori contro i vincoli dichiarati nel pannello.
+     *
+     * Cosa si controlla qui: obbligatorieta', lunghezza del testo, numero e lunghezza
+     * delle parole, espressione regolare, minimo e massimo dei numeri. Sono tutte cose che
+     * dipendono SOLO dal valore, quindi la risposta e' la stessa che darebbe Kestrel.
+     *
+     * Cosa NON si controlla: l'univocita', che vuole una lettura del database, e i file,
+     * che si controllano quando si caricano. Quelle restano dove sono.
+     *
+     * Su un aggiornamento si guardano solo i campi TOCCATI: e' la stessa regola con cui il
+     * motore scrive solo le colonne assegnate, e senza di quella una modifica parziale
+     * verrebbe respinta per un campo che non si stava nemmeno cambiando.
+     */
+    public function Valida(bool $nuovo): SaveResponse
+    {
+        $risposta = new SaveResponse();
+        $risposta->Success = true;
+
+        foreach (self::ReflectionDi(get_class($this))->getProperties() as $property)
+        {
+            $vincoli = $property->getAttributes(VincoliAttribute::class);
+
+            if ($vincoli === [])
+                continue;
+
+            $nome = $property->getName();
+
+            //un campo non assegnato, su un aggiornamento, non si tocca e non si giudica
+            if (!$nuovo && !$this->Assegnato($nome))
+                continue;
+
+            $regola = $vincoli[0]->newInstance();
+
+            //newInstance() promette solo "object": il controllo costa niente e toglie di
+            //mezzo il caso in cui qualcuno cambi il filtro di getAttributes()
+            if (!$regola instanceof VincoliAttribute)
+                continue;
+
+            $avviso = self::Sbaglio($regola, $property, $this);
+
+            if ($avviso === "")
+                continue;
+
+            $risposta->Success = false;
+            $risposta->InternalAvvisi[$nome] = $avviso;
+        }
+
+        return $risposta;
+    }
+
+    /** Il campo e' stato assegnato in questa richiesta? Lo dice il flag _<nome>Set. */
+    private function Assegnato(string $nome): bool
+    {
+        $flag = "_" . $nome . "Set";
+
+        if (!property_exists($this, $flag))
+            return true;
+
+        $riflesso = new ReflectionProperty($this, $flag);
+
+        return (bool)$riflesso->getValue($this);
+    }
+
+    /** Cosa c'e' che non va in questo valore, o stringa vuota se va bene. */
+    private static function Sbaglio(VincoliAttribute $vincoli, ReflectionProperty $property, object $modello): string
+    {
+        //una proprieta' non ancora inizializzata non ha un valore da giudicare
+        if (!$property->isInitialized($modello))
+            return "";
+
+        $valore = $property->getValue($modello);
+
+        //i file non si giudicano qui: si controllano quando si caricano, dove si ha il
+        //file vero sotto mano invece di un percorso
+        if (is_object($valore) || $valore === null)
+            return "";
+
+        if (is_bool($valore))
+            return "";
+
+        $mancante = $vincoli->AvvisoMancante !== "" ? $vincoli->AvvisoMancante : "Campo obbligatorio.";
+        $nonValido = $vincoli->AvvisoNonValido !== "" ? $vincoli->AvvisoNonValido : "Valore non valido.";
+
+        if (is_string($valore))
+        {
+            $pulito = trim(strip_tags($valore));
+
+            if ($vincoli->Obbligatorio && $pulito === "")
+                return $mancante;
+
+            if ($pulito === "")
+                return "";
+
+            if ($vincoli->MaxCaratteri > 0 && mb_strlen($pulito) > $vincoli->MaxCaratteri)
+                return $nonValido;
+
+            $parole = preg_split("/\\s+/u", $pulito) ?: [];
+
+            if ($vincoli->MaxParole > 0 && count($parole) > $vincoli->MaxParole)
+                return $nonValido;
+
+            if ($vincoli->LunghezzaParola > 0)
+                foreach ($parole as $parola)
+                    if (mb_strlen($parola) > $vincoli->LunghezzaParola)
+                        return $nonValido;
+
+            //l'espressione arriva dal pannello: se e' scritta male non deve buttare giu'
+            //il salvataggio, quindi si prova a spegnere il rumore e in caso si lascia
+            //passare - a dire di no ci pensa comunque Kestrel
+            if ($vincoli->RegEx !== "" && @preg_match("/" . str_replace("/", "\\/", $vincoli->RegEx) . "/u", $pulito) === 0)
+                return $nonValido;
+
+            return "";
+        }
+
+        if (is_int($valore) || is_float($valore))
+        {
+            if ($vincoli->Min !== -1 && $valore < $vincoli->Min)
+                return $nonValido;
+
+            if ($vincoli->Max !== -1 && $valore > $vincoli->Max)
+                return $nonValido;
+        }
+
+        return "";
     }
 
     function Delete(bool $onDelete = true): SaveResponse
@@ -748,6 +910,9 @@ class BaseModel
             $response->InternalAvviso = $result->Avviso;
             return $response;
         }
+
+        //come per la Save: chi guardava quell'elenco lo rilegge e la riga sparisce anche da la'
+        \Common\WebForms\EntityEvents::Notify(self::NomeEntita($tableName), $this->Id);
 
         $response->Success = true;
 

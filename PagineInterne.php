@@ -5,9 +5,9 @@ namespace Common;
 
 class PagineInterne
 {
-   /**
-     * @param int $id
-     * @param array $queryString
+    /**
+     * @param \Code\Enum\PagineInterneEnum $pagineInternaEnum la pagina interna
+     * @param array $queryString coppie nome => valore da mettere nell'indirizzo
      * @return string
      */
     public static function GetUrl(\Code\Enum\PagineInterneEnum $pagineInternaEnum, array $queryString = []) : string
@@ -31,8 +31,7 @@ class PagineInterne
     }
 
     /**
-     * ritorna l'array namevalue passato con GetUrl
-     * @param string $url, il link dato da GetUrl
+     * ritorna l'array namevalue passato con GetUrl, letto dalla querystring della richiesta
      * @return array
      */
     public static function GetQuery() : array
@@ -61,7 +60,7 @@ class PagineInterne
     /**
      * porta alla pagina admin dell'elenco
      * @param \Code\Enum\ModelEnum $modelEnum il nome del dato
-     * @param \Common\Base\BaseModel $parentModel un eventuale dato elenco padre id
+     * @param \Common\Base\BaseModel|null $parentModel un eventuale dato elenco padre
      * @return string il link della pagina elenco
      */
     public static function AdminDatiElenco(\Code\Enum\ModelEnum $modelEnum, ?\Common\Base\BaseModel $parentModel = null) : string
@@ -90,8 +89,9 @@ class PagineInterne
     /**
      * Porta alla pagina admin dell'editor, per salvare o per modificare
      * @param \Code\Enum\ModelEnum $modelEnum il nome del dato
-     * @param \Common\Base\BaseModel $model un eventuale dato elenco padre id
-     * @return string il link della pagina elenco
+     * @param \Common\Base\BaseModel|null $parentModel un eventuale dato elenco padre
+     * @param \Common\Base\BaseModel|null $model il dato da modificare, null per uno nuovo
+     * @return string il link della pagina editor
      */
     public static function AdminDatiEditor(\Code\Enum\ModelEnum $modelEnum, ?\Common\Base\BaseModel $parentModel = null, ?\Common\Base\BaseModel $model = null) : string
     {

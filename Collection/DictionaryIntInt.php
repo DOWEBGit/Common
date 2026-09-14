@@ -46,7 +46,7 @@ class DictionaryIntInt implements \IteratorAggregate, \ArrayAccess
      * Tenta di ottenere il valore associato a una chiave specifica.
      *
      * @param int $key La chiave dell'elemento da cercare.
-     * @param string|null $value La stringa in cui memorizzare il valore, se trovato.
+     * @param int|null $value Il numero in cui memorizzare il valore, se trovato.
      * @return bool True se l'elemento è stato trovato, altrimenti false.
      */
     public function TryGet(int $key, ?int &$value): bool

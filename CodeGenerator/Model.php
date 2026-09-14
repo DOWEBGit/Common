@@ -93,6 +93,7 @@ foreach ($dati as $index => $dato)
 
     $code .= "use \Common\Base\BaseModel;\n";
     $code .= "use \Common\Attribute\PropertyAttribute;\n";
+    $code .= "use \Common\Attribute\VincoliAttribute;\n";
     $code .= "use \Common\Controlli\ControlloFile;\n";
     $code .= "use \Common\Controlli\ControlloImmagine;\n";
     $code .= "use \Common\Response\SaveResponse;\n\n";
@@ -308,6 +309,42 @@ foreach ($dati as $index => $dato)
 
     $code .= $tab . "}\n\n";
 
+    /**
+     * I vincoli del controllo, come stanno nel pannello, messi sulla proprieta'.
+     *
+     * Obbligatorieta', lunghezze, espressione regolare, minimi e massimi, estensioni e
+     * misure - piu' i due avvisi con cui il pannello li spiega. Il sito li legge da qui e
+     * puo' fermare un salvataggio sbagliato PRIMA di chiamare il pipe, dicendo la stessa
+     * frase che direbbe Kestrel.
+     *
+     * Non e' una seconda regola: e' lo specchio di quella, e resta dichiarata in un posto
+     * solo. L'ultima parola resta comunque a Kestrel, che ricontrolla al salvataggio.
+     */
+    $vincoli = static function ($colonna) use ($tab, $obj): string
+    {
+        $testo = static fn($valore) => str_replace(["'", "\\"], "", (string)($valore ?? ""));
+
+        //il pipe manda le stringhe "true"/"false", e "false" e' una stringa non vuota: letta
+        //come booleano sarebbe vera, e ogni campo uscirebbe obbligatorio
+        return $tab . "#[VincoliAttribute("
+            . "Obbligatorio: " . (($colonna->Obbligatorio ?? "") === "true" ? "true" : "false") . ", "
+            . "MaxCaratteri: " . (int)($colonna->TestoMaxCaratteri ?? 0) . ", "
+            . "MaxParole: " . (int)($colonna->TestoMaxParole ?? 0) . ", "
+            . "LunghezzaParola: " . (int)($colonna->TestoLunghezzaParole ?? 0) . ", "
+            . "RegEx: '" . $testo($colonna->TestoRegEx ?? "") . "', "
+            . "Min: " . (int)($colonna->NumeriValoreMin ?? -1) . ", "
+            . "Max: " . (int)($colonna->NumeriValoreMax ?? -1) . ", "
+            . "Estensioni: '" . $testo($colonna->FileEstensioni ?? "") . "', "
+            . "KBytesMax: " . (int)($colonna->FileKBytesMax ?? 0) . ", "
+            . "LarghezzaMin: " . (int)($colonna->ImmagineLarghezzaMin ?? 0) . ", "
+            . "LarghezzaMax: " . (int)($colonna->ImmagineLarghezzaMax ?? 0) . ", "
+            . "AltezzaMin: " . (int)($colonna->ImmagineAltezzaMin ?? 0) . ", "
+            . "AltezzaMax: " . (int)($colonna->ImmagineAltezzaMax ?? 0) . ", "
+            . "AvvisoMancante: '" . $testo($obj->Decode($colonna->AvvisoCampoMancante ?? "")) . "', "
+            . "AvvisoNonValido: '" . $testo($obj->Decode($colonna->AvvisoCampoNonValido ?? "")) . "'"
+            . ")]\n";
+    };
+
     foreach ($colonneDettagliate as $colonnaDettagliata)
     {
         $identificativo = str_replace(" ", "_", $colonnaDettagliata->Identificativo);
@@ -315,6 +352,11 @@ foreach ($dati as $index => $dato)
         $code .= $tab . "/**\n";
         $code .= $tab . "* " . $obj->Decode($colonnaDettagliata->Descrizione) . "\n";
         $code .= $tab . "*/\n";
+
+        //i vincoli valgono per tutti i tipi: sui file la riga si ripete dentro il ramo,
+        //perche' li' le proprieta' sono due e l'attributo va su quella del campo vero
+        if ($colonnaDettagliata->TipoDato !== "File" && $colonnaDettagliata->TipoDato !== "Immagini")
+            $code .= $vincoli($colonnaDettagliata);
 
         switch ($colonnaDettagliata->TipoDato)
         {
@@ -398,6 +440,7 @@ foreach ($dati as $index => $dato)
             {
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "_Percorso', '', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "public string $" . $identificativo . "_Percorso;\n";
+                $code .= $vincoli($colonnaDettagliata);
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'File', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "private ?ControlloFile $" . $identificativo . ";\n";
                 $code .= $tab . "public function " . $identificativo . "Get() : ?ControlloFile\n";
@@ -434,6 +477,7 @@ foreach ($dati as $index => $dato)
             {
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "_Percorso', '', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "public string $" . $identificativo . "_Percorso;\n";
+                $code .= $vincoli($colonnaDettagliata);
                 $code .= $tab . "#[PropertyAttribute('" . $colonnaDettagliata->Identificativo . "', 'Immagini', " . $colonnaDettagliata->Univoco . ")]\n";
                 $code .= $tab . "private ?ControlloImmagine $" . $identificativo . ";\n";
                 $code .= $tab . "public function " . $identificativo . "Get() : ?ControlloImmagine\n";

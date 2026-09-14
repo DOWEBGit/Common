@@ -1,0 +1,7 @@
+# Il markup analizzato: si rigenera da solo, e cambia ad ogni modifica di una pagina.
+_cache/
+
+# La chiave con cui si firma il ViewState nascosto. E' per installazione, nasce da sola al
+# primo avvio, e in un repository sarebbe la stessa per tutti i siti che partono da qui:
+# chiunque potrebbe firmarsi uno stato valido.
+_segreto.php
