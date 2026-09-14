@@ -14,7 +14,7 @@
 
     <div class="ex-demo">
         <p>
-            <dw:TextBox id="__TextBox_Input" Placeholder="scrivi qualcosa, anche con <b>tag</b>" Text="Ciao <b>mondo</b> & C." />
+            <dw:TextBox id="__TextBox_Input" Placeholder="scrivi qualcosa, anche con dei tag" />
             <dw:Button id="__Button_Show" Text="Mostra" OnClick="ShowClick" />
         </p>
 

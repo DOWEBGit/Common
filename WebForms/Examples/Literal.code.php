@@ -12,8 +12,13 @@ class LiteralExample extends Page
 
     protected function OnLoad(): void
     {
-        if (!$this->IsPostBack)
-            $this->ShowClick();
+        if ($this->IsPostBack)
+            return;
+
+        //il testo di partenza dal codice: nel markup un < dentro un attributo non ci puo' stare
+        $this->__TextBox_Input->Text = 'Ciao <b>mondo</b> & C.';
+
+        $this->ShowClick();
     }
 
     protected function ShowClick(): void
