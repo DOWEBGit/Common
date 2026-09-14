@@ -126,7 +126,8 @@ class PropertyTable extends UserControl
 
         foreach (preg_split('/\R/', $doc) ?: [] as $riga)
         {
-            $riga = trim(preg_replace('#^\s*(/\*\*|\*/|\*)#', '', $riga) ?? '');
+            //via /** in testa, */ in coda e la stellina di ogni riga: resta il testo
+            $riga = trim(preg_replace('#^\s*(/\*\*|\*/|\*)|\*/\s*$#', '', $riga) ?? '');
 
             if ($riga === '' && $righe !== [])
                 break;
