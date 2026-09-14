@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Common\WebForms\UnitTest;
 
 use Common\WebForms\ControlBuilder;
+use Common\WebForms\Designer;
 use Common\WebForms\PageParser;
 
 /**
@@ -21,6 +22,43 @@ class ProveMarkup
         self::Segnaposti($p);
         self::Master($p);
         self::TagDiUserControl($p);
+        self::IdAllaWk($p);
+    }
+
+    /**
+     * La convenzione degli id di WK - __Literal_Nome, __Hidden_Id - deve passare dal markup al
+     * designer al codebehind senza che il doppio underscore iniziale si confonda con il
+     * suffisso __ dei contenitori di denominazione o con i campi __dw_ del runtime.
+     */
+    private static function IdAllaWk(Prova $p): void
+    {
+        $p->Sezione('gli id alla WK: __Tipo_Nome');
+
+        $nodi = PageParser::ParseTesto('<dw:Literal id="__Literal_Nome" Text="x" /><dw:HiddenField id="__Hidden_Id" Value="7" />');
+        $controlli = ControlBuilder::Build($nodi, null);
+
+        $p->Uguale('l\'id resta com\'e\' scritto', '__Literal_Nome', $controlli[0]->Id);
+        $p->Contiene('e nell\'HTML esce verbatim', 'id="__Hidden_Id"', $controlli[1]->Render());
+
+        $cartella = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dw-prove-id-' . getmypid();
+
+        mkdir($cartella);
+
+        $markup = $cartella . DIRECTORY_SEPARATOR . 'Wk.php';
+
+        file_put_contents($markup, '<?php ?><dw:Literal id="__Literal_Nome" /><dw:TextBox id="__TextBox_Iban" />');
+
+        Designer::Update($markup, 'Common\WebForms\UnitTest\Wk\Wk');
+
+        $designer = file_get_contents(Designer::DesignerPath($markup));
+
+        $p->Contiene('il designer dichiara la proprieta\' con quel nome', 'Literal $__Literal_Nome;', $designer);
+        $p->Contiene('e quella della casella', 'TextBox $__TextBox_Iban;', $designer);
+
+        foreach (glob($cartella . DIRECTORY_SEPARATOR . '*') ?: [] as $file)
+            unlink($file);
+
+        rmdir($cartella);
     }
 
     /**
