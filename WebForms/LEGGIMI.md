@@ -750,6 +750,42 @@ il contenitore, un `Panel` che sa aprirsi.
 | `Show()` | apri, da un handler: il browser lo mostra con la risposta di questo postback |
 | `Hide()` | chiudi, da un handler: quando il salvataggio e' andato bene |
 
+Il codebehind e' quello di una scheda qualunque — il popup non cambia niente di come si
+leggono e si scrivono i controlli che contiene:
+
+```php
+protected function ModificaClick(Control $sender, string $argomento): void
+{
+    //aprire dal server, con la scheda gia' riempita: il click sul TargetControlID non
+    //basterebbe, perche' il browser non sa cosa metterci dentro
+    $categoria = \Model\Categorie::GetItemById((int)$argomento, 'IT');
+
+    $this->__TextBox_Nome->Text = $categoria->Nome;
+    $this->__ModalPopup_Scheda->Show();
+}
+
+protected function SalvaClick(): void
+{
+    if (trim($this->__TextBox_Nome->Text) === '')
+    {
+        $this->Alert->Fail('Il nome e\' obbligatorio.');   //il popup resta aperto, l'avviso sopra
+
+        return;
+    }
+
+    // ... si salva tramite il Controller ...
+
+    $this->__ModalPopup_Scheda->Hide();
+    $this->Alert->Success('Salvato.');
+}
+```
+
+**Non e' l'`Alert` modale, e non lo sostituisce.** L'avviso modale (`Alert->Fail($testo, true)`)
+e' un messaggio che va letto per forza: un testo e un OK. Il `ModalPopup` e' un pezzo di
+pagina con dentro dei controlli veri — una scheda, un filtro, una conferma con una casella
+da compilare — che fanno postback e hanno stato. Se quello che serve e' dire una cosa, e'
+un avviso; se serve chiedere qualcosa, e' un popup.
+
 **Chi lo apre e chi lo chiude, e dove.** Il click sul `TargetControlID` lo apre nel browser;
 OK e Annulla lo chiudono nel browser; nessuno dei tre fa postback — come nel toolkit, dove
 l'extender annulla il click di quei controlli. Un controllo qualunque **dentro** il popup fa
@@ -774,6 +810,20 @@ posizione e' `fixed`, e resiste a scroll e ridimensionamento da sola.
 Dentro un UserControl i riferimenti (`TargetControlID` e gli altri) prendono il suffisso del
 contenitore come gli id, quindi si scrivono nudi, come in `FindControl()`. `DW.showModal(id)`
 e `DW.hideModal(id)` per aprirlo e chiuderlo da uno script di pagina.
+
+Cosa esce nell'HTML, per chi lo stila da fuori:
+
+```html
+<div id="__ModalPopup_Scheda" class="dw-popup [CssClass]" role="dialog" aria-modal="true" data-dw-modal="1" …>
+    <div class="dw-popup-fondo [BackgroundCssClass]"></div>
+    <div class="dw-popup-scatola [dw-popup-ombra]"> … i figli … </div>
+</div>
+```
+
+`dw-popup` e' `display:none` finche' il runtime non aggiunge `js-dw-aperto`; la scatola e'
+centrata, scorre se e' piu' alta della finestra, e ha `padding` e `border-radius` suoi che il
+foglio del sito sovrascrive quando vuole. Il `CssClass` del controllo va sul contenitore
+esterno, quindi `.scheda .dw-popup-scatola { width: 640px }` e' il modo di darle una misura.
 
 `ProveAMano/Prima.php` ha il banco: apertura dal browser e dal server, Salva che chiude solo
 se c'e' del testo, Ok e Annulla che scrivono in pagina cosa e' successo, testata trascinabile.
