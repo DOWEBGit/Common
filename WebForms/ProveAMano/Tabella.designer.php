@@ -13,10 +13,10 @@ namespace Common\WebForms\ProveAMano;
 trait TabellaDesigner
 {
     public \Common\WebForms\ProveAMano\Cornice $Master;
-    public \Common\WebForms\Controls\Button $btnAggiungi;
-    public \Common\WebForms\Controls\Literal $litQuante;
-    public \Common\WebForms\Controls\Literal $litClick;
-    public \Common\WebForms\Controls\Button $btnNiente;
-    public \Common\WebForms\Controls\CheckBox $chkTieni;
-    public \Common\WebForms\Controls\Panel $tbRighe;
+    public \Common\WebForms\Controls\Button $__Button_Aggiungi;
+    public \Common\WebForms\Controls\Literal $__Literal_Quante;
+    public \Common\WebForms\Controls\Literal $__Literal_Click;
+    public \Common\WebForms\Controls\Button $__Button_Niente;
+    public \Common\WebForms\Controls\CheckBox $__CheckBox_Tieni;
+    public \Common\WebForms\Controls\Panel $__Panel_Righe;
 }

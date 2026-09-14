@@ -45,17 +45,17 @@ class Seconda extends Page
             $email = (string)($dati['Email'] ?? '');
             $foto  = (string)($dati['Immagine'] ?? '');
 
-            $this->litNomeUtente->Text = trim($nome . ' ' . ($dati['Cognome'] ?? ''));
-            $this->litEmail->Text      = $email;
+            $this->__Literal_NomeUtente->Text = trim($nome . ' ' . ($dati['Cognome'] ?? ''));
+            $this->__Literal_Email->Text      = $email;
 
             //solo un data URI di immagine passa nel src: e' l'unica cosa che ci si aspetta
-            $this->litFoto->Text = str_starts_with($foto, 'data:image/')
+            $this->__Literal_Foto->Text = str_starts_with($foto, 'data:image/')
                 ? '<img src="' . Control::HtmlEncode($foto) . '" width="48" height="48" alt="" style="vertical-align:middle;margin-right:8px">'
                 : '';
 
-            $this->pnlUtente->Visible = true;
+            $this->__Panel_Utente->Visible = true;
 
-            $this->Alert->Success('E\' arrivato ' . $this->litNomeUtente->Text . '.');
+            $this->Alert->Success('E\' arrivato ' . $this->__Literal_NomeUtente->Text . '.');
         });
     }
 
@@ -98,12 +98,12 @@ class Seconda extends Page
 
     protected function OnPreRender(): void
     {
-        $this->litArrivato->Text = $this->NomePortato === ''
+        $this->__Literal_Arrivato->Text = $this->NomePortato === ''
             ? 'Non e\' arrivato niente: torna alla prima pagina e scrivi un nome.'
             : 'E\' arrivato: ' . $this->NomePortato;
 
-        $this->litContatore->Text = (string)$this->Conteggio;
+        $this->__Literal_Contatore->Text = (string)$this->Conteggio;
 
-        $this->litSaluti->Text = $this->SalutiRicevuti . ($this->SalutiRicevuti === 1 ? ' saluto ricevuto' : ' saluti ricevuti');
+        $this->__Literal_Saluti->Text = $this->SalutiRicevuti . ($this->SalutiRicevuti === 1 ? ' saluto ricevuto' : ' saluti ricevuti');
     }
 }

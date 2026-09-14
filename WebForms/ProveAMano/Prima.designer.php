@@ -18,20 +18,20 @@ namespace Common\WebForms\ProveAMano;
 trait PrimaDesigner
 {
     public \Common\WebForms\ProveAMano\Cornice $Master;
-    public \Common\WebForms\Controls\Literal $litContatore;
-    public \Common\WebForms\Controls\Button $btnConta;
-    public \Common\WebForms\Controls\TextBox $txtNota;
-    public \Common\WebForms\Controls\Button $btnRileggi;
-    public \Common\WebForms\Controls\Literal $litNota;
-    public \Common\WebForms\Controls\TextBox $txtNome;
-    public \Common\WebForms\Controls\Button $btnPorta;
-    public \Common\WebForms\Controls\Literal $litPortato;
-    public \Common\WebForms\Controls\DatePicker $dtGiorno;
-    public \Common\WebForms\Controls\DatePicker $dtQuando;
-    public \Common\WebForms\Controls\Button $btnCambiaModo;
-    public \Common\WebForms\Controls\Literal $litDate;
-    public \Common\WebForms\Controls\Button $btnSaluta;
-    public \Common\WebForms\Controls\Button $btnUtente;
-    public \Common\WebForms\Controls\Literal $litSaluti;
-    public \Common\WebForms\Controls\CheckBox $chkTieni;
+    public \Common\WebForms\Controls\Literal $__Literal_Contatore;
+    public \Common\WebForms\Controls\Button $__Button_Conta;
+    public \Common\WebForms\Controls\TextBox $__TextBox_Nota;
+    public \Common\WebForms\Controls\Button $__Button_Rileggi;
+    public \Common\WebForms\Controls\Literal $__Literal_Nota;
+    public \Common\WebForms\Controls\TextBox $__TextBox_Nome;
+    public \Common\WebForms\Controls\Button $__Button_Porta;
+    public \Common\WebForms\Controls\Literal $__Literal_Portato;
+    public \Common\WebForms\Controls\DatePicker $__DatePicker_Giorno;
+    public \Common\WebForms\Controls\DatePicker $__DatePicker_Quando;
+    public \Common\WebForms\Controls\Button $__Button_CambiaModo;
+    public \Common\WebForms\Controls\Literal $__Literal_Date;
+    public \Common\WebForms\Controls\Button $__Button_Saluta;
+    public \Common\WebForms\Controls\Button $__Button_Utente;
+    public \Common\WebForms\Controls\Literal $__Literal_Saluti;
+    public \Common\WebForms\Controls\CheckBox $__CheckBox_Tieni;
 }

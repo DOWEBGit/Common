@@ -78,14 +78,14 @@ class Prima extends Page
 
     protected function RileggiClick(): void
     {
-        $this->litNota->Text = $this->txtNota->Text === ''
+        $this->__Literal_Nota->Text = $this->__TextBox_Nota->Text === ''
             ? 'la casella e\' vuota'
-            : 'il server ha letto: "' . $this->txtNota->Text . '"';
+            : 'il server ha letto: "' . $this->__TextBox_Nota->Text . '"';
     }
 
     protected function PortaClick(): void
     {
-        $this->NomePortato = $this->txtNome->Text;
+        $this->NomePortato = $this->__TextBox_Nome->Text;
 
         $this->Alert->Success($this->NomePortato === ''
             ? 'Portato via il nome: adesso non c\'e\' niente.'
@@ -95,7 +95,7 @@ class Prima extends Page
     /** Uno dei due selettori ha cambiato data: si rilegge come data e si riscrive. */
     protected function DataCambiata(Control $sender): void
     {
-        $this->Alert->Success(($sender->Id === 'dtGiorno' ? 'Giorno' : 'Quando') . ' cambiato.');
+        $this->Alert->Success(($sender->Id === '__DatePicker_Giorno' ? 'Giorno' : 'Quando') . ' cambiato.');
     }
 
     /**
@@ -138,7 +138,7 @@ class Prima extends Page
     /** Il primo selettore passa da solo giorno a giorno e ora, e viceversa, tenendo il valore. */
     protected function CambiaModoClick(): void
     {
-        $this->dtGiorno->Mode = $this->dtGiorno->Mode === DateTimeMode::Date
+        $this->__DatePicker_Giorno->Mode = $this->__DatePicker_Giorno->Mode === DateTimeMode::Date
             ? DateTimeMode::DateTime
             : DateTimeMode::Date;
     }
@@ -149,18 +149,18 @@ class Prima extends Page
             ? '(vuoto)'
             : $dt->Value->format($dt->Mode === DateTimeMode::Date ? 'l j F Y' : 'l j F Y, H:i');
 
-        $this->litSaluti->Text = (string)$this->SalutiRicevuti;
+        $this->__Literal_Saluti->Text = (string)$this->SalutiRicevuti;
 
-        $this->litDate->Text = 'dtGiorno [' . $this->dtGiorno->Mode->name . ']: ' . $scrivi($this->dtGiorno)
-            . ' — dtQuando [' . $this->dtQuando->Mode->name . ']: ' . $scrivi($this->dtQuando);
+        $this->__Literal_Date->Text = '__DatePicker_Giorno [' . $this->__DatePicker_Giorno->Mode->name . ']: ' . $scrivi($this->__DatePicker_Giorno)
+            . ' — __DatePicker_Quando [' . $this->__DatePicker_Quando->Mode->name . ']: ' . $scrivi($this->__DatePicker_Quando);
 
         //la casella si decide da se' se questa pagina si tiene o no
-        $this->KeepState = $this->chkTieni->Checked;
+        $this->KeepState = $this->__CheckBox_Tieni->Checked;
 
-        $this->litContatore->Text = (string)$this->Conteggio;
+        $this->__Literal_Contatore->Text = (string)$this->Conteggio;
 
-        $this->litPortato->Text = $this->NomePortato === '' ? '(niente)' : $this->NomePortato;
+        $this->__Literal_Portato->Text = $this->NomePortato === '' ? '(niente)' : $this->NomePortato;
 
-        $this->txtNome->Text = $this->NomePortato;
+        $this->__TextBox_Nome->Text = $this->NomePortato;
     }
 }

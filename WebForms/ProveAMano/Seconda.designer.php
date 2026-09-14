@@ -14,14 +14,14 @@ namespace Common\WebForms\ProveAMano;
 trait SecondaDesigner
 {
     public \Common\WebForms\ProveAMano\Cornice $Master;
-    public \Common\WebForms\Controls\Literal $litArrivato;
-    public \Common\WebForms\Controls\Button $btnMaiuscolo;
-    public \Common\WebForms\Controls\Button $btnSvuota;
-    public \Common\WebForms\Controls\Literal $litSaluti;
-    public \Common\WebForms\Controls\Panel $pnlUtente;
-    public \Common\WebForms\Controls\Literal $litFoto;
-    public \Common\WebForms\Controls\Literal $litNomeUtente;
-    public \Common\WebForms\Controls\Literal $litEmail;
-    public \Common\WebForms\Controls\Literal $litContatore;
-    public \Common\WebForms\Controls\Button $btnConta;
+    public \Common\WebForms\Controls\Literal $__Literal_Arrivato;
+    public \Common\WebForms\Controls\Button $__Button_Maiuscolo;
+    public \Common\WebForms\Controls\Button $__Button_Svuota;
+    public \Common\WebForms\Controls\Literal $__Literal_Saluti;
+    public \Common\WebForms\Controls\Panel $__Panel_Utente;
+    public \Common\WebForms\Controls\Literal $__Literal_Foto;
+    public \Common\WebForms\Controls\Literal $__Literal_NomeUtente;
+    public \Common\WebForms\Controls\Literal $__Literal_Email;
+    public \Common\WebForms\Controls\Literal $__Literal_Contatore;
+    public \Common\WebForms\Controls\Button $__Button_Conta;
 }

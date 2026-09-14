@@ -42,17 +42,17 @@
     <div class="pm-marchio">Prove a mano</div>
 
     <nav class="pm-menu">
-        <dw:Literal id="litMenu" Mode="PassThrough" />
+        <dw:Literal id="__Literal_Menu" Mode="PassThrough" />
     </nav>
 
-    <dw:Panel id="pnlSalutiCornice" Tag="span" CssClass="pm-saluti" Visible="false">
-        saluti arrivati alla cornice: <b><dw:Literal id="litSalutiCornice" Text="0" /></b>
+    <dw:Panel id="__Panel_SalutiCornice" Tag="span" CssClass="pm-saluti" Visible="false">
+        saluti arrivati alla cornice: <b><dw:Literal id="__Literal_SalutiCornice" Text="0" /></b>
     </dw:Panel>
 </header>
 
 <div class="pm-corpo">
-    <h1><dw:Literal id="litTitolo" /></h1>
-    <p class="pm-tenue"><dw:Literal id="litSottotitolo" /></p>
+    <h1><dw:Literal id="__Literal_Titolo" /></h1>
+    <p class="pm-tenue"><dw:Literal id="__Literal_Sottotitolo" /></p>
 
     <dw:ContentPlaceHolder id="corpo">
         <p class="pm-tenue">Questa pagina non ha dichiarato nessun contenuto.</p>
@@ -60,12 +60,12 @@
 </div>
 
 <footer class="pm-pie pm-tenue">
-    Questa pagina e' stata resa dal server alle <b><dw:Literal id="litOra" /></b> —
+    Questa pagina e' stata resa dal server alle <b><dw:Literal id="__Literal_Ora" /></b> —
     se cambia navigando, la navigazione ha davvero chiesto la pagina al server.
 </footer>
 
-<dw:UpdateProgress id="prgAttesa" DisplayAfter="200">
+<dw:UpdateProgress id="__UpdateProgress" DisplayAfter="200">
     <div class="dw-attesa-scatola">Attendere ...</div>
 </dw:UpdateProgress>
 
-<dw:Alert id="avvisi" Duration="4000" />
+<dw:Alert id="__Alert" Duration="4000" />

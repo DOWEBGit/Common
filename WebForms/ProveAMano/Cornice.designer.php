@@ -8,13 +8,13 @@ namespace Common\WebForms\ProveAMano;
  */
 trait CorniceDesigner
 {
-    public \Common\WebForms\Controls\Literal $litMenu;
-    public \Common\WebForms\Controls\Panel $pnlSalutiCornice;
-    public \Common\WebForms\Controls\Literal $litSalutiCornice;
-    public \Common\WebForms\Controls\Literal $litTitolo;
-    public \Common\WebForms\Controls\Literal $litSottotitolo;
+    public \Common\WebForms\Controls\Literal $__Literal_Menu;
+    public \Common\WebForms\Controls\Panel $__Panel_SalutiCornice;
+    public \Common\WebForms\Controls\Literal $__Literal_SalutiCornice;
+    public \Common\WebForms\Controls\Literal $__Literal_Titolo;
+    public \Common\WebForms\Controls\Literal $__Literal_Sottotitolo;
     public \Common\WebForms\Controls\ContentPlaceHolder $corpo;
-    public \Common\WebForms\Controls\Literal $litOra;
-    public \Common\WebForms\Controls\UpdateProgress $prgAttesa;
-    public \Common\WebForms\Controls\Alert $avvisi;
+    public \Common\WebForms\Controls\Literal $__Literal_Ora;
+    public \Common\WebForms\Controls\UpdateProgress $__UpdateProgress;
+    public \Common\WebForms\Controls\Alert $__Alert;
 }

@@ -7,8 +7,8 @@
 <p class="pm-tenue" style="max-width:900px">
     Nessun database, nessun Model: solo il motore e la cornice qui attorno. Ogni riquadro fa
     una domanda sola, e la risposta si legge premendo il bottone e guardando cosa resta.
-    Postback fatti finora: <b><dw:Literal id="litClick" /></b>
-    <dw:Button id="btnPostback" Text="Fai un postback e non toccare nient'altro" OnClick="PostbackClick" />
+    Postback fatti finora: <b><dw:Literal id="__Literal_Click" /></b>
+    <dw:Button id="__Button_Postback" Text="Fai un postback e non toccare nient'altro" OnClick="PostbackClick" />
 </p>
 
 <div class="pm-card">
@@ -24,12 +24,12 @@
         <thead>
         <tr><th style="width:60px">N.</th><th style="width:120px">Nome</th><th>Messo dal codice</th><th style="width:180px"></th></tr>
         </thead>
-        <dw:Repeater id="rpt" Tag="tbody" ItemTag="tr" DataKeyField="Id">
+        <dw:Repeater id="__Repeater_Elenco" Tag="tbody" ItemTag="tr" DataKeyField="Id">
             <ItemTemplate>
                 <td>{{Id}}</td>
                 <td>{{Nome}}</td>
-                <td><dw:Literal id="litNota" /></td>
-                <td><dw:LinkButton id="lnkTocca" Text="tocca questa riga" OnClick="ToccaClick" /></td>
+                <td><dw:Literal id="__Literal_Nota" /></td>
+                <td><dw:LinkButton id="__LinkButton_Tocca" Text="tocca questa riga" OnClick="ToccaClick" /></td>
             </ItemTemplate>
         </dw:Repeater>
     </table>
@@ -46,7 +46,7 @@
         saprebbe ricostruirle da solo.
     </p>
 
-    <dw:PlaceHolder id="phSempre" />
+    <dw:PlaceHolder id="__PlaceHolder_Sempre" />
 </div>
 
 <div class="pm-card">
@@ -61,11 +61,11 @@
     </p>
 
     <p>
-        <dw:Button id="btnVolo" Text="Aggiungi al volo" OnClick="VoloClick" />
-        <span class="pm-tenue">etichette vive adesso: <b><dw:Literal id="litVolo" /></b></span>
+        <dw:Button id="__Button_Volo" Text="Aggiungi al volo" OnClick="VoloClick" />
+        <span class="pm-tenue">etichette vive adesso: <b><dw:Literal id="__Literal_Volo" /></b></span>
     </p>
 
-    <dw:PlaceHolder id="phVolatile" />
+    <dw:PlaceHolder id="__PlaceHolder_Volatile" />
 </div>
 
 </dw:Content>

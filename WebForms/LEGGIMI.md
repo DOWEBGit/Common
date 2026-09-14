@@ -6,8 +6,12 @@ server, eventi nel codebehind, e il browser che fonde le differenze invece di ri
 Questa cartella e' il motore. Non contiene pagine del sito: le pagine stanno nel sito che lo
 usa. Le uniche pagine qui dentro sono i banchi di prova di `ProveAMano/`, che sono del motore.
 
-L'API e' in inglese e ricalca WebForms; i commenti restano in italiano come il resto del
-codice.
+**La lingua.** L'API del motore e' in inglese e ricalca WebForms. Lo stesso vale per il codice
+che si scrive con il motore: **nomi di variabili, metodi, pagine, tabelle e campi in inglese;
+commenti, testi mostrati all'utente e messaggi in italiano.** Un identificatore in inglese si
+legge in qualunque codice del mondo e non fa a pugni con le parole chiave e con le librerie;
+un commento in italiano lo legge chi lo deve leggere. Northwind e i banchi di prova sono nati
+in italiano e restano cosi': sono esempi, non un modello di stile.
 
 Il documento e' diviso cosi':
 
@@ -42,9 +46,9 @@ Il markup comincia con una riga sola — il percorso a `Bootstrap.php` e' relati
 \Common\WebForms\Page::Run(__FILE__, \WebForms\Ordine::class); ?>
 
 <h1>Righe ordine</h1>
-<dw:TextBox id="txtArticolo" Placeholder="Codice articolo" />
-<dw:Button id="btnAggiungi" Text="Aggiungi" OnClick="AggiungiClick" />
-<dw:Label id="lblStato" />
+<dw:TextBox id="__TextBox_Articolo" Placeholder="Codice articolo" />
+<dw:Button id="__Button_Aggiungi" Text="Aggiungi" OnClick="AggiungiClick" />
+<dw:Label id="__Label_Stato" />
 ```
 
 Il codebehind estende `Page` e usa il trait del designer:
@@ -56,7 +60,7 @@ class Ordine extends Page
 
     protected function AggiungiClick(Control $sender, string $argomento): void
     {
-        $this->lblStato->Text = 'Riga aggiunta.';   // e qualunque altro controllo
+        $this->__Label_Stato->Text = 'Riga aggiunta.';   // e qualunque altro controllo
     }
 }
 ```
@@ -369,6 +373,50 @@ Piu' quelli che una pagina non scrive ma il sito si': `Alert`, `UpdateProgress`,
 Tutti stanno in `Controls` e hanno `Id`, `Visible`, `CssClass`, `Attributes`, `Style`,
 `ViewStateMode`.
 
+### Come si chiamano gli id
+
+Il motore accetta qualunque id. La **convenzione** e' quella di WK, dove la seguono 3.400
+controlli su 3.900: due underscore, il **nome del tipo**, un underscore, e un nome in
+PascalCase che dice **cosa contiene**, non com'e' fatto.
+
+    __Literal_RagioneSociale        __TextBox_Iban              __DropDownList_Tipo
+    __LinkButton_Elimina            __Button_Salva              __CheckBox_InvioAutomatico
+    __PlaceHolder_Allegati          __Panel_Nascosto            __Repeater_Elenco
+    __Hidden_Id                     __FileUpload_Allegato       __DatePicker_Dal
+    __Label_Stato                   __ListBox_Regioni           __Alert  __UpdateProgress  __PageNavigator
+
+| tipo | prefisso | note |
+|---|---|---|
+| `Literal` | `__Literal_` | |
+| `Label` | `__Label_` | |
+| `TextBox` | `__TextBox_` | |
+| `DatePicker` | `__DatePicker_` | |
+| `Button` / `LinkButton` | `__Button_` / `__LinkButton_` | `__Button_Salva`, `__Button_Chiudi`, `__Button_Nuovo` sono i nomi che WK usa ovunque |
+| `CheckBox` | `__CheckBox_` | |
+| `DropDownList` | `__DropDownList_` | in WK compare anche `__DDL_`: si preferisce il nome intero |
+| `ListBox` | `__ListBox_` | |
+| `HiddenField` | `__Hidden_` | e dentro una riga di Repeater e' sempre `__Hidden_Id` |
+| `Repeater` | `__Repeater_` | `__Repeater_Elenco` quando in pagina ce n'e' uno solo |
+| `Panel` / `PlaceHolder` | `__Panel_` / `__PlaceHolder_` | |
+| `FileUpload` | `__FileUpload_` | |
+| UserControl | `__NomeDelControllo` | `__Menu`, `__PageNavigator`; con due istanze `__PageNavigator_Sopra`, `__PageNavigator_Sotto` |
+| `Alert`, `UpdateProgress` | `__Alert`, `__UpdateProgress` | uno per master, senza nome |
+
+Perche' conviene: nel codebehind `$this->__TextBox_Iban->Text` dice il tipo senza aprire il
+markup; scrivendo `$this->__Te` il completamento elenca tutte le caselle di testo della
+pagina; una ricerca di `__Literal_` trova tutti i Literal del sito; e un id che comincia con
+`__` non si confonde mai con un `id="menu"` scritto a mano nell'HTML, con una classe CSS o con
+una variabile JavaScript. Chi arriva da WK legge le pagine PHP come leggeva le `.aspx`.
+
+Due cose da sapere. Il motore aggiunge un suffisso `__` agli id dentro un UserControl
+(`__Literal_Nome__PageNavigator`): la convenzione ci convive, il nome resta leggibile. E i
+nomi `__dw_*` sono del runtime — sono i campi del postback — quindi non si usano come id.
+
+La parte dopo il prefisso segue la regola della lingua: in codice nuovo `__Button_Save`,
+`__Literal_CompanyName`, `__Repeater_Orders`; gli esempi qui sopra sono di WK, che e' in
+italiano. Le pagine Northwind, la master del sito, gli UserControl e i banchi di prova la
+seguono tutti. Resta un suggerimento: il motore accetta qualunque id.
+
 ### Attributi HTML dal codice
 
 Quello che il motore non prevede si aggiunge a mano, come l'`Attributes` di WebForms:
@@ -471,7 +519,7 @@ Rende uno `<span>`.
 **Ricerca mentre si scrive**, dichiarata e basta:
 
 ```html
-<dw:TextBox id="txtFiltro" AutoPostBack="true" AutoPostBackDelay="350"
+<dw:TextBox id="__TextBox_Filtro" AutoPostBack="true" AutoPostBackDelay="350"
             OnTextChanged="FiltroCambiato" />
 ```
 
@@ -482,14 +530,14 @@ cinque. Il codebehind non distingue i due casi.
 ### `DatePicker`
 
 ```html
-<dw:DatePicker id="dtDal" Mode="Date" AutoPostBack="true" OnDateChanged="DalCambiato" />
-<dw:DatePicker id="dtQuando" Mode="DateTime" />
+<dw:DatePicker id="__DatePicker_Dal" Mode="Date" AutoPostBack="true" OnDateChanged="DalCambiato" />
+<dw:DatePicker id="__DatePicker_Quando" Mode="DateTime" />
 ```
 
 ```php
-$this->dtDal->Value = new \DateTimeImmutable('2026-09-14');
-$quando = $this->dtQuando->Value;   // ?DateTimeImmutable, null se vuoto
-$this->dtDal->Min = new \DateTimeImmutable('2026-01-01');
+$this->__DatePicker_Dal->Value = new \DateTimeImmutable('2026-09-14');
+$quando = $this->__DatePicker_Quando->Value;   // ?DateTimeImmutable, null se vuoto
+$this->__DatePicker_Dal->Min = new \DateTimeImmutable('2026-01-01');
 ```
 
 | proprieta' | |
@@ -595,7 +643,7 @@ reso: altrimenti la selezione diventa un campo di testo libero.
 Dichiara le voci nel markup invece di assegnarle dal codebehind:
 
 ```html
-<dw:DropDownList id="ddlColore" AutoPostBack="true" OnSelectedIndexChanged="SceltaCambiata">
+<dw:DropDownList id="__DropDownList_Colore" AutoPostBack="true" OnSelectedIndexChanged="SceltaCambiata">
     <dw:ListItem Value="rosso" Text="Rosso" Selected="true" />
     <dw:ListItem Value="verde" Text="Verde" />
 </dw:DropDownList>
@@ -610,8 +658,8 @@ markup e codebehind sono indistinguibili.
 |---|---|
 | `Value` | |
 
-Dentro una riga di `Repeater` porta l'identificativo del record, come il `__Hidden_Id` delle
-pagine WK. Il valore torna dal client, quindi **non e' un'autorizzazione**: serve a ritrovare
+Dentro una riga di `Repeater` porta l'identificativo del record, e si chiama `__Hidden_Id` come
+nelle pagine WK. Il valore torna dal client, quindi **non e' un'autorizzazione**: serve a ritrovare
 il record, i controlli di accesso restano nel Controller.
 
 ### `Panel` e `PlaceHolder`
@@ -631,10 +679,10 @@ ogni richiesta che WebForms imponeva.
 ```php
 $etichetta = new Label();
 
-$etichetta->Id   = 'lblEsito';   //stabile: e' la chiave con cui torna indietro
+$etichetta->Id   = '__Label_Esito';   //stabile: e' la chiave con cui torna indietro
 $etichetta->Text = 'Fatto.';
 
-$this->phEsiti->Add($etichetta);
+$this->__PlaceHolder_Esiti->Add($etichetta);
 ```
 
 Tre cose da sapere:
@@ -701,7 +749,7 @@ Gli avvisi: "salvato", "non salvato e il perche'". Si mette **una volta nella ma
 come l'UpdateProgress:
 
 ```html
-<dw:Alert id="avvisi" Duration="5000" />
+<dw:Alert id="__Alert" Duration="5000" />
 ```
 
 e da qualunque handler di qualunque pagina:
@@ -752,7 +800,7 @@ foglio di stile del sito, che esce dopo, li sovrascrive senza toccare Common.
 vale per tutte le pagine, come in WK:
 
 ```html
-<dw:UpdateProgress id="prgAttesa" DisplayAfter="200">
+<dw:UpdateProgress id="__UpdateProgress" DisplayAfter="200">
     <div class="dw-attesa-scatola">Attendere ...</div>
 </dw:UpdateProgress>
 ```
@@ -796,12 +844,12 @@ niente da annullare — l'animazione semplicemente non parte.
 
 ```html
 <table>
-    <dw:Repeater id="rptRighe" Tag="tbody" ItemTag="tr" DataKeyField="Id">
+    <dw:Repeater id="__Repeater_Righe" Tag="tbody" ItemTag="tr" DataKeyField="Id">
         <ItemTemplate>
             <td>{{Nome}}</td>
             <td>
-                <dw:HiddenField id="hidId" Value="{{Id}}" />
-                <dw:LinkButton id="lnkElimina" Text="Elimina" OnClick="DeleteRow"
+                <dw:HiddenField id="__Hidden_Id" Value="{{Id}}" />
+                <dw:LinkButton id="__LinkButton_Elimina" Text="Elimina" OnClick="DeleteRow"
                                Confirm="Eliminare {{Nome}}?" />
             </td>
         </ItemTemplate>
@@ -822,12 +870,12 @@ Nell'handler si risale alla riga dal controllo che ha scatenato l'evento:
 ```php
 protected function DeleteRow(Control $sender, string $argomento): void
 {
-    $id = (int)$sender->NamingContainer()->FindControl('hidId')->Value;
+    $id = (int)$sender->NamingContainer()->FindControl('__Hidden_Id')->Value;
     ...
 }
 ```
 
-E' l'equivalente di `linkButton.Parent.FindControl("__Hidden_Id")` delle pagine WK.
+E' il `linkButton.Parent.FindControl("__Hidden_Id")` delle pagine WK, con lo stesso nome.
 
 #### Riempire le righe in codice: `OnItemDataBound`
 
@@ -837,11 +885,11 @@ la forma delle pagine WK: nel template ci sono `<dw:Literal>` **vuoti**, e a scr
 l'handler.
 
 ```html
-<dw:Repeater id="rptCategorie" Tag="tbody" ItemTag="tr" DataKeyField="Id"
+<dw:Repeater id="__Repeater_Categorie" Tag="tbody" ItemTag="tr" DataKeyField="Id"
              OnItemDataBound="OnRowDataBound">
     <ItemTemplate>
-        <td><dw:Literal id="litNome" /></td>
-        <td><dw:HiddenField id="hidId" Value="{{Id}}" /></td>
+        <td><dw:Literal id="__Literal_Nome" /></td>
+        <td><dw:HiddenField id="__Hidden_Id" Value="{{Id}}" /></td>
     </ItemTemplate>
 </dw:Repeater>
 ```
@@ -852,11 +900,11 @@ protected function OnRowDataBound(Repeater $sender, RepeaterItem $riga): void
     if ($riga->ItemType !== RepeaterItem::ITEM && $riga->ItemType !== RepeaterItem::ALTERNATING_ITEM)
         return;
 
-    $id = (int)$riga->FindControl('hidId')->Value;
+    $id = (int)$riga->FindControl('__Hidden_Id')->Value;
 
     $categoria = \Model\Categorie::GetItemById($id, 'IT');
 
-    $riga->FindControl('litNome')->Text = $categoria->Nome;
+    $riga->FindControl('__Literal_Nome')->Text = $categoria->Nome;
 }
 ```
 
@@ -893,18 +941,18 @@ impaginazione invece di leggere tutto e tagliare in memoria:
 ```php
 $totale = \Model\Categorie::GetCount(wherePredicate: $predicato, whereValues: $valori);
 
-$this->pgSotto->TotalItems = $totale;
+$this->__PageNavigator_Sotto->TotalItems = $totale;
 
-$this->rpt->DataSource = ...GetList(
-    item4page: $this->pgSotto->PageSize,
-    page: $this->pgSotto->CurrentPage,
+$this->__Repeater_Categorie->DataSource = ...GetList(
+    item4page: $this->__PageNavigator_Sotto->PageSize,
+    page: $this->__PageNavigator_Sotto->CurrentPage,
     wherePredicate: $predicato,
     whereValues: $valori,
     orderPredicate: $this->ordine . ($this->ascendente ? ' ASC' : ' DESC'),
     selectColumns: ['Id']);
 
-$this->rpt->DataBind();
-$this->rpt->Visible = $this->rpt->Items() !== [];
+$this->__Repeater_Categorie->DataBind();
+$this->__Repeater_Categorie->Visible = $this->__Repeater_Categorie->Items() !== [];
 ```
 
 I due modi convivono: `Northwind/Categorie` e' fatta cosi', le altre pagine leggono e
@@ -934,10 +982,10 @@ non ha, e conviene il secondo.
 
 ```html
 <!-- solo l'input, come in WebForms: nessun elemento in piu' -->
-<dw:FileUpload id="fuSemplice" OnFileUploaded="FileCaricato" />
+<dw:FileUpload id="__FileUpload_Semplice" OnFileUploaded="FileCaricato" />
 
 <!-- con l'area di trascinamento -->
-<dw:FileUpload id="fuImmagine" AllowDrop="true" OnFileUploaded="ImmagineCaricata"
+<dw:FileUpload id="__FileUpload_Immagine" AllowDrop="true" OnFileUploaded="ImmagineCaricata"
                Text="Trascina qui l'immagine, o clicca per sceglierla" />
 ```
 
@@ -971,7 +1019,7 @@ motore sa solo montarli.
 **Si scrive col suo nome**, come in WK:
 
 ```html
-<dw:PageNavigator id="pgSotto" OnPageChanged="PaginaCambiata" PageSize="10" />
+<dw:PageNavigator id="__PageNavigator_Sotto" OnPageChanged="PaginaCambiata" PageSize="10" />
 ```
 
 La regola: un tag `dw:` che **non e' un controllo del motore** si cerca in `UserControls/`,
@@ -986,19 +1034,19 @@ tutti danno per scontato.
 relativo alla radice di `Public/Php`:
 
 ```html
-<dw:UserControl id="pgSopra" src="Layouts/Parti/PageNavigator"
+<dw:UserControl id="__PageNavigator_Sopra" src="Layouts/Parti/PageNavigator"
                 OnPageChanged="PaginaCambiata" PageSize="10" />
 ```
 
 Le due forme fanno esattamente la stessa cosa: la prima e' la seconda con il `src` dedotto.
-Anche il designer lo sa, e dichiara `\UserControls\PageNavigator $pgSotto` in tutti e due i
+Anche il designer lo sa, e dichiara `\UserControls\PageNavigator $__PageNavigator_Sotto` in tutti e due i
 casi.
 
 Tre proprieta' lo rendono utile:
 
 **E' un contenitore di denominazione.** Gli id dei figli vengono qualificati con quello del
-controllo (`lnkNext__pgSopra`), cosi' due istanze nella stessa pagina — un paginatore sopra e
-uno sotto — non si pestano gli id. Dentro si continua a scrivere `$this->lnkNext`.
+controllo (`__LinkButton_Next____PageNavigator_Sopra`), cosi' due istanze nella stessa pagina — un paginatore sopra e
+uno sotto — non si pestano gli id. Dentro si continua a scrivere `$this->__LinkButton_Next`.
 
 **Ha un ciclo di vita suo**: `OnInit` dal basso (i controlli composti si preparano prima
 della pagina), `OnLoad` e `OnPreRender` dall'alto — un paginatore deve sapere quanti elementi
@@ -1014,7 +1062,7 @@ Dalla pagina ci si arriva con un cast:
 
 ```php
 /** @var \UserControls\PageNavigator $pg */
-$pg = $this->FindControl('pgSopra');
+$pg = $this->FindControl('__PageNavigator_Sopra');
 $pg->TotalItems = $totale;
 ```
 
@@ -1048,7 +1096,7 @@ e dichiara dove va il contenuto:
 
 ```html
 <header>…</header>
-<dw:UserControl id="menu" src="UserControls/Menu" Tag="nav" />
+<dw:Menu id="__Menu" Tag="nav" />
 
 <dw:ContentPlaceHolder id="corpo">
     <p class="dw-vuoto">Questa pagina non ha ancora contenuto.</p>
@@ -1073,9 +1121,9 @@ attorno a se'; la master invece *e'* il corpo della pagina, e un `<div>` in piu'
 tutto cambierebbe il CSS di ogni sito che la adotta.
 
 **La master NON e' un contenitore di denominazione.** Di master ce n'e' una sola per pagina,
-quindi non c'e' niente da disambiguare, e `txtFiltro` resta `txtFiltro`: e' la regola su cui
+quindi non c'e' niente da disambiguare, e `__TextBox_Filtro` resta `__TextBox_Filtro`: e' la regola su cui
 si regge il morph, ed e' proprio quella che in WebForms la master rompeva trasformandolo in
-`ctl00$corpo$txtFiltro`. Il rovescio: **gli id della master e quelli della pagina vivono
+`ctl00$corpo$__TextBox_Filtro`. Il rovescio: **gli id della master e quelli della pagina vivono
 nello stesso elenco**. Un `<dw:Panel id="corpo">` in una pagina il cui segnaposto si chiama
 `corpo` e' un errore di tipo al primo caricamento, con il nome della proprieta' nel messaggio,
 non un avviso; i controlli della master si chiamano in modo da non incrociarsi con quelli
@@ -1163,11 +1211,11 @@ Lo stesso file, chiamato in GET con `?token=…`, serve l'anteprima.
 ```php
 protected function SalvaClick(Control $sender, string $argomento): void
 {
-    $immagine = $this->fuImmagine->Bytes();      // null se non e' stato caricato niente
+    $immagine = $this->__FileUpload_Immagine->Bytes();      // null se non e' stato caricato niente
 
     // ... si consegna al Controller: nome vuoto significa "non toccare quella che c'e' gia'"
 
-    $this->fuImmagine->Clear();   // butta il temporaneo
+    $this->__FileUpload_Immagine->Clear();   // butta il temporaneo
 }
 ```
 
@@ -1208,7 +1256,7 @@ sono quelle dichiarate nel **pannello** e copiate sul Model dal generatore
 resta comunque a Kestrel, che ricontrolla al salvataggio: questo taglia il viaggio, non la
 guardia.
 
-    <dw:FileUpload id="fuImmagine" Vincoli="Model\Prodotti::Immagine" />
+    <dw:FileUpload id="__FileUpload_Immagine" Vincoli="Model\Prodotti::Immagine" />
     <dw:FileUpload id="fuAllegato" Vincoli="Model\AllegatiOrdine::Documento" />
 
 Senza `Vincoli` il campo accetta tutto quello che il canale sa riconoscere — JPG, PNG, GIF,
@@ -1317,7 +1365,7 @@ class Cornice extends MasterPage
     {
         $this->Page->Subscribe('Saluti', function (): void
         {
-            $this->litSalutiCornice->Text = (string)((int)$this->litSalutiCornice->Text + 1);
+            $this->__Literal_SalutiCornice->Text = (string)((int)$this->__Literal_SalutiCornice->Text + 1);
             $this->Page->Alert->Success('Qualcuno ha salutato.');
         });
     }
@@ -1349,7 +1397,7 @@ EntityEvents::Notify('Utente', dati: $utente);
 //chi riceve: l'oggetto arriva come array, con le proprieta' pubbliche
 $this->Subscribe('Utente', function (array $dati): void
 {
-    $this->litNome->Text = $dati['Nome'] . ' ' . $dati['Cognome'];
+    $this->__Literal_Nome->Text = $dati['Nome'] . ' ' . $dati['Cognome'];
     $this->Alert->Success('E\' arrivato ' . $dati['Nome']);
 });
 ```
@@ -1611,7 +1659,7 @@ non e' un cambio di pagina.
     UnitTest/ProveMemoria.php      lo stato cala con i dati: ClearItems e rimpiazzi non lasciano niente
     UnitTest/ProveEventiConDati.php Notify con un oggetto: il messaggio firmato che parte e il postback che torna
     UnitTest/ProveErrori.php       l'eccezione di una pagina nel log del sito, una volta, e poi fuori com'era
-    UnitTest/ProveMarkup.php       il compilatore, i segnaposto {{Campo}}, i <dw:Content>
+    UnitTest/ProveMarkup.php       il compilatore, i segnaposto {{Campo}}, i <dw:Content>, gli id __Tipo_Nome
     UnitTest/ProveRepeater.php     OnItemDataBound: quando scatta, e cosa sopravvive al postback
     UnitTest/ProveSicurezza.php    controlli nascosti, redirect fuori sito, CSRF
     UnitTest/ProveStato.php        il pacchetto firmato: soprattutto cosa RIFIUTA
@@ -1622,7 +1670,7 @@ non e' un cambio di pagina.
     ProveAMano/Tabella.php         righe di tabella costruite a mano, e nient'altro
     ProveAMano/Stato.php           il banco dello stato: cosa sopravvive a un postback, un riquadro per domanda
 
-Sono 379 prove PHP e 20 JavaScript. Si lanciano nei due modi, e l'esito e' un numero:
+Sono 383 prove PHP e 20 JavaScript. Si lanciano nei due modi, e l'esito e' un numero:
 **uscita 1** da riga di comando, **500** sull'HTTP, cosi' le puo' guardare uno script senza
 leggerle a occhio.
 

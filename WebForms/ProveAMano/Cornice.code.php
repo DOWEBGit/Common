@@ -13,7 +13,7 @@ use Common\WebForms\MasterPage;
  * contenuto, e il menu si scrive una volta. La seconda e' che una master E' una prova - il
  * caso in cui i controlli non stanno nel markup della pagina ma in quello della cornice, e
  * il loro stato deve attraversare i postback lo stesso. Quando quel meccanismo si e' rotto,
- * il sintomo era il titolo che spariva al primo click: proprio questo litTitolo.
+ * il sintomo era il titolo che spariva al primo click: proprio questo __Literal_Titolo.
  *
  * Il menu e' fatto di <a> normali: il runtime intercetta i link interni e li trasforma in
  * navigazione senza ricarico da se', quindi non c'e' niente da dichiarare.
@@ -46,10 +46,10 @@ class Cornice extends MasterPage
     {
         $this->Page->Subscribe('Saluti', function (): void
         {
-            $arrivati = (int)$this->litSalutiCornice->Text + 1;
+            $arrivati = (int)$this->__Literal_SalutiCornice->Text + 1;
 
-            $this->litSalutiCornice->Text = (string)$arrivati;
-            $this->pnlSalutiCornice->Visible = true;
+            $this->__Literal_SalutiCornice->Text = (string)$arrivati;
+            $this->__Panel_SalutiCornice->Visible = true;
 
             $this->Page->Alert->Success('Qualcuno ha salutato alle ' . date('H:i:s') . ': lo dice la cornice, su qualunque pagina.');
         });
@@ -57,11 +57,11 @@ class Cornice extends MasterPage
 
     public function OnPreRender(): void
     {
-        $this->litMenu->Text = $this->Menu();
+        $this->__Literal_Menu->Text = $this->Menu();
 
         //l'ora del SERVER, non del browser: se cambia navigando vuol dire che la pagina e'
         //stata chiesta davvero, e non ricomposta da qualcosa che il client aveva in mano
-        $this->litOra->Text = date('H:i:s');
+        $this->__Literal_Ora->Text = date('H:i:s');
     }
 
     /**
@@ -91,10 +91,10 @@ class Cornice extends MasterPage
     /** Titolo e sottotitolo: l'unica cosa che la cornice non sa da se'. */
     public function SetTitle(string $titolo, string $sottotitolo = ''): void
     {
-        $this->litTitolo->Text = $titolo;
+        $this->__Literal_Titolo->Text = $titolo;
 
-        $this->litSottotitolo->Text = $sottotitolo;
-        $this->litSottotitolo->Visible = $sottotitolo !== '';
+        $this->__Literal_Sottotitolo->Text = $sottotitolo;
+        $this->__Literal_Sottotitolo->Visible = $sottotitolo !== '';
 
         if ($this->Page->Title === '')
             $this->Page->Title = $titolo . ' — Prove a mano';

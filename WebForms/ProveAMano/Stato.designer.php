@@ -14,11 +14,11 @@ namespace Common\WebForms\ProveAMano;
 trait StatoDesigner
 {
     public \Common\WebForms\ProveAMano\Cornice $Master;
-    public \Common\WebForms\Controls\Literal $litClick;
-    public \Common\WebForms\Controls\Button $btnPostback;
-    public \Common\WebForms\Controls\Repeater $rpt;
-    public \Common\WebForms\Controls\PlaceHolder $phSempre;
-    public \Common\WebForms\Controls\Button $btnVolo;
-    public \Common\WebForms\Controls\Literal $litVolo;
-    public \Common\WebForms\Controls\PlaceHolder $phVolatile;
+    public \Common\WebForms\Controls\Literal $__Literal_Click;
+    public \Common\WebForms\Controls\Button $__Button_Postback;
+    public \Common\WebForms\Controls\Repeater $__Repeater_Elenco;
+    public \Common\WebForms\Controls\PlaceHolder $__PlaceHolder_Sempre;
+    public \Common\WebForms\Controls\Button $__Button_Volo;
+    public \Common\WebForms\Controls\Literal $__Literal_Volo;
+    public \Common\WebForms\Controls\PlaceHolder $__PlaceHolder_Volatile;
 }
