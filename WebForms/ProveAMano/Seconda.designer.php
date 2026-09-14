@@ -17,6 +17,7 @@ trait SecondaDesigner
     public \Common\WebForms\Controls\Literal $litArrivato;
     public \Common\WebForms\Controls\Button $btnMaiuscolo;
     public \Common\WebForms\Controls\Button $btnSvuota;
+    public \Common\WebForms\Controls\Literal $litSaluti;
     public \Common\WebForms\Controls\Literal $litContatore;
     public \Common\WebForms\Controls\Button $btnConta;
 }

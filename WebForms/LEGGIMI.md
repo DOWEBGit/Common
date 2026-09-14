@@ -1271,6 +1271,36 @@ EntityEvents::Notify('Categorie');   // es. dopo un riordino fatto con una query
 Il runtime si collega da solo al hub `/signalrhub`. Chi riceve rilegge con un postback
 normale.
 
+**E' backend a backend: la pagina non scrive JavaScript.** Il giro completo, con un bottone
+al posto di un salvataggio:
+
+```php
+//chi manda: un click qualunque
+protected function SalutaClick(): void
+{
+    EntityEvents::Notify('Saluti');
+}
+
+//chi riceve, in QUALUNQUE pagina aperta del dominio: si iscrive in OnInit
+protected function OnInit(): void
+{
+    $this->Subscribe('Saluti', function (): void
+    {
+        $this->SalutiRicevuti++;                    //stato della pagina, sul server
+        $this->Alert->Success('Qualcuno ha salutato.');
+        $this->Rilega();                            //o un DataBind, per riallineare una griglia
+    });
+}
+```
+
+Cosa succede in mezzo: il nome del topic arriva al browser dal hub, il runtime fa un
+postback **vuoto** con quel nome (`__push`), e il motore chiama l'handler iscritto — sul
+server, con lo stato di quella pagina in mano, dentro il normale giro degli eventi. Da li'
+si fa quello che si farebbe in un click: un avviso, una rilettura, un `DataBind()`. E' cosi'
+che due browser sulla stessa griglia restano allineati senza che nessuno abbia scritto una
+riga di JavaScript. `ProveAMano/Prima.php` e `Seconda.php` aperte in due schede lo fanno
+vedere: si preme nella prima, la seconda mostra l'avviso e sale il contatore.
+
 La libreria arriva da **`static.doweb.site`**, non da un CDN pubblico: un sito che per
 funzionare dipende da un dominio di qualcun altro smette di funzionare quando quel dominio
 ha una brutta giornata, e intanto racconta a lui chi visita le nostre pagine. L'indirizzo
@@ -1300,10 +1330,12 @@ venti righe costa un giro sul pipe, non ventuno. `Suspend()` / `Resume()` per le
 Il salvataggio a blocchi resta una richiesta sola, quindi anche un'importazione che scrive
 mille righe manda un evento solo per entita'. `Suspend()` se nemmeno quello serve.
 
-## Un messaggio con dati a tutti: `Broadcast()`
+## Un messaggio con dati a tutti: `Broadcast()` — solo quando serve davvero il JavaScript
 
-L'eccezione alla regola qui sopra, quando i dati sono davvero per tutti — un prezzo in
-vetrina, un contatore, «qualcuno sta scrivendo»:
+Quasi sempre basta `Notify()` + `Subscribe()`: e' backend a backend e non chiede niente al
+browser. `Broadcast()` e' per il caso in cui il browser deve reagire **senza un postback** —
+un contatore che pulsa, «qualcuno sta scrivendo», un prezzo in vetrina che cambia sotto gli
+occhi — e li' un pezzo di JavaScript e' il prezzo:
 
 ```php
 protected function SalutaClick(): void

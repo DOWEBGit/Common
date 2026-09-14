@@ -25,6 +25,19 @@ class Seconda extends Page
     #[Portable]
     public string $NomePortato = '';
 
+    public int $SalutiRicevuti = 0;
+
+    /** L'evento arriva sul server di questa pagina: si aggiorna lo stato e si avvisa. */
+    protected function OnInit(): void
+    {
+        $this->Subscribe('Saluti', function (): void
+        {
+            $this->SalutiRicevuti++;
+
+            $this->Alert->Success('Saluto numero ' . $this->SalutiRicevuti . ' dalla prima pagina.');
+        });
+    }
+
     protected function OnLoad(): void
     {
         if ($this->IsPostBack)
@@ -69,5 +82,7 @@ class Seconda extends Page
             : 'E\' arrivato: ' . $this->NomePortato;
 
         $this->litContatore->Text = (string)$this->Conteggio;
+
+        $this->litSaluti->Text = $this->SalutiRicevuti . ($this->SalutiRicevuti === 1 ? ' saluto ricevuto' : ' saluti ricevuti');
     }
 }

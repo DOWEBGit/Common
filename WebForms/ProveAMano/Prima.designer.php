@@ -29,7 +29,7 @@ trait PrimaDesigner
     public \Common\WebForms\Controls\DatePicker $dtQuando;
     public \Common\WebForms\Controls\Button $btnCambiaModo;
     public \Common\WebForms\Controls\Literal $litDate;
-    public \Common\WebForms\Controls\TextBox $txtSaluto;
     public \Common\WebForms\Controls\Button $btnSaluta;
+    public \Common\WebForms\Controls\Literal $litSaluti;
     public \Common\WebForms\Controls\CheckBox $chkTieni;
 }

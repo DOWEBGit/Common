@@ -65,25 +65,21 @@
     </div>
 
     <div class="pm-card">
-        <h2>Un messaggio a tutti i browser: <code>EntityEvents::Broadcast()</code></h2>
+        <h2>Un evento a tutti i browser, backend a backend: <code>Notify()</code> e <code>Subscribe()</code></h2>
 
         <p class="pm-tenue">
-            Apri questa pagina in due schede. Il bottone fa un postback, e l'handler manda un
-            messaggio CON DATI a tutti i browser collegati al dominio: l'altra scheda lo riceve
-            senza fare niente, tramite <code>DW.on('Saluto', ...)</code> in <code>Prima.js</code>.
-            Attenzione a cosa ci si mette: lo vede chiunque abbia una pagina aperta, con qualunque
-            permesso. Per i dati riservati c'e' <code>Notify()</code>, che manda solo il nome e fa
-            rileggere a ognuno il suo.
+            Apri questa pagina e la <a href="Seconda.php">seconda</a> in due schede. Il bottone fa
+            un postback e l'handler chiama <code>EntityEvents::Notify('Saluti')</code>: e' un nome,
+            niente dati. Ogni pagina aperta che in <code>OnInit</code> ha fatto
+            <code>$this->Subscribe('Saluti', ...)</code> riceve l'evento <b>sul server</b>, dentro
+            un postback suo, e fa quello che vuole — qui un avviso, di la' anche un contatore. Zero
+            JavaScript scritto dalla pagina: il runtime porta solo il nome, il codebehind risponde.
         </p>
 
         <p>
-            <dw:TextBox id="txtSaluto" Placeholder="cosa mandare" />
-            <dw:Button id="btnSaluta" Text="Manda a tutti" OnClick="SalutaClick" />
+            <dw:Button id="btnSaluta" Text="Saluta tutti" OnClick="SalutaClick" />
+            <span class="pm-tenue">saluti ricevuti da questa pagina: <b><dw:Literal id="litSaluti" /></b></span>
         </p>
-
-        <div id="ricevuti" class="pm-tenue"></div>
-
-        <dw:Script src="Common/WebForms/ProveAMano/Prima.js" />
     </div>
 
     <div class="pm-card">

@@ -39,6 +39,26 @@ class Prima extends Page
     #[Portable]
     public string $NomePortato = '';
 
+    /** Quanti saluti sono arrivati qui da altre pagine: aggiornato sul server, dall'evento. */
+    public int $SalutiRicevuti = 0;
+
+    /**
+     * Le iscrizioni si dichiarano in OnInit, ad ogni richiesta: e' il posto in cui la pagina
+     * dice a cosa risponde. Quando un altro browser chiama Notify('Saluti'), il runtime di
+     * QUESTA pagina fa un postback vuoto con quel nome, e il motore chiama l'handler qui
+     * dentro - sul server, con lo stato di questa pagina in mano. Da qui si fa quello che si
+     * farebbe in un click qualunque: un avviso, una rilettura, un DataBind.
+     */
+    protected function OnInit(): void
+    {
+        $this->Subscribe('Saluti', function (): void
+        {
+            $this->SalutiRicevuti++;
+
+            $this->Alert->Success('Qualcuno ha salutato alle ' . date('H:i:s') . '.');
+        });
+    }
+
     protected function OnLoad(): void
     {
         if ($this->IsPostBack)
@@ -81,13 +101,16 @@ class Prima extends Page
      * Un messaggio con dati a tutti i browser del dominio, adesso. Arriva anche a questa
      * pagina: il ricevitore in Prima.js non distingue chi ha premuto il bottone.
      */
+    /**
+     * Annuncia il topic a tutto il dominio. Chi e' iscritto risponde sul suo server; questa
+     * pagina no - il proprio evento si scarta, si e' gia' aggiornata con questo postback - e
+     * quindi il suo avviso se lo fa da sola.
+     */
     protected function SalutaClick(): void
     {
-        EntityEvents::Broadcast('Saluto', [
-            'testo' => $this->txtSaluto->Text === '' ? 'ciao' : $this->txtSaluto->Text,
-            'da'    => 'Prima.php',
-            'ora'   => date('H:i:s'),
-        ]);
+        EntityEvents::Notify('Saluti');
+
+        $this->Alert->Success('Saluto mandato: chi e\' iscritto lo riceve sul suo server.');
     }
 
     /** Il primo selettore passa da solo giorno a giorno e ora, e viceversa, tenendo il valore. */
@@ -103,6 +126,8 @@ class Prima extends Page
         $scrivi = static fn(DatePicker $dt): string => $dt->Value === null
             ? '(vuoto)'
             : $dt->Value->format($dt->Mode === DateTimeMode::Date ? 'l j F Y' : 'l j F Y, H:i');
+
+        $this->litSaluti->Text = (string)$this->SalutiRicevuti;
 
         $this->litDate->Text = 'dtGiorno [' . $this->dtGiorno->Mode->name . ']: ' . $scrivi($this->dtGiorno)
             . ' — dtQuando [' . $this->dtQuando->Mode->name . ']: ' . $scrivi($this->dtQuando);

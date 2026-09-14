@@ -28,6 +28,18 @@
     </div>
 
     <div class="pm-card">
+        <h2>Anche questa pagina e' iscritta a «Saluti»</h2>
+
+        <p class="pm-tenue">
+            Premi «Saluta tutti» sulla prima pagina in un'altra scheda: qui compare l'avviso e il
+            contatore sale, senza che questa pagina abbia fatto niente. Il numero lo aggiorna il
+            codebehind di questa pagina, sul server, dentro l'handler iscritto in <code>OnInit</code>.
+        </p>
+
+        <p class="pm-grande"><dw:Literal id="litSaluti" /></p>
+    </div>
+
+    <div class="pm-card">
         <h2>E il suo contatore, che invece e' suo</h2>
 
         <p>
