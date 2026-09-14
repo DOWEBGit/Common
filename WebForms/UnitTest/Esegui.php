@@ -7,6 +7,10 @@ declare(strict_types=1);
  *     "C:\Program Files\PHP\php.exe" Esegui.php
  *     http://localhost:8081/public/php/Common/WebForms/UnitTest/Esegui.php
  *
+ * Le prove del JavaScript stanno in prove.mjs e girano con node; "prove.cmd" lancia tutte e
+ * due. Da qui non si possono chiamare: exec e compagni sono spenti in php.ini, com'e' giusto
+ * su un server web, e le prove girano con lo stesso php.ini del sito.
+ *
  * Da riga di comando NON si passa da Start.php: quello vuole un sito attorno e il pipe verso
  * Kestrel, che qui non servono. Si registra il minimo per trovare le classi del motore, e le
  * prove girano su PHP e basta - che e' esattamente quello che devono provare.

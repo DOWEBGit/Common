@@ -1533,7 +1533,9 @@ campo con il focus non viene mai calpestato.
 
 # 10. Le prove
 
-    UnitTest/Esegui.php            si lancia da URL, risponde 200 se e' tutto verde e 500 se no
+    UnitTest/prove.cmd             TUTTE le prove: quelle PHP e quelle del JavaScript
+    UnitTest/Esegui.php            le prove PHP: da URL risponde 200 se e' tutto verde e 500 se no
+    UnitTest/prove.mjs             le prove del JavaScript, con node: il cassetto, la navigazione, DW.on
     UnitTest/Prova.php             confronto, conto, e "deve sollevare"
     UnitTest/ProveControlli.php    cosa rendono i controlli, e cosa diventano col POST
     UnitTest/ProveDatePicker.php   date vere, i due Mode, cosa entra dal browser, l'evento, l'enum nello stato
@@ -1564,6 +1566,15 @@ sull'HTTP, cosi' le puo' guardare uno script senza leggerle a occhio.
 Da riga di comando **non si passa da `Start.php`**: quello vuole un sito attorno e il pipe
 verso Kestrel. Si registra il minimo per trovare le classi e le prove girano su PHP e basta -
 che e' esattamente quello che devono provare.
+
+**Il JavaScript si prova ritagliandolo.** `runtime.js` e' scritto per il DOM, ma i pezzi con una
+logica propria — il cassetto delle pagine tenute, la navigazione e il tasto indietro, la
+consegna dei messaggi — si tagliano fra due marcatori e girano in node con un DOM finto grande
+quanto basta. Non e' il morph, che si guarda nel browser: e' quello che si puo' sbagliare
+senza che il browser lo dica — la chiave sbagliata sul tasto indietro, il postback in volo
+durante la navigazione. `prove.mjs` va lanciato con node; `Esegui.php` non puo' farlo, perche'
+`exec` e compagni sono spenti in `php.ini` — com'e' giusto su un server web — e le prove
+girano con lo stesso `php.ini` del sito.
 
 **Si prova quello che e' PHP puro**: i controlli sono oggetti, si valorizzano e si guarda
 l'HTML, oppure si passa loro l'array del POST e si guarda cosa diventano. Niente HTTP,

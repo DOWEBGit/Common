@@ -669,6 +669,11 @@ const tieniStato = () => {
 DW.navigate = async (url, push) => {
     let testo;
 
+    // Un postback ancora in volo si aspetta. Lo stato che ci si tiene dev'essere quello di
+    // DOPO il click, non quello di prima: "aggiungo una riga e clicco il link" salverebbe la
+    // pagina senza la riga, e al ritorno la riga non ci sarebbe - e sembrerebbe un caso.
+    await inCorso;
+
     // prima di andarsene: se questa pagina si tiene, ci si tiene il suo stato
     tieniStato();
 
