@@ -65,6 +65,28 @@
     </div>
 
     <div class="pm-card">
+        <h2>Un messaggio a tutti i browser: <code>EntityEvents::Broadcast()</code></h2>
+
+        <p class="pm-tenue">
+            Apri questa pagina in due schede. Il bottone fa un postback, e l'handler manda un
+            messaggio CON DATI a tutti i browser collegati al dominio: l'altra scheda lo riceve
+            senza fare niente, tramite <code>DW.on('Saluto', ...)</code> in <code>Prima.js</code>.
+            Attenzione a cosa ci si mette: lo vede chiunque abbia una pagina aperta, con qualunque
+            permesso. Per i dati riservati c'e' <code>Notify()</code>, che manda solo il nome e fa
+            rileggere a ognuno il suo.
+        </p>
+
+        <p>
+            <dw:TextBox id="txtSaluto" Placeholder="cosa mandare" />
+            <dw:Button id="btnSaluta" Text="Manda a tutti" OnClick="SalutaClick" />
+        </p>
+
+        <div id="ricevuti" class="pm-tenue"></div>
+
+        <dw:Script src="Common/WebForms/ProveAMano/Prima.js" />
+    </div>
+
+    <div class="pm-card">
         <h2>Il modo WinForms</h2>
 
         <p>

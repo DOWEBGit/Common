@@ -6,8 +6,8 @@ namespace Common\WebForms;
 use Common\WebForms\Controls\StaticResource;
 
 /**
- * I due tag che il motore mette in ogni pagina: lo stile funzionale in testa, gli script in
- * coda.
+ * I tag che il motore mette nella testa di ogni pagina: lo stile funzionale e gli script,
+ * tutti differiti - cosi' un <dw:Script> di pagina, nel body, trova DW gia' pronto.
  *
  * Qui dentro non c'e' ne' JavaScript ne' CSS: ci sono i due indirizzi e l'ordine in cui
  * mettere i tag. Il codice sta in runtime.js e runtime.css, accanto a questo file.

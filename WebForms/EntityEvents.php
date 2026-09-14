@@ -69,6 +69,51 @@ class EntityEvents
         register_shutdown_function([self::class, 'Flush']);
     }
 
+    /**
+     * Manda un messaggio CON DATI a tutti i browser collegati al dominio, adesso.
+     *
+     *     EntityEvents::Broadcast('Prezzo', ['id' => 42, 'valore' => 12.5]);
+     *
+     * e in pagina, in un <dw:Script> o nel JavaScript del sito:
+     *
+     *     DW.on('Prezzo', dati => { ... });
+     *
+     * NON e' un evento di dominio, ed e' l'eccezione alla regola qui sopra: Notify() porta
+     * solo un nome e lascia che ognuno rilegga con i propri permessi; questo porta i dati, e
+     * li vede CHIUNQUE abbia una pagina di questo dominio aperta - anche chi non potrebbe
+     * leggerli dal database. Quindi ci va solo roba pubblica per tutti gli utenti del sito: un
+     * prezzo in vetrina, un contatore, "qualcuno sta scrivendo", non il record di un cliente.
+     * Per quello c'e' Notify(): il nome viaggia, i dati li rilegge chi puo'.
+     *
+     * Parte subito, non a fine richiesta: e' un messaggio, non un cambiamento di stato da
+     * accumulare. I dati passano da json_encode, quindi array e oggetti JsonSerializable;
+     * un oggetto qualunque esce con le sue proprieta' pubbliche.
+     *
+     * @param bool $ancheAlMittente false per non farlo tornare alla pagina che lo manda, che
+     *                              di solito si e' gia' aggiornata col postback
+     */
+    public static function Broadcast(string $nome, mixed $dati, bool $ancheAlMittente = true): void
+    {
+        if ($nome === '' || $nome === 'DWEventi')
+            throw new \RuntimeException('Broadcast: il nome del messaggio non puo\' essere vuoto o "DWEventi", che e\' del motore.');
+
+        $messaggio = json_encode([
+            'o' => $ancheAlMittente ? '' : self::$Origin,
+            'd' => $dati,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+
+        try
+        {
+            /** @noinspection PhpUndefinedFunctionInspection */
+            PHPDOWEB()->ClientPush($nome, $messaggio);
+        }
+        catch (\Throwable $e)
+        {
+            //un push fallito non deve buttare giu' una richiesta che ha gia' fatto il suo
+            \Common\Log::Error('WebForms\EntityEvents::Broadcast, ' . $e->getMessage());
+        }
+    }
+
     public static function Flush(): void
     {
         if (self::$queue === [])

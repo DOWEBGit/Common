@@ -6,6 +6,7 @@ namespace Common\WebForms\ProveAMano;
 use Common\WebForms\Control;
 use Common\WebForms\Controls\DatePicker;
 use Common\WebForms\DateTimeMode;
+use Common\WebForms\EntityEvents;
 use Common\WebForms\Page;
 use Common\WebForms\Portable;
 
@@ -74,6 +75,19 @@ class Prima extends Page
     protected function DataCambiata(Control $sender): void
     {
         $this->Alert->Success(($sender->Id === 'dtGiorno' ? 'Giorno' : 'Quando') . ' cambiato.');
+    }
+
+    /**
+     * Un messaggio con dati a tutti i browser del dominio, adesso. Arriva anche a questa
+     * pagina: il ricevitore in Prima.js non distingue chi ha premuto il bottone.
+     */
+    protected function SalutaClick(): void
+    {
+        EntityEvents::Broadcast('Saluto', [
+            'testo' => $this->txtSaluto->Text === '' ? 'ciao' : $this->txtSaluto->Text,
+            'da'    => 'Prima.php',
+            'ora'   => date('H:i:s'),
+        ]);
     }
 
     /** Il primo selettore passa da solo giorno a giorno e ora, e viceversa, tenendo il valore. */

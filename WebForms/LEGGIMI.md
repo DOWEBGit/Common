@@ -20,6 +20,9 @@ codice.
   la prova generica le sonda. D'ora in poi due o tre valori possibili sono un enum. (§3)
 - **Ispezioni PhpStorm a zero** sul motore: costanti tipate, eccezioni checked fermate alla
   sorgente come `RuntimeException`, `__DIR__` al posto di `DOCUMENT_ROOT` in `Bootstrap`.
+- **`EntityEvents::Broadcast()`** manda un messaggio con dati a tutti i browser del dominio,
+  subito; `DW.on()` lo riceve in pagina; `data-dw-client` protegge dal morph quello che uno
+  script aggiunge. Gli script del motore sono passati nella testa del documento. (§6)
 - Il **designer** si rigenera anche quando un tipo dichiarato non esiste: un plugin vecchio non
   puo' piu' lasciare una pagina rotta con un 200. Plugin **1.21.0**: UserControl per nome nel
   designer, `ViewStateMode` nel completamento. (§11)
@@ -1296,6 +1299,53 @@ venti righe costa un giro sul pipe, non ventuno. `Suspend()` / `Resume()` per le
 
 Il salvataggio a blocchi resta una richiesta sola, quindi anche un'importazione che scrive
 mille righe manda un evento solo per entita'. `Suspend()` se nemmeno quello serve.
+
+## Un messaggio con dati a tutti: `Broadcast()`
+
+L'eccezione alla regola qui sopra, quando i dati sono davvero per tutti — un prezzo in
+vetrina, un contatore, «qualcuno sta scrivendo»:
+
+```php
+protected function SalutaClick(): void
+{
+    EntityEvents::Broadcast('Saluto', ['testo' => $this->txtSaluto->Text, 'ora' => date('H:i:s')]);
+}
+```
+
+e in pagina, in un `<dw:Script>`:
+
+```js
+DW.on('Saluto', dati => {
+    const riga = document.createElement('div');
+    riga.dataset.dwClient = '1';         // e' roba del client: il morph non la tocca
+    riga.textContent = dati.testo + ' alle ' + dati.ora;
+    document.getElementById('ricevuti').prepend(riga);
+});
+```
+
+Parte **subito**, non a fine richiesta, e arriva a **ogni browser** collegato al dominio —
+anche a chi ha premuto il bottone, salvo `Broadcast($nome, $dati, ancheAlMittente: false)`.
+I dati passano da `json_encode`: array, `JsonSerializable`, oggetti con proprieta' pubbliche.
+
+**Chiunque abbia una pagina aperta lo vede, con qualunque permesso.** Non e' un canale per
+il record di un cliente: per quello c'e' `Notify()`, che manda il nome e fa rileggere a
+ognuno il suo. Il nome `DWEventi` e' del motore e non si puo' usare.
+
+`DW.on()` vive quanto la pagina: cambiandola gli ascoltatori si tolgono da soli. Torna una
+funzione che toglie quell'ascolto; `{ sempre: true }` per uno che deve durare quanto la
+scheda. `DW.deliver(nome, json)` simula un messaggio senza hub, per provare.
+
+**`data-dw-client`.** Quello che uno script aggiunge dentro `dw-root` il server non lo
+conosce, e al postback dopo il morph lo toglierebbe come figlio in piu'. Il marcatore dice
+«questo e' mio»: il morph non lo confronta e non lo toglie. E' il patto delle classi `js-`
+portato ai nodi, e solo il client puo' scriverlo — dal server `data-dw-*` e' del motore.
+
+Gli script del motore stanno nella **testa** del documento, tutti in `defer`: i differiti
+girano nell'ordine in cui stanno scritti, e cosi' un `<dw:Script>` di pagina, nel body, trova
+`DW` gia' pronto. In fondo al body, il motore girava *dopo* lo script della pagina.
+
+`ProveAMano/Prima.php` aperta in due schede fa vedere tutto: si scrive in una, arriva in
+tutte e due.
 
 ---
 

@@ -54,7 +54,60 @@ DW.teardown = () => {
         try { fn(); } catch (e) { DW.error('teardown: ' + e); }
     }
     uscite = [];
+
+    // gli ascoltatori dei messaggi sono della pagina: cambiando pagina si tolgono, come tutto
+    // il resto che la pagina aveva agganciato
+    ascoltatori.clear();
 };
+
+// ---------------------------------------------------------------- messaggi con dati
+// Il rovescio di EntityEvents::Broadcast() lato server: un nome, dei dati, tutti i browser del
+// dominio. DW.on() ascolta, e l'ascolto vive quanto la pagina - si toglie da solo quando la
+// si lascia. Chi vuole ascoltare per tutta la vita della scheda lo dice con { sempre: true }.
+//
+//     DW.on('Prezzo', dati => { document.getElementById('prezzo').textContent = dati.valore; });
+
+const ascoltatori = new Map();
+
+const perSempre = new Map();
+
+DW.on = (nome, fn, opzioni) => {
+    const dove = opzioni && opzioni.sempre ? perSempre : ascoltatori;
+
+    if (!dove.has(nome)) dove.set(nome, new Set());
+
+    dove.get(nome).add(fn);
+
+    return () => dove.get(nome)?.delete(fn);
+};
+
+DW.off = (nome, fn) => {
+    ascoltatori.get(nome)?.delete(fn);
+    perSempre.get(nome)?.delete(fn);
+};
+
+// Il messaggio del server e' { o: mittente, d: dati }: se il mittente e' questa pagina e ha
+// chiesto di non riaverlo, si lascia cadere. I dati arrivano gia' decodificati.
+function consegna(nome, valore) {
+    let messaggio;
+
+    try { messaggio = JSON.parse(valore); } catch (e) { DW.error('messaggio "' + nome + '" non leggibile'); return; }
+
+    const root = radice();
+
+    if (messaggio.o && root && messaggio.o === root.dataset.dwPush) return;
+
+    for (const insieme of [ascoltatori.get(nome), perSempre.get(nome)]) {
+        if (!insieme) continue;
+
+        for (const fn of insieme) {
+            try { fn(messaggio.d, nome); } catch (e) { DW.error('DW.on(' + nome + '): ' + e); }
+        }
+    }
+}
+
+// per le prove e per chi vuole simulare un messaggio senza hub
+DW.deliver = consegna;
 
 // ---------------------------------------------------------------- morph
 // Aggiorna il DOM esistente invece di sostituirlo: i nodi che non cambiano restano gli
@@ -155,13 +208,26 @@ function valore(o, n) {
     if (atteso !== null && o.value !== atteso) o.value = atteso;
 }
 
+// Un nodo che il CLIENT ha aggiunto dentro dw-root - una riga scritta da DW.on(), un
+// pezzo di interfaccia montato da uno script di pagina - il server non lo conosce, e il
+// morph lo cancellerebbe al primo postback come "figlio in piu'". Chi lo crea lo marca con
+// data-dw-client, e il morph lo salta: ne' lo confronta, ne' lo toglie. E' lo stesso patto
+// delle classi js-, portato ai nodi. Solo il client puo' scriverlo: dal server data-dw-* e'
+// del motore e Attributes->Add() lo rifiuta.
+const delClient = (nodo) => nodo.nodeType === Node.ELEMENT_NODE && nodo.hasAttribute('data-dw-client');
+
 function figli(o, n) {
     const perId = new Map();
 
     for (const f of Array.from(o.children))
-        if (f.id) perId.set(f.id, f);
+        if (f.id && !delClient(f)) perId.set(f.id, f);
 
     let corrente = o.firstChild;
+
+    // i nodi del client si saltano: non sono nella lista del server e non devono contare
+    const avanza = () => { while (corrente && delClient(corrente)) corrente = corrente.nextSibling; };
+
+    avanza();
 
     for (const nuovo of Array.from(n.childNodes)) {
         // riconoscimento per id: e' cio' che permette di SPOSTARE una riga invece di
@@ -171,7 +237,7 @@ function figli(o, n) {
             perId.delete(nuovo.id);
 
             if (esistente !== corrente) o.insertBefore(esistente, corrente);
-            else corrente = corrente.nextSibling;
+            else { corrente = corrente.nextSibling; avanza(); }
 
             morphNodo(esistente, nuovo);
             continue;
@@ -181,6 +247,7 @@ function figli(o, n) {
             && !(corrente.nodeType === Node.ELEMENT_NODE && corrente.id)) {
             morphNodo(corrente, nuovo);
             corrente = corrente.nextSibling;
+            avanza();
             continue;
         }
 
@@ -189,7 +256,7 @@ function figli(o, n) {
 
     while (corrente) {
         const successivo = corrente.nextSibling;
-        o.removeChild(corrente);
+        if (!delClient(corrente)) o.removeChild(corrente);
         corrente = successivo;
     }
 }
@@ -891,7 +958,9 @@ DW.connectNotifications = () => {
         .build();
 
     connessione.on('Push', (nome, valore) => {
-        if (nome === 'DWEventi') window.DWEventi(valore);
+        if (nome === 'DWEventi') { window.DWEventi(valore); return; }
+
+        consegna(nome, valore);
     });
 
     const entra = () => connessione.invoke('JoinDomain', location.hostname).catch(() => {});

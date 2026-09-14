@@ -37,6 +37,14 @@ class Response
         //alzare la specificita' e senza toccare Common.
         echo Runtime::Styles();
 
+        //Gli script del motore stanno nella TESTA, con defer, e non in fondo al body. Sono
+        //tutti differiti - non bloccano niente - e i differiti girano nell'ordine in cui
+        //stanno scritti nel documento: quelli della testa vengono prima di quelli del body.
+        //E' cosi' che un <dw:Script> di pagina, che sta nel body, trova DW gia' pronto: messi
+        //in fondo, il motore girava DOPO lo script della pagina e "DW is not defined" era il
+        //primo errore di ogni pagina con un JavaScript suo. Provato.
+        echo Runtime::Scripts();
+
         //description, canonical, og:, un foglio di stile di pagina
         foreach ($pagina->Head as $riga)
             echo $riga;
@@ -47,7 +55,6 @@ class Response
         //posto - a fianco della radice, non dentro il contenuto che cambia ad ogni click
         echo self::StateField($stato);
 
-        echo Runtime::Scripts();
         echo '</body></html>';
 
         exit;
