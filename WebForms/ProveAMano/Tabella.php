@@ -14,14 +14,14 @@
 
 <div class="pm-card">
     <p>
-        <dw:Button id="btnAggiungi" Text="Aggiungi una riga" OnClick="AggiungiClick" />
-        <span class="pm-tenue">righe: <b><dw:Literal id="litQuante" /></b> &nbsp;·&nbsp;
-        postback: <b><dw:Literal id="litClick" /></b></span>
-        <dw:Button id="btnNiente" Text="Postback che non fa niente" OnClick="NienteClick" />
+        <dw:Button id="__Button_Aggiungi" Text="Aggiungi una riga" OnClick="AggiungiClick" />
+        <span class="pm-tenue">righe: <b><dw:Literal id="__Literal_Quante" /></b> &nbsp;·&nbsp;
+        postback: <b><dw:Literal id="__Literal_Click" /></b></span>
+        <dw:Button id="__Button_Niente" Text="Postback che non fa niente" OnClick="NienteClick" />
     </p>
 
     <p class="pm-tenue" style="border-top:1px solid #e2e8f0;padding-top:12px">
-        <dw:CheckBox id="chkTieni" Text="Tieni questa pagina come una form di WinForms" Checked="true" AutoPostBack="true" />
+        <dw:CheckBox id="__CheckBox_Tieni" Text="Tieni questa pagina come una form di WinForms" Checked="true" AutoPostBack="true" />
         <br>
         Acceso — com'e' per tutte le pagine — se vai altrove e torni le righe sono ancora li':
         il browser si conserva lo stato di QUESTA pagina e glielo rimanda. Spento, com'e' il
@@ -40,7 +40,7 @@
         <tr><th>Riga</th><th class="pm-azione"></th></tr>
         </thead>
 
-        <dw:Panel id="tbRighe" Tag="tbody" />
+        <dw:Panel id="__Panel_Righe" Tag="tbody" />
 
         <tfoot>
         <tr><td colspan="2" class="pm-vuoto">Nessuna riga: premi «aggiungi una riga».</td></tr>

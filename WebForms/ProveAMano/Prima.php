@@ -14,14 +14,14 @@
         </p>
 
         <p>
-            <span class="pm-grande"><dw:Literal id="litContatore" /></span>
-            <dw:Button id="btnConta" Text="Conta" OnClick="ContaClick" />
+            <span class="pm-grande"><dw:Literal id="__Literal_Contatore" /></span>
+            <dw:Button id="__Button_Conta" Text="Conta" OnClick="ContaClick" />
         </p>
 
         <p>
-            <dw:TextBox id="txtNota" Placeholder="scrivi qualcosa" />
-            <dw:Button id="btnRileggi" Text="Rileggi" OnClick="RileggiClick" />
-            <span class="pm-tenue"><dw:Literal id="litNota" /></span>
+            <dw:TextBox id="__TextBox_Nota" Placeholder="scrivi qualcosa" />
+            <dw:Button id="__Button_Rileggi" Text="Rileggi" OnClick="RileggiClick" />
+            <span class="pm-tenue"><dw:Literal id="__Literal_Nota" /></span>
         </p>
     </div>
 
@@ -35,12 +35,12 @@
         </p>
 
         <p>
-            <dw:TextBox id="txtNome" Placeholder="il tuo nome" />
-            <dw:Button id="btnPorta" Text="Porta di la'" OnClick="PortaClick" />
+            <dw:TextBox id="__TextBox_Nome" Placeholder="il tuo nome" />
+            <dw:Button id="__Button_Porta" Text="Porta di la'" OnClick="PortaClick" />
         </p>
 
         <p class="pm-tenue">
-            adesso vale: <b><dw:Literal id="litPortato" /></b> &nbsp;·&nbsp;
+            adesso vale: <b><dw:Literal id="__Literal_Portato" /></b> &nbsp;·&nbsp;
             <a href="Seconda.php">vai alla seconda pagina</a>
         </p>
     </div>
@@ -56,12 +56,12 @@
         </p>
 
         <p>
-            <dw:DatePicker id="dtGiorno" Mode="Date" AutoPostBack="true" OnDateChanged="DataCambiata" />
-            <dw:DatePicker id="dtQuando" Mode="DateTime" AutoPostBack="true" OnDateChanged="DataCambiata" />
-            <dw:Button id="btnCambiaModo" Text="Cambia il modo del primo" OnClick="CambiaModoClick" />
+            <dw:DatePicker id="__DatePicker_Giorno" Mode="Date" AutoPostBack="true" OnDateChanged="DataCambiata" />
+            <dw:DatePicker id="__DatePicker_Quando" Mode="DateTime" AutoPostBack="true" OnDateChanged="DataCambiata" />
+            <dw:Button id="__Button_CambiaModo" Text="Cambia il modo del primo" OnClick="CambiaModoClick" />
         </p>
 
-        <p class="pm-tenue"><dw:Literal id="litDate" /></p>
+        <p class="pm-tenue"><dw:Literal id="__Literal_Date" /></p>
     </div>
 
     <div class="pm-card">
@@ -80,9 +80,9 @@
         </p>
 
         <p>
-            <dw:Button id="btnSaluta" Text="Saluta tutti" OnClick="SalutaClick" />
-            <dw:Button id="btnUtente" Text="Manda un utente (nome, cognome, email, immagine)" OnClick="UtenteClick" />
-            <span class="pm-tenue">saluti ricevuti da questa pagina: <b><dw:Literal id="litSaluti" /></b></span>
+            <dw:Button id="__Button_Saluta" Text="Saluta tutti" OnClick="SalutaClick" />
+            <dw:Button id="__Button_Utente" Text="Manda un utente (nome, cognome, email, immagine)" OnClick="UtenteClick" />
+            <span class="pm-tenue">saluti ricevuti da questa pagina: <b><dw:Literal id="__Literal_Saluti" /></b></span>
         </p>
 
         <p class="pm-tenue">
@@ -98,7 +98,7 @@
         <h2>Il modo WinForms</h2>
 
         <p>
-            <dw:CheckBox id="chkTieni" Text="Tieni questa pagina com'era quando la lascio" Checked="true" AutoPostBack="true" />
+            <dw:CheckBox id="__CheckBox_Tieni" Text="Tieni questa pagina com'era quando la lascio" Checked="true" AutoPostBack="true" />
         </p>
 
         <p class="pm-tenue">

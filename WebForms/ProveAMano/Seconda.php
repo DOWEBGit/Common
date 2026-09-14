@@ -7,7 +7,7 @@
     <div class="pm-card">
         <h2>Quello che e' arrivato dalla prima pagina</h2>
 
-        <p class="pm-grande"><dw:Literal id="litArrivato" /></p>
+        <p class="pm-grande"><dw:Literal id="__Literal_Arrivato" /></p>
 
         <p class="pm-tenue">
             Questa pagina non ha ricevuto niente in querystring — guarda l'indirizzo — e non
@@ -17,8 +17,8 @@
         </p>
 
         <p>
-            <dw:Button id="btnMaiuscolo" Text="Scrivilo maiuscolo, e riportalo indietro" OnClick="MaiuscoloClick" />
-            <dw:Button id="btnSvuota" Text="Svuotalo" OnClick="SvuotaClick" />
+            <dw:Button id="__Button_Maiuscolo" Text="Scrivilo maiuscolo, e riportalo indietro" OnClick="MaiuscoloClick" />
+            <dw:Button id="__Button_Svuota" Text="Svuotalo" OnClick="SvuotaClick" />
         </p>
 
         <p class="pm-tenue">
@@ -38,15 +38,15 @@
             stesso evento si iscrivono in due, e girano tutti e due.
         </p>
 
-        <p class="pm-grande"><dw:Literal id="litSaluti" /></p>
+        <p class="pm-grande"><dw:Literal id="__Literal_Saluti" /></p>
 
         <h2>E a «Utente»: l'oggetto arriva qui, sul server, e si mostra</h2>
 
-        <dw:Panel id="pnlUtente" Visible="false">
+        <dw:Panel id="__Panel_Utente" Visible="false">
             <p>
-                <dw:Literal id="litFoto" Mode="PassThrough" />
-                <b><dw:Literal id="litNomeUtente" /></b>
-                <span class="pm-tenue">&lt;<dw:Literal id="litEmail" />&gt;</span>
+                <dw:Literal id="__Literal_Foto" Mode="PassThrough" />
+                <b><dw:Literal id="__Literal_NomeUtente" /></b>
+                <span class="pm-tenue">&lt;<dw:Literal id="__Literal_Email" />&gt;</span>
             </p>
         </dw:Panel>
     </div>
@@ -55,8 +55,8 @@
         <h2>E il suo contatore, che invece e' suo</h2>
 
         <p>
-            <span class="pm-grande"><dw:Literal id="litContatore" /></span>
-            <dw:Button id="btnConta" Text="Conta" OnClick="ContaClick" />
+            <span class="pm-grande"><dw:Literal id="__Literal_Contatore" /></span>
+            <dw:Button id="__Button_Conta" Text="Conta" OnClick="ContaClick" />
         </p>
 
         <p class="pm-tenue">

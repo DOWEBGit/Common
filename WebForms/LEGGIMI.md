@@ -6,8 +6,12 @@ server, eventi nel codebehind, e il browser che fonde le differenze invece di ri
 Questa cartella e' il motore. Non contiene pagine del sito: le pagine stanno nel sito che lo
 usa. Le uniche pagine qui dentro sono i banchi di prova di `ProveAMano/`, che sono del motore.
 
-L'API e' in inglese e ricalca WebForms; i commenti restano in italiano come il resto del
-codice.
+**La lingua.** L'API del motore e' in inglese e ricalca WebForms. Lo stesso vale per il codice
+che si scrive con il motore: **nomi di variabili, metodi, pagine, tabelle e campi in inglese;
+commenti, testi mostrati all'utente e messaggi in italiano.** Un identificatore in inglese si
+legge in qualunque codice del mondo e non fa a pugni con le parole chiave e con le librerie;
+un commento in italiano lo legge chi lo deve leggere. Northwind e i banchi di prova sono nati
+in italiano e restano cosi': sono esempi, non un modello di stile.
 
 Il documento e' diviso cosi':
 
@@ -395,7 +399,7 @@ PascalCase che dice **cosa contiene**, non com'e' fatto.
 | `Repeater` | `__Repeater_` | `__Repeater_Elenco` quando in pagina ce n'e' uno solo |
 | `Panel` / `PlaceHolder` | `__Panel_` / `__PlaceHolder_` | |
 | `FileUpload` | `__FileUpload_` | |
-| UserControl | `__NomeDelControllo` | `__PageNavigator`; con due istanze `__PageNavigator1`, `__PageNavigator2` |
+| UserControl | `__NomeDelControllo` | `__Menu`, `__PageNavigator`; con due istanze `__PageNavigator_Sopra`, `__PageNavigator_Sotto` |
 | `Alert`, `UpdateProgress` | `__Alert`, `__UpdateProgress` | uno per master, senza nome |
 
 Perche' conviene: nel codebehind `$this->__TextBox_Iban->Text` dice il tipo senza aprire il
@@ -408,8 +412,10 @@ Due cose da sapere. Il motore aggiunge un suffisso `__` agli id dentro un UserCo
 (`__Literal_Nome__PageNavigator`): la convenzione ci convive, il nome resta leggibile. E i
 nomi `__dw_*` sono del runtime — sono i campi del postback — quindi non si usano come id.
 
-Le pagine di esempio e i banchi di prova usano anche la forma corta (`txtFiltro`, `rptRighe`):
-il motore non fa differenza, e' una scelta di chi scrive il sito.
+La parte dopo il prefisso segue la regola della lingua: in codice nuovo `__Button_Save`,
+`__Literal_CompanyName`, `__Repeater_Orders`; gli esempi qui sopra sono di WK, che e' in
+italiano. Le pagine Northwind, la master del sito, gli UserControl e i banchi di prova la
+seguono tutti. Resta un suggerimento: il motore accetta qualunque id.
 
 ### Attributi HTML dal codice
 
@@ -935,18 +941,18 @@ impaginazione invece di leggere tutto e tagliare in memoria:
 ```php
 $totale = \Model\Categorie::GetCount(wherePredicate: $predicato, whereValues: $valori);
 
-$this->pgSotto->TotalItems = $totale;
+$this->__PageNavigator_Sotto->TotalItems = $totale;
 
-$this->rpt->DataSource = ...GetList(
-    item4page: $this->pgSotto->PageSize,
-    page: $this->pgSotto->CurrentPage,
+$this->__Repeater_Categorie->DataSource = ...GetList(
+    item4page: $this->__PageNavigator_Sotto->PageSize,
+    page: $this->__PageNavigator_Sotto->CurrentPage,
     wherePredicate: $predicato,
     whereValues: $valori,
     orderPredicate: $this->ordine . ($this->ascendente ? ' ASC' : ' DESC'),
     selectColumns: ['Id']);
 
-$this->rpt->DataBind();
-$this->rpt->Visible = $this->rpt->Items() !== [];
+$this->__Repeater_Categorie->DataBind();
+$this->__Repeater_Categorie->Visible = $this->__Repeater_Categorie->Items() !== [];
 ```
 
 I due modi convivono: `Northwind/Categorie` e' fatta cosi', le altre pagine leggono e
@@ -1013,7 +1019,7 @@ motore sa solo montarli.
 **Si scrive col suo nome**, come in WK:
 
 ```html
-<dw:PageNavigator id="pgSotto" OnPageChanged="PaginaCambiata" PageSize="10" />
+<dw:PageNavigator id="__PageNavigator_Sotto" OnPageChanged="PaginaCambiata" PageSize="10" />
 ```
 
 La regola: un tag `dw:` che **non e' un controllo del motore** si cerca in `UserControls/`,
@@ -1028,19 +1034,19 @@ tutti danno per scontato.
 relativo alla radice di `Public/Php`:
 
 ```html
-<dw:UserControl id="pgSopra" src="Layouts/Parti/PageNavigator"
+<dw:UserControl id="__PageNavigator_Sopra" src="Layouts/Parti/PageNavigator"
                 OnPageChanged="PaginaCambiata" PageSize="10" />
 ```
 
 Le due forme fanno esattamente la stessa cosa: la prima e' la seconda con il `src` dedotto.
-Anche il designer lo sa, e dichiara `\UserControls\PageNavigator $pgSotto` in tutti e due i
+Anche il designer lo sa, e dichiara `\UserControls\PageNavigator $__PageNavigator_Sotto` in tutti e due i
 casi.
 
 Tre proprieta' lo rendono utile:
 
 **E' un contenitore di denominazione.** Gli id dei figli vengono qualificati con quello del
-controllo (`__LinkButton_Next__pgSopra`), cosi' due istanze nella stessa pagina — un paginatore sopra e
-uno sotto — non si pestano gli id. Dentro si continua a scrivere `$this->lnkNext`.
+controllo (`__LinkButton_Next____PageNavigator_Sopra`), cosi' due istanze nella stessa pagina — un paginatore sopra e
+uno sotto — non si pestano gli id. Dentro si continua a scrivere `$this->__LinkButton_Next`.
 
 **Ha un ciclo di vita suo**: `OnInit` dal basso (i controlli composti si preparano prima
 della pagina), `OnLoad` e `OnPreRender` dall'alto — un paginatore deve sapere quanti elementi
@@ -1056,7 +1062,7 @@ Dalla pagina ci si arriva con un cast:
 
 ```php
 /** @var \UserControls\PageNavigator $pg */
-$pg = $this->FindControl('pgSopra');
+$pg = $this->FindControl('__PageNavigator_Sopra');
 $pg->TotalItems = $totale;
 ```
 
@@ -1090,7 +1096,7 @@ e dichiara dove va il contenuto:
 
 ```html
 <header>…</header>
-<dw:UserControl id="menu" src="UserControls/Menu" Tag="nav" />
+<dw:Menu id="__Menu" Tag="nav" />
 
 <dw:ContentPlaceHolder id="corpo">
     <p class="dw-vuoto">Questa pagina non ha ancora contenuto.</p>
@@ -1115,9 +1121,9 @@ attorno a se'; la master invece *e'* il corpo della pagina, e un `<div>` in piu'
 tutto cambierebbe il CSS di ogni sito che la adotta.
 
 **La master NON e' un contenitore di denominazione.** Di master ce n'e' una sola per pagina,
-quindi non c'e' niente da disambiguare, e `txtFiltro` resta `txtFiltro`: e' la regola su cui
+quindi non c'e' niente da disambiguare, e `__TextBox_Filtro` resta `__TextBox_Filtro`: e' la regola su cui
 si regge il morph, ed e' proprio quella che in WebForms la master rompeva trasformandolo in
-`ctl00$corpo$txtFiltro`. Il rovescio: **gli id della master e quelli della pagina vivono
+`ctl00$corpo$__TextBox_Filtro`. Il rovescio: **gli id della master e quelli della pagina vivono
 nello stesso elenco**. Un `<dw:Panel id="corpo">` in una pagina il cui segnaposto si chiama
 `corpo` e' un errore di tipo al primo caricamento, con il nome della proprieta' nel messaggio,
 non un avviso; i controlli della master si chiamano in modo da non incrociarsi con quelli
@@ -1359,7 +1365,7 @@ class Cornice extends MasterPage
     {
         $this->Page->Subscribe('Saluti', function (): void
         {
-            $this->litSalutiCornice->Text = (string)((int)$this->litSalutiCornice->Text + 1);
+            $this->__Literal_SalutiCornice->Text = (string)((int)$this->__Literal_SalutiCornice->Text + 1);
             $this->Page->Alert->Success('Qualcuno ha salutato.');
         });
     }

@@ -60,7 +60,7 @@ class Tabella extends Page
     {
         $this->Ultima++;
 
-        $this->tbRighe->Add($this->Riga($this->Ultima));
+        $this->__Panel_Righe->Add($this->Riga($this->Ultima));
     }
 
     /** Un postback qualunque, che non tocca la tabella: serve solo a vedere se regge. */
@@ -78,12 +78,12 @@ class Tabella extends Page
      */
     protected function EliminaClick(Control $sender, string $numero): void
     {
-        foreach ($this->tbRighe->Controls as $posizione => $riga)
+        foreach ($this->__Panel_Righe->Controls as $posizione => $riga)
         {
-            if ($riga->Id !== 'tr' . $numero)
+            if ($riga->Id !== '__Panel_Riga' . $numero)
                 continue;
 
-            array_splice($this->tbRighe->Controls, $posizione, 1);
+            array_splice($this->__Panel_Righe->Controls, $posizione, 1);
 
             return;
         }
@@ -99,7 +99,7 @@ class Tabella extends Page
     {
         $riga = new Panel();
 
-        $riga->Id  = 'tr' . $numero;
+        $riga->Id  = '__Panel_Riga' . $numero;
         $riga->Tag = 'tr';
 
         $riga->Add($this->CellaTesto($numero));
@@ -112,12 +112,12 @@ class Tabella extends Page
     {
         $cella = new Panel();
 
-        $cella->Id  = 'tdTesto' . $numero;
+        $cella->Id  = '__Panel_Testo' . $numero;
         $cella->Tag = 'td';
 
         $testo = new Label();
 
-        $testo->Id   = 'litRiga' . $numero;
+        $testo->Id   = '__Literal_Riga' . $numero;
         $testo->Text = 'Riga numero ' . $numero . ', nata al click delle '
             . date('H:i:s') . ' e mai piu\' ricostruita.';
 
@@ -130,13 +130,13 @@ class Tabella extends Page
     {
         $cella = new Panel();
 
-        $cella->Id       = 'tdAzione' . $numero;
+        $cella->Id       = '__Panel_Azione' . $numero;
         $cella->Tag      = 'td';
         $cella->CssClass = 'pm-azione';
 
         $elimina = new LinkButton();
 
-        $elimina->Id              = 'lnkElimina' . $numero;
+        $elimina->Id              = '__LinkButton_Elimina' . $numero;
         $elimina->Text            = 'elimina';
         $elimina->OnClick         = 'EliminaClick';
         $elimina->CommandArgument = (string)$numero;
@@ -157,9 +157,9 @@ class Tabella extends Page
      */
     protected function OnPreRender(): void
     {
-        $this->KeepState = $this->chkTieni->Checked;
+        $this->KeepState = $this->__CheckBox_Tieni->Checked;
 
-        $this->litQuante->Text = (string)count($this->tbRighe->Controls);
-        $this->litClick->Text  = (string)$this->Click;
+        $this->__Literal_Quante->Text = (string)count($this->__Panel_Righe->Controls);
+        $this->__Literal_Click->Text  = (string)$this->Click;
     }
 }

@@ -200,7 +200,7 @@ class ProveDinamici
         $p->Uguale('quindi il suo stato non porta figli da ricostruire',
             false, array_key_exists('Dyn', $master->SaveViewState()));
 
-        $titolo = $master->FindControl('litTitolo');
+        $titolo = $master->FindControl('__Literal_Titolo');
 
         $titolo->Text = 'scritto dalla pagina';
 

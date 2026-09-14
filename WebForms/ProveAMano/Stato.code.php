@@ -68,17 +68,17 @@ class Stato extends Page
         /*
         $casella = new TextBox();
 
-        $casella->Id          = 'txtDinamico';
+        $casella->Id          = '__TextBox_Dinamico';
         $casella->Placeholder = 'scrivi qui, poi fai un postback';
 
-        $this->phSempre->Add($casella);
+        $this->__PlaceHolder_Sempre->Add($casella);
 
         $eco = new Label();
 
-        $eco->Id       = 'lblEco';
+        $eco->Id       = '__Label_Eco';
         $eco->CssClass = 'pm-tenue';
 
-        $this->phSempre->Add($eco);
+        $this->__PlaceHolder_Sempre->Add($eco);
         */
     }
 
@@ -91,32 +91,32 @@ class Stato extends Page
 
         $casella = new TextBox();
 
-        $casella->Id          = 'txtDinamico';
+        $casella->Id          = '__TextBox_Dinamico';
         $casella->Placeholder = 'scrivi qui, poi fai un postback';
 
-        $this->phSempre->Add($casella);
+        $this->__PlaceHolder_Sempre->Add($casella);
 
         $eco = new Label();
 
-        $eco->Id       = 'lblEco';
+        $eco->Id       = '__Label_Eco';
         $eco->CssClass = 'pm-tenue';
 
-        $this->phSempre->Add($eco);
+        $this->__PlaceHolder_Sempre->Add($eco);
 
-        $this->litClick->Text = '0';
+        $this->__Literal_Click->Text = '0';
 
         //RIQUADRO 3: creata QUI, in OnLoad. Al postback dopo non ripassa di qui - c'e' il
         //return su IsPostBack - eppure c'e' ancora: la rimette lo stato.
         $this->Nate = 0;
 
-        $this->Attacca('lblDaOnLoad', 'Sono nata in OnLoad, al primo caricamento.');
+        $this->Attacca('__Label_DaOnLoad', 'Sono nata in OnLoad, al primo caricamento.');
 
-        $this->rpt->DataSource = self::RIGHE;
-        $this->rpt->DataBind();
+        $this->__Repeater_Elenco->DataSource = self::RIGHE;
+        $this->__Repeater_Elenco->DataBind();
 
         //RIQUADRO 1: si veste QUI, a DataBind gia' fatto e senza OnItemDataBound. Niente di
         //quello che segue e' ricavabile dal template o dai dati della riga.
-        foreach ($this->rpt->Items() as $riga)
+        foreach ($this->__Repeater_Elenco->Items() as $riga)
         {
             $colore = self::COLORI[$riga->ItemIndex % count(self::COLORI)];
 
@@ -124,13 +124,13 @@ class Stato extends Page
 
             $riga->CssClass = 'js-prova-riga';
 
-            $tocca = $riga->FindControl('lnkTocca');
+            $tocca = $riga->FindControl('__LinkButton_Tocca');
 
             $tocca->Style->Add('color', $colore);
             $tocca->Attributes->Add('title', 'Riga numero ' . ($riga->ItemIndex + 1));
 
             /** @var Literal $nota */
-            $nota = $riga->FindControl('litNota');
+            $nota = $riga->FindControl('__Literal_Nota');
 
             $nota->Text = 'vestita dal codice, riga ' . ($riga->ItemIndex + 1);
         }
@@ -146,7 +146,7 @@ class Stato extends Page
     {
         $this->Click++;
 
-        $this->litClick->Text = (string)$this->Click;
+        $this->__Literal_Click->Text = (string)$this->Click;
     }
 
     /**
@@ -161,7 +161,7 @@ class Stato extends Page
         $riga = $sender->NamingContainer();
 
         /** @var Literal $nota */
-        $nota = $riga->FindControl('litNota');
+        $nota = $riga->FindControl('__Literal_Nota');
 
         $nota->Text = 'toccata al postback numero ' . ($this->Click + 1);
 
@@ -179,7 +179,7 @@ class Stato extends Page
     {
         $this->Nate++;
 
-        $this->Attacca('lblVolo' . $this->Nate, 'Numero ' . $this->Nate . ', nata dentro un handler.');
+        $this->Attacca('__Label_Volo' . $this->Nate, 'Numero ' . $this->Nate . ', nata dentro un handler.');
     }
 
     /**
@@ -201,7 +201,7 @@ class Stato extends Page
         $al->Style->Add('color', '#0f766e');
         $al->Style->Add('display', 'block');
 
-        $this->phVolatile->Add($al);
+        $this->__PlaceHolder_Volatile->Add($al);
     }
 
     /**
@@ -212,16 +212,16 @@ class Stato extends Page
      */
     protected function OnPreRender(): void
     {
-        $this->litVolo->Text = (string)count($this->phVolatile->Controls);
+        $this->__Literal_Volo->Text = (string)count($this->__PlaceHolder_Volatile->Controls);
 
         /** @var TextBox $casella */
-        $casella = $this->FindControl('txtDinamico');
+        $casella = $this->FindControl('__TextBox_Dinamico');
 
         if ($casella->Text !== '')
             $this->Eco = $casella->Text;
 
         /** @var Label $eco */
-        $eco = $this->FindControl('lblEco');
+        $eco = $this->FindControl('__Label_Eco');
 
         $eco->Text = $this->Eco === ''
             ? 'La casella qui sopra e\' vuota: scrivici qualcosa e fai un postback.'
