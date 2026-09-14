@@ -12,9 +12,10 @@ use Common\WebForms\Page;
 /**
  * Il banco di prova a mano dello stato: cosa sopravvive a un postback e cosa no.
  *
- * Sta dentro Common e non in un sito perche' e' una prova DEL MOTORE: niente master page,
- * niente Model, niente database, nessun foglio di stile del sito. Si apre e funziona ovunque
- * ci sia il motore, anche in un sito appena creato che non ha ancora niente dentro.
+ * Sta dentro Common e non in un sito perche' e' una prova DEL MOTORE: niente Model, niente
+ * database, nessun foglio di stile del sito. La master page e' Cornice.php qui accanto, che
+ * lega i banchi con un menu. Si apre e funziona ovunque ci sia il motore, anche in un sito
+ * appena creato che non ha ancora niente dentro.
  *
  * Le prove automatiche in UnitTest/ dicono che lo stato torna indietro; questa pagina fa
  * vedere la stessa cosa con le mani, cliccando - che e' l'unico modo di provare anche il
@@ -65,8 +66,6 @@ class Stato extends Page
     protected function OnInit(): void
     {
         /*
-        $this->Title = 'Prove a mano: lo stato dei controlli';
-
         $casella = new TextBox();
 
         $casella->Id          = 'txtDinamico';
@@ -88,7 +87,7 @@ class Stato extends Page
         if ($this->IsPostBack)
             return;
 
-        $this->Title = 'Prove a mano: lo stato dei controlli';
+        $this->Master->SetTitle('Lo stato dei controlli', 'Cosa sopravvive a un postback e cosa no, un riquadro per domanda.');
 
         $casella = new TextBox();
 

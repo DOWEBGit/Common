@@ -17,7 +17,7 @@
     .pm-menu a{color:#94a3b8;text-decoration:none;padding:4px 0;border-bottom:2px solid transparent}
     .pm-menu a:hover{color:#e2e8f0}
     .pm-menu a.pm-qui{color:#fff;border-bottom-color:#38bdf8}
-    .pm-corpo{padding:24px;max-width:820px}
+    .pm-corpo{padding:24px;max-width:900px}
     h1{font-size:20px;margin:0 0 4px}
     h2{font-size:15px;margin:0 0 10px}
     .pm-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0}
@@ -26,6 +26,10 @@
     .pm-no{color:#b91c1c;font-weight:600}
     .pm-grande{font-size:22px;font-weight:600}
     .pm-pie{padding:12px 24px;border-top:1px solid #e2e8f0;font-size:12px}
+    td.pm-azione{width:80px;text-align:right}
+    tbody:empty + tfoot .pm-vuoto{display:table-cell}
+    .pm-vuoto{display:none;color:#94a3b8;font-style:italic}
+    th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b}
     table{border-collapse:collapse;width:100%}
     th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0}
     button,input[type=text]{font:inherit;padding:5px 10px}

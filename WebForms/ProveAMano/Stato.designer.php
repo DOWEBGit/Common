@@ -13,6 +13,7 @@ namespace Common\WebForms\ProveAMano;
  */
 trait StatoDesigner
 {
+    public \Common\WebForms\ProveAMano\Cornice $Master;
     public \Common\WebForms\Controls\Literal $litClick;
     public \Common\WebForms\Controls\Button $btnPostback;
     public \Common\WebForms\Controls\Repeater $rpt;

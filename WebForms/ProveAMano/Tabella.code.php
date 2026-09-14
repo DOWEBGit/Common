@@ -43,7 +43,7 @@ class Tabella extends Page
 
     protected function OnInit(): void
     {
-        $this->Title = 'Prove a mano: righe aggiunte a mano';
+        $this->Master->SetTitle('Righe aggiunte a mano', 'In OnLoad non succede niente: ogni riga nasce da un click e vive nello stato.');
     }
 
     /**
@@ -60,7 +60,7 @@ class Tabella extends Page
     {
         $this->Ultima++;
 
-        $this->corpo->Add($this->Riga($this->Ultima));
+        $this->tbRighe->Add($this->Riga($this->Ultima));
     }
 
     /** Un postback qualunque, che non tocca la tabella: serve solo a vedere se regge. */
@@ -78,12 +78,12 @@ class Tabella extends Page
      */
     protected function EliminaClick(Control $sender, string $numero): void
     {
-        foreach ($this->corpo->Controls as $posizione => $riga)
+        foreach ($this->tbRighe->Controls as $posizione => $riga)
         {
             if ($riga->Id !== 'tr' . $numero)
                 continue;
 
-            array_splice($this->corpo->Controls, $posizione, 1);
+            array_splice($this->tbRighe->Controls, $posizione, 1);
 
             return;
         }
@@ -159,7 +159,7 @@ class Tabella extends Page
     {
         $this->KeepState = $this->chkTieni->Checked;
 
-        $this->litQuante->Text = (string)count($this->corpo->Controls);
+        $this->litQuante->Text = (string)count($this->tbRighe->Controls);
         $this->litClick->Text  = (string)$this->Click;
     }
 }

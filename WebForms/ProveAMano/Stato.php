@@ -1,24 +1,12 @@
 <?php require __DIR__ . '/../Bootstrap.php';
-\Common\WebForms\Page::Run(__FILE__, \Common\WebForms\ProveAMano\Stato::class); ?>
+\Common\WebForms\Page::Run(__FILE__, \Common\WebForms\ProveAMano\Stato::class,
+    'Common/WebForms/ProveAMano/Cornice'); ?>
 
-<style>
-    body{margin:0;padding:24px;font:14px/1.6 system-ui,Segoe UI,sans-serif;color:#1f2937;background:#f8fafc}
-    h1{font-size:20px;margin:0 0 4px}
-    h2{font-size:15px;margin:0 0 10px}
-    .pm-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;max-width:900px}
-    .pm-tenue{color:#64748b}
-    .pm-si{color:#15803d;font-weight:600}
-    .pm-no{color:#b91c1c;font-weight:600}
-    table{border-collapse:collapse;width:100%}
-    th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0}
-    button,input{font:inherit;padding:5px 10px}
-</style>
-
-<h1>Prove a mano: lo stato dei controlli</h1>
+<dw:Content placeholder="corpo">
 
 <p class="pm-tenue" style="max-width:900px">
-    Nessun database, nessuna master page, nessun Model: solo il motore. Ogni riquadro fa una
-    domanda sola, e la risposta si legge premendo il bottone e guardando cosa resta.
+    Nessun database, nessun Model: solo il motore e la cornice qui attorno. Ogni riquadro fa
+    una domanda sola, e la risposta si legge premendo il bottone e guardando cosa resta.
     Postback fatti finora: <b><dw:Literal id="litClick" /></b>
     <dw:Button id="btnPostback" Text="Fai un postback e non toccare nient'altro" OnClick="PostbackClick" />
 </p>
@@ -79,3 +67,5 @@
 
     <dw:PlaceHolder id="phVolatile" />
 </div>
+
+</dw:Content>

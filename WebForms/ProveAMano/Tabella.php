@@ -1,22 +1,8 @@
 <?php require __DIR__ . '/../Bootstrap.php';
-\Common\WebForms\Page::Run(__FILE__, \Common\WebForms\ProveAMano\Tabella::class); ?>
+\Common\WebForms\Page::Run(__FILE__, \Common\WebForms\ProveAMano\Tabella::class,
+    'Common/WebForms/ProveAMano/Cornice'); ?>
 
-<style>
-    body{margin:0;padding:24px;font:14px/1.6 system-ui,Segoe UI,sans-serif;color:#1f2937;background:#f8fafc}
-    h1{font-size:20px;margin:0 0 4px}
-    .pm-card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;max-width:760px}
-    .pm-tenue{color:#64748b}
-    table{border-collapse:collapse;width:100%;margin-top:12px}
-    th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0}
-    th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b}
-    td.pm-azione{width:80px;text-align:right}
-    a{color:#b91c1c;cursor:pointer}
-    button{font:inherit;padding:5px 10px}
-    tbody:empty + tfoot .pm-vuoto{display:table-cell}
-    .pm-vuoto{display:none;color:#94a3b8;font-style:italic}
-</style>
-
-<h1>Prove a mano: righe aggiunte a mano</h1>
+<dw:Content placeholder="corpo">
 
 <p class="pm-tenue" style="max-width:760px">
     <b>In <code>OnLoad</code> non succede niente.</b> Ogni riga della tabella nasce da un click:
@@ -54,10 +40,12 @@
         <tr><th>Riga</th><th class="pm-azione"></th></tr>
         </thead>
 
-        <dw:Panel id="corpo" Tag="tbody" />
+        <dw:Panel id="tbRighe" Tag="tbody" />
 
         <tfoot>
         <tr><td colspan="2" class="pm-vuoto">Nessuna riga: premi «aggiungi una riga».</td></tr>
         </tfoot>
     </table>
 </div>
+
+</dw:Content>

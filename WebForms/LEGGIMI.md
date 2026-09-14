@@ -1604,10 +1604,16 @@ morph poi non ritrova piu' niente al suo posto.
 L'orario stampato in ogni riga e' li' per questo: se dopo cinque postback e' ancora quello
 del click che l'ha creata, quella riga non e' stata ricostruita da nessuno.
 
-**Stanno in `Common` di proposito.** Niente master page, niente Model, niente database,
-nessun foglio di stile del sito: e' una prova **del motore**, quindi viaggia con il motore
-e si apre uguale su un sito appena creato che non ha ancora niente dentro. Per lo stesso
-motivo non entra nell'enum `Pagine`: `PageMap` non attraversa `Common`.
+**Stanno in `Common` di proposito.** Niente Model, niente database, nessun foglio di stile
+del sito: e' una prova **del motore**, quindi viaggia con il motore e si apre uguale su un
+sito appena creato che non ha ancora niente dentro. La master page c'e', ma e' `Cornice.php`
+li' accanto: il menu che lega i banchi fra loro e' la prova a mano del "modo WinForms" (§4),
+e una master dentro `Common` e' anche la prova che una master page puo' stare fuori dal sito.
+Per lo stesso motivo non entrano nell'enum `Pagine`: `PageMap` non attraversa `Common`.
+
+Sotto una master gli `id` dei controlli della pagina e quelli della master vivono nello stesso
+elenco: un `<dw:Panel id="corpo">` in una pagina il cui segnaposto si chiama `corpo` e' un
+errore di tipo al primo caricamento, non un avviso.
 
 ## Le prove che non si scrivono
 
