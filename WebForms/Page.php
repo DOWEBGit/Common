@@ -13,7 +13,7 @@ namespace Common\WebForms;
  *   Evento        l'handler indicato dal markup: qui si manipola liberamente la pagina
  *   PreRender     OnPreRender()
  *   Render         HTML dell'intera pagina
- *   SaveViewState    lo stato torna in sessione
+ *   SaveViewState    lo stato torna nel campo nascosto, firmato
  *
  * Il render e' sempre totale e il client fa il morph: niente regioni da dichiarare, niente
  * UpdatePanel. Un handler puo' toccare qualunque controllo, ovunque nella pagina, e si
@@ -137,7 +137,7 @@ abstract class Page
     }
 
     /**
-     * Lo slot di stato non c'e' piu' (sessione scaduta, o troppe pagine aperte).
+     * Lo stato arrivato non torna buono: manomesso, firmato con un segreto vecchio, illeggibile.
      * Per difetto si ricarica pulito, che e' meglio di un errore incomprensibile.
      */
     protected function OnViewStateExpired(): void

@@ -3,64 +3,25 @@
 Un motore a postback per PHP, sul modello di ASP.NET WebForms: albero di controlli lato
 server, eventi nel codebehind, e il browser che fonde le differenze invece di ricaricare.
 
-Questa cartella e' il motore. Non contiene pagine: le pagine stanno nel sito che lo usa.
+Questa cartella e' il motore. Non contiene pagine del sito: le pagine stanno nel sito che lo
+usa. Le uniche pagine qui dentro sono i banchi di prova di `ProveAMano/`, che sono del motore.
 
 L'API e' in inglese e ricalca WebForms; i commenti restano in italiano come il resto del
 codice.
 
----
+Il documento e' diviso cosi':
 
-## Cosa e' cambiato il 14/09/2026
-
-- **`<dw:DatePicker>`**: `Value`, `Min`, `Max` sono `DateTimeImmutable`; `Mode` e' l'enum
-  `DateTimeMode` (`Date` / `DateTime`) e sceglie fra `type="date"` e `type="datetime-local"`,
-  calendario nativo del browser; `AutoPostBack` e `OnDateChanged`. Quello che arriva dal
-  browser si rilegge come data: la spazzatura diventa vuoto, l'ora di troppo cade. (§3)
-- **Proprieta' enum nei controlli**: dal markup per nome del caso, nello stato come valore, e
-  la prova generica le sonda. D'ora in poi due o tre valori possibili sono un enum. (§3)
-- **Ispezioni PhpStorm a zero** sul motore: costanti tipate, eccezioni checked fermate alla
-  sorgente come `RuntimeException`, `__DIR__` al posto di `DOCUMENT_ROOT` in `Bootstrap`.
-- **`Notify()` porta un oggetto**: terzo argomento, arriva all'handler di `Subscribe()` come
-  array, firmato; `data-dw-topics` sulla radice fa partire il postback solo per i topic
-  iscritti. Banco: Prima manda un utente con foto, Seconda lo mostra. (§6)
-- **`EntityEvents::Broadcast()`** manda un messaggio con dati a tutti i browser del dominio,
-  subito; `DW.on()` lo riceve in pagina; `data-dw-client` protegge dal morph quello che uno
-  script aggiunge. Gli script del motore sono passati nella testa del documento. (§6)
-- **La master si iscrive agli eventi**: `$this->Page->Subscribe()` in `OnInit` della
-  `MasterPage`, e l'handler gira su ogni pagina che la eredita. Banco: la Cornice ascolta
-  «Saluti» e mostra avviso e contatore anche su Tabella e Stato. (§6)
-- **Gli errori vanno nel log del sito.** Quello che scappa da `Page::Run` - un handler che
-  lancia, un tipo sbagliato nel designer, la memoria finita - finisce in `Log::Error` con
-  pagina, metodo, URL, file:riga e pila, e la risposta e' un **500**: il runtime lo mostra
-  nel riquadro degli errori invece di ricaricare in silenzio. (§7)
-- Il **designer** si rigenera anche quando un tipo dichiarato non esiste: un plugin vecchio non
-  puo' piu' lasciare una pagina rotta con un 200. Plugin **1.21.0**: UserControl per nome nel
-  designer, `ViewStateMode` nel completamento. (§11)
-
-## Cosa e' cambiato l'11/09/2026
-
-Per chi conosceva il motore com'era: le cose sono cambiate in profondita', e i nomi con loro.
-
-- **Le variabili di pagina restano tutte**, come i campi di una form. `#[Persist]` non esiste
-  piu'; il poco che deve rinascere si marca `#[Transient]`; `#[Portable]` resta per quello che
-  attraversa le pagine. (§2)
-- **I controlli attaccati dal codice tornano da soli** al postback dopo — in `OnLoad`, in un
-  handler, ovunque — con posizione, classe e stato. Anche alla radice della pagina con
-  `$this->Add()`. Il markup non si salva mai: si rilegge. (§3, *Panel e PlaceHolder*)
-- **Il Repeater salva solo la differenza** dalla fotografia di nascita: quello che il codice
-  mette nelle righe resta, comunque ci sia arrivato, e un template a soli segnaposto non paga
-  niente. `ClearItems()` e' l'`Items.Clear()` di WebForms. (§3, *Repeater*)
-- **`ViewStateMode`** su ogni controllo, ereditato: `Inherit` / `Enabled` / `Disabled`. (§2)
-- **Modo WinForms acceso per tutti** (`KeepState`): il browser si tiene lo stato di ogni pagina
-  e lo rimanda quando ci si torna, anche con una querystring diversa; tetto 50 MB per ultimo
-  accesso; una riga in console dice quanto pesa. Chi non lo vuole lo spegne. (§2)
-- **Il ViewState sta fuori da `dw-root`**, e il morph non lo tocca. (§2)
-- **`Attributes` e `Style` sono collection** con `Add`/`Remove`/`Clear`, leggibili come array.
-  Tutta l'API e' in inglese, con i nomi di WebForms; i commenti restano in italiano. (§3)
-- **`runtime.js` e `runtime.css`** sono file veri accanto al motore, non piu' `const` PHP. (§1)
-- **`Pages::`** e' il nuovo nome dell'enum delle pagine (`Pagine::`), `SitePage` dell'interfaccia.
-- **Prove**: 379, di cui sessantatre per riflessione su tutti i controlli, piu' i banchi a mano in
-  `ProveAMano/` — due pagine con un menu, la tabella costruita a mano, lo stato. (§10)
+    1. Una pagina            i tre file, il ciclo di vita, le classi
+    2. Lo stato              le variabili che restano, #[Portable], il ViewState, KeepState, ViewStateMode
+    3. I controlli           uno per uno, con le regole che il motore garantisce
+    4. UserControl           i controlli composti e la master page
+    5. Upload                il canale dei file, separato dal postback
+    6. Eventi                fra controlli, fra schede, fra utenti; la master che ascolta
+    7. Navigazione e accesso link senza ricarico, redirect, CSRF, e dove finiscono gli errori
+    8. Regole da non disfare
+    9. Cosa manca di proposito
+    10. Le prove             unitarie, del JavaScript, e i banchi a mano
+    11. Il plugin per PhpStorm
 
 ---
 
@@ -104,20 +65,23 @@ Codebehind e designer **non passano dall'autoloader** — il loro nome non e' un
 classe — e vengono inclusi per percorso, designer per primo perche' e' un trait che la
 classe usa. Il vantaggio e' che la classe si chiama `\WebForms\Ordine`, non `OrdineCode`.
 
-Il designer si riscrive da solo quando il markup e' piu' recente, e ci mette anche un `@see`
-per ogni handler nominato nel markup: se scrivi `OnClick="DeletRow"` con il refuso, l'IDE lo
+Il designer si riscrive da solo quando il markup e' piu' recente del file, o quando lo e' il
+generatore, o quando dichiara un tipo del motore che non esiste. Ci mette anche un `@see` per
+ogni handler nominato nel markup: se scrivi `OnClick="DeletRow"` con il refuso, l'IDE lo
 segna in rosso subito.
 
 ## Ciclo di vita
 
-    OnInit               albero costruito dal markup - sempre identico, e' il vincolo che regge tutto
-    LoadViewState        proprieta' dei controlli + variabili della pagina
+    OnInit               albero costruito dal markup - sempre identico, e' il vincolo che regge tutto;
+                         prima quello degli UserControl e della master, poi quello della pagina
+    LoadPortable         il pacchetto #[Portable] che attraversa le pagine
+    LoadViewState        proprieta' dei controlli, controlli attaccati dal codice, variabili della pagina
     LoadPostData         i valori del form entrano nei controlli
-    OnLoad               con $this->IsPostBack
-    RaisePostBackEvent   l'handler nominato dal markup
-    OnPreRender
+    OnLoad               con $this->IsPostBack; pagina prima, UserControl dopo
+    RaisePostBackEvent   l'handler nominato dal markup, o gli iscritti a un evento arrivato dal hub
+    OnPreRender          pagina prima, UserControl dopo
+    SaveViewState        lo stato torna nel campo nascosto, firmato
     Render               HTML dell'INTERA pagina
-    SaveViewState
 
 Il client fonde le differenze nel DOM (morph). **Nessuna regione da dichiarare**: un handler
 tocca qualunque controllo, ovunque nella pagina, e si aggiorna. Niente `UpdatePanel`, niente
@@ -137,32 +101,35 @@ il `?>`, con emmet e completamento dei tag.
 
 | classe | ruolo |
 |---|---|
-| `Page` | ciclo di vita, `IsPostBack`, `FindControl()`, `Add()`, `KeepState`, `Subscribe()`/`Raise()`, `Redirect()`, `RedirectToPage()`, `RedirectToLogin()` |
-| `Control` | base: `Id` `Visible` `CssClass` `Attributes` `ViewStateMode` `Parent` `Controls` `Page`, `FindControl()`, `NamingContainer()`, `Attributes->Add()`, `Attributes->Remove()`, `Style->Add()`, `Style->Remove()`, `CanRaiseEvents()`, `RaiseBubbleEvent()`, `Render()` |
+| `Page` | ciclo di vita, `IsPostBack`, `FindControl()`, `Add()`, `KeepState`, `Title` `Lang` `Head`, `Alert`, `Subscribe()`/`Raise()`, `Redirect()`, `RedirectToPage()`, `RedirectToLogin()` |
+| `Control` | base: `Id` `Visible` `CssClass` `Attributes` `Style` `ViewStateMode` `Parent` `Controls` `Page`, `FindControl()`, `NamingContainer()`, `IsViewStateEnabled()`, `CanRaiseEvents()`, `RaiseBubbleEvent()`, `Render()` |
+| `AttributeCollection` / `CssStyleCollection` | `Attributes` e `Style`: `Add` `Remove` `Clear` `Has`, leggibili come array |
 | `UserControl` | controllo composto: ciclo di vita proprio, `OnBubbleEvent()`, `RaiseHostEvent()` |
 | `MasterPage` | la cornice condivisa: un UserControl che contiene la pagina invece di esserne contenuto |
 | `PageParser` | markup → albero di nodi, con cache su `mtime` |
-| `ControlBuilder` | nodi → controlli, segnaposto `{{Campo}}`, `<dw:ListItem>` |
+| `ControlBuilder` | nodi → controlli, segnaposto `{{Campo}}`, `<dw:ListItem>`, master e `<dw:Content>` |
 | `ViewState` | lo stato: campo nascosto compresso e firmato, niente sessione |
-| `Response` | `Document()` `Fragment()` `Redirect()` `Reload()` |
-| `Runtime` | i due tag che il motore mette in ogni pagina: lo stile funzionale e gli script |
-| `Designer` | genera il trait dei controlli |
+| `ViewStateMode` | `Inherit` / `Enabled` / `Disabled`, ereditato lungo l'albero |
+| `Response` | `Document()` `Fragment()` `Redirect()` `Reload()` `StateField()` |
+| `Runtime` | i tag che il motore mette in ogni pagina: `runtime.css` in testa, `runtime.js` e SignalR in testa con `defer` |
+| `Designer` | genera il trait dei controlli, e lo rigenera quando non torna |
 | `Upload` | il canale dei file, separato dal postback |
 | `Csrf` | protezione a doppio invio su cookie: nessun token da tenere sul server |
-| `EntityEvents` | notifiche di dominio: `Notify()` `Flush()` `Suspend()` `Resume()` |
+| `EntityEvents` | notifiche di dominio: `Notify()` `Broadcast()` `Flush()` `Suspend()` `Resume()` |
 | `Transient` | attributo sui campi che NON devono sopravvivere al postback: tutti gli altri restano |
 | `Portable` | attributo sui campi che devono attraversare le pagine |
 | `Alert` | la coda degli avvisi: `Success()` `Fail()`, e vivono in un campo `#[Portable]` |
-| `PageMap` | genera l'enum `Pagine` leggendo i markup: l'elenco per `RedirectToPage()` |
-| `SitePage` | quel poco che il motore chiede all'enum generato: `Percorso()` |
+| `PageMap` | genera l'enum `Pages` leggendo i markup: l'elenco per `RedirectToPage()` |
+| `SitePage` | quel poco che il motore chiede all'enum generato: `Path()` |
+| `DateTimeMode` | l'enum del `DatePicker`: `Date` / `DateTime` |
 
-`runtime.js` e `runtime.css`, accanto a quelle classi, **sono il motore lato browser**: morph, postback,
-navigazione, upload, notifiche, piu' le regole di stile senza cui un comportamento si rompe.
-Li aggancia `Runtime` da solo — il foglio in testa, lo script in coda al body con `defer` —
-con la marca temporale nell'indirizzo. Stanno in due file veri e non in un `const` di PHP
-perche' li' dentro non sarebbero codice per nessuno: non per l'editor, non per il controllo
-di sintassi, non per il debugger del browser, che li chiamerebbe "inline" senza saper dire a
-che riga sei.
+`runtime.js` e `runtime.css`, accanto a quelle classi, **sono il motore lato browser**: morph,
+postback, navigazione, upload, notifiche, piu' le regole di stile senza cui un comportamento
+si rompe. Li aggancia `Runtime` da solo — tutti nella testa del documento, gli script con
+`defer` — con la marca temporale nell'indirizzo. Stanno in due file veri e non in un `const`
+di PHP perche' li' dentro non sarebbero codice per nessuno: non per l'editor, non per il
+controllo di sintassi, non per il debugger del browser, che li chiamerebbe "inline" senza
+saper dire a che riga sei.
 
 `FileUploadHandler.php` e' l'unico file del motore che si chiama da URL: riceve i file in
 POST e serve le anteprime in GET. `_cache` tiene il markup analizzato, `_segreto.php` la
@@ -182,9 +149,8 @@ private array $righe = [];   //dopo il click ha ancora le righe di prima
 private int $prossimoId = 1; //e il contatore non riparte
 ```
 
-Nessun attributo. Guardando le pagine vere non ce n'era una che volesse il contrario: un
-campo di pagina e' memoria per definizione, e chiedere di marcarlo era solo un modo per
-dimenticarsene. Ci vanno **scalari e array**, anche annidati.
+Nessun attributo. Un campo di pagina e' memoria per definizione, e chiedere di marcarlo
+sarebbe solo un modo per dimenticarsene. Ci vanno **scalari e array**, anche annidati.
 
 Restano fuori **da soli**: le proprieta' del motore (`Title`, `Lang`, `IsPostBack`, …), le
 `#[Portable]`, che hanno un canale loro, e le proprieta' **tipizzate con una classe** — i
@@ -196,8 +162,10 @@ Il poco che deve **rinascere** ad ogni richiesta — una cache riempita in `OnLo
 grosso che non ha senso far viaggiare — si marca `#[Transient]`. Serve anche a chi legge:
 senza, un campo che si azzera sembra un difetto.
 
-Tutto questo vive quanto la pagina: cambiando pagina si riparte da zero (salvo il modo
-WinForms, piu' sotto). Per un valore che deve attraversare le pagine c'e' `#[Portable]`.
+Tutto questo vive quanto la pagina; e con il modo WinForms (piu' sotto), che e' il
+predefinito, la pagina vive finche' la scheda e' aperta, anche mentre se ne guarda un'altra.
+Per un valore che deve passare **da una pagina all'altra** c'e' `#[Portable]`.
+
 ## `#[Portable]`: lo stato che attraversa le pagine
 
 ```php
@@ -231,13 +199,11 @@ qualche proxy taglierebbe per conto suo: li' vanno le chiavi, non i dati.
 In un campo nascosto, e in nessun altro posto. **Il motore non usa la sessione**: niente
 `$_SESSION`, niente lock del file di sessione, niente stato sul server fra una richiesta e
 l'altra. Quindi lo stato non scade finche' la pagina resta aperta, sopravvive a un riavvio
-del server, e due postback dello stesso browser non si mettono in fila per un lock.
+del server, e due postback dello stesso browser non si mettono in fila per un lock — che e'
+esattamente il momento in cui un modo "in sessione" serializzerebbe le richieste, quando i
+postback si accavallano.
 
 Si paga in banda: ~1 kB piu' ~25 byte per riga, ad ogni postback, in andata e ritorno.
-
-C'era anche un modo "in sessione", con un anello di dieci slot: **tolto**. Faceva scadere le
-pagine aperte da un po', ne teneva vive solo dieci, e serializzava le richieste dello stesso
-browser proprio quando i postback si accavallano.
 
 Il campo nascosto e' il ViewState vero: `serialize` → `gzdeflate` → `base64` → **HMAC-SHA256**.
 La compressione prima del base64 (dopo non comprimerebbe piu' niente), la firma per ultima,
@@ -251,14 +217,28 @@ la chiave sarebbe pubblica.
 
 Uno stato manomesso o scaduto non e' un errore: `OnViewStateExpired()` ricarica pulito.
 
-### Vale per una pagina e per una visita
+### Sta FUORI da `dw-root`
 
-Cambiare pagina **azzera il ViewState**, ed e' voluto: lo stato descrive quella pagina
-com'era, e tornarci dopo essere stati altrove vuol dire ricominciare — su un elenco e' anche
-l'unica cosa giusta, perche' i dati intanto possono essere cambiati. Quello che attraversa
-le pagine e' `#[Portable]`, che e' un'altra cosa e viaggia in un pacchetto suo.
+Il campo nascosto e' un fratello della radice, non un suo figlio:
 
-### Il modo WinForms: `KeepState`, acceso per tutti
+```html
+<div id="dw-root"> … tutta la pagina … </div>
+<input type="hidden" id="__dw_state" value="v1.…">
+```
+
+Dentro `dw-root` ci sta il contenuto, e ad ogni postback quel contenuto viene riconciliato
+nodo per nodo dal morph. Se il campo stesse li' in mezzo, **il pacchetto piu' importante
+della pagina dipenderebbe dal fatto che il morph lo riconosca** e ne aggiorni il valore: una
+riconciliazione che va storta, e il click dopo parte da uno stato vecchio. Fuori non dipende
+da niente — il client se lo scrive da se', con quello che il server gli manda accanto
+all'HTML — e si trova sempre allo stesso posto, come una volta si trovava la sessione. Se
+manca, il client se lo ricrea invece di perdere il postback.
+
+Il postback lo aggiorna **prima** di toccare il DOM: se il morph solleva a meta' strada, il
+campo e' gia' quello nuovo e il click successivo resta allineato col server. Una navigazione
+senza ricarico lo prende dal documento appena scaricato.
+
+## Il modo WinForms: `KeepState`, acceso per tutti
 
 Il **browser** si conserva lo stato di ogni pagina quando la si lascia e glielo rimanda
 quando ci si torna: contatori, filtri, pannelli aperti, controlli attaccati dal codice,
@@ -272,14 +252,19 @@ protected function OnInit(): void
 }
 ```
 
-Come funziona: la radice esce con `data-dw-tieni`, il client tiene una mappa
-*indirizzo → stato* (fino a **50 MB**, poi butta quelle con l'ultimo accesso piu' vecchio), e quando si torna su un
-indirizzo che ha in serbo fa una **POST** invece della solita GET, con l'intestazione
-`X-DW-Ripristina`. Il server la tratta come un postback senza evento — `IsPostBack` e'
-vero, quindi l'inizializzazione di `OnLoad` non ricomincia da capo — e risponde con un
-documento intero perche' resta una navigazione.
+Spento, cambiare pagina **azzera il ViewState**: lo stato descrive quella pagina com'era, e
+tornarci dopo essere stati altrove vuol dire ricominciare — su un elenco di dati che cambiano
+sotto le mani di altri e' anche l'unica cosa giusta. Quello che attraversa le pagine resta
+`#[Portable]`, in tutti e due i modi.
 
-Cosa sapere prima di accenderlo:
+Come funziona: la radice esce con `data-dw-tieni`, il client tiene una mappa
+*indirizzo → stato* (fino a **50 MB**, poi butta quelle con l'ultimo accesso piu' vecchio), e
+quando si torna su un indirizzo che ha in serbo fa una **POST** invece della solita GET, con
+l'intestazione `X-DW-Ripristina`. Il server la tratta come un postback senza evento —
+`IsPostBack` e' vero, quindi l'inizializzazione di `OnLoad` non ricomincia da capo — e
+risponde con un documento intero perche' resta una navigazione.
+
+Cosa sapere:
 
 - lo stato tenuto vive **nella memoria di quella scheda**: F5 lo butta, un'altra scheda non
   lo vede, chiudere il browser lo perde. Non e' un salvataggio, e non va usato come tale;
@@ -288,6 +273,9 @@ Cosa sapere prima di accenderlo:
   `IsPostBack` e' vero; cosa ricaricare lo decide la pagina in `OnLoad` — confronta il
   parametro con quello che si ricorda, e se e' cambiato fa `$rpt->ClearItems()` e rilega.
   `UnitTest/ProveQuerystring.php` e' esattamente questo, con i giorni di un mese;
+- **il tasto indietro e avanti del browser** ripristinano come un link: lo stato che si tiene
+  e' quello di **dopo** l'ultimo postback, anche se il click sul link e' arrivato mentre
+  quel postback era ancora in volo — la navigazione aspetta che finisca;
 - **niente resta appeso**: svuotare un elenco con `ClearItems()` o rimpiazzare un pannello
   riporta il pacchetto al peso di prima — misurato: 329 B vuota, 12 KB con 500 righe, 329 B
   dopo `ClearItems()`, e dieci postback a vuoto non lo muovono di un byte. Sul server non c'e'
@@ -307,26 +295,8 @@ Cosa sapere prima di accenderlo:
   quando serve: al ritorno `IsPostBack` e' vero e la pagina sa di essere stata
   ripristinata.
 
-### Sta FUORI da `dw-root`
-
-Il campo nascosto e' un fratello della radice, non un suo figlio:
-
-```html
-<div id="dw-root"> … tutta la pagina … </div>
-<input type="hidden" id="__dw_state" value="v1.…">
-```
-
-Dentro `dw-root` ci sta il contenuto, e ad ogni postback quel contenuto viene riconciliato
-nodo per nodo dal morph. Finche' il campo stava li' in mezzo, **il pacchetto piu' importante
-della pagina dipendeva dal fatto che il morph lo riconoscesse** e ne aggiornasse il valore:
-una riconciliazione che va storta, e il click dopo parte da uno stato vecchio. Fuori non
-dipende piu' da niente — il client se lo scrive da se', con quello che il server gli manda
-accanto all'HTML — e si trova sempre allo stesso posto, come una volta si trovava la
-sessione. Se manca, il client se lo ricrea invece di perdere il postback.
-
-Il postback lo aggiorna **prima** di toccare il DOM: se il morph solleva a meta' strada, il
-campo e' gia' quello nuovo e il click successivo resta allineato col server. Una navigazione
-senza ricarico lo prende dal documento appena scaricato.
+I banchi `ProveAMano/Prima.php` e `Tabella.php` hanno la casella per accenderlo e spegnerlo;
+Tabella anche due link — «vai all'altro banco», «torna qui» — per provarlo con le mani.
 
 ## La terza via: non tenerlo — `ViewStateMode`
 
@@ -341,14 +311,15 @@ Per gli elenchi e' quasi sempre la scelta giusta, e si dice nel markup, come in 
 Tre valori. `Inherit` (predefinito) fa quello che fa il padre, e la pagina e' `Enabled`:
 senza scrivere niente si salva tutto. `Disabled` spegne il controllo e, per eredita', tutto
 il ramo sotto; un figlio puo' riaccendersi con `Enabled`. Vale su **qualunque** controllo — un
-`Panel` spento spegne tutto quello che contiene.
+`Panel` spento spegne tutto quello che contiene. `IsViewStateEnabled()` dice com'e' finita
+la risalita.
 
 Cosa succede sotto uno spento:
 
 - i controlli **del markup** ci sono ancora, coi valori del markup: quello che il codice ci
   aveva scritto e' perso;
 - i controlli **attaccati dal codice** non tornano: chi li vuole li ricrea in `OnInit`, alla
-  maniera vecchia;
+  maniera di WebForms;
 - un **Repeater** spento non porta le righe: la pagina lo ridatabinda in `OnLoad` — cioe'
   **prima** dell'evento, cosi' il bottone dentro la riga esiste quando il click arriva.
 
@@ -377,6 +348,7 @@ Scelti contando l'uso reale nelle pagine WebForms del gestionale WK
 | `TextBox` | 725 | si' |
 | `DropDownList` | 422 | si' |
 | `UpdatePanel` | 341 | non serve: render totale + morph |
+| `Content` | 280 | si', con la master page (§4) |
 | `ListItem` | 268 | si' |
 | `AsyncPostBackTrigger` | 237 | non serve: dipendeva dall'UpdatePanel |
 | `CheckBox` | 181 | si' |
@@ -391,9 +363,11 @@ Scelti contando l'uso reale nelle pagine WebForms del gestionale WK
 | `ListBox` | 6 | si' |
 | `TreeView` | 4 | manca, e con quattro usi non vale il prezzo |
 
-Piu' `Content` (280), che e' delle master page: qui quel posto lo prendono gli UserControl.
+Piu' quelli che una pagina non scrive ma il sito si': `Alert`, `UpdateProgress`, `Stylesheet`,
+`Script`, `ContentPlaceHolder`.
 
-Tutti stanno in `Controls` e hanno `Id`, `Visible`, `CssClass`.
+Tutti stanno in `Controls` e hanno `Id`, `Visible`, `CssClass`, `Attributes`, `Style`,
+`ViewStateMode`.
 
 ### Attributi HTML dal codice
 
@@ -417,10 +391,10 @@ Tre regole, e tutte e tre hanno una prova:
 - **il nome dev'essere un nome di attributo** (`[A-Za-z][A-Za-z0-9_.:-]*`), controllato quando
   lo si scrive e di nuovo al render. Un nome con uno spazio dentro non aggiungerebbe un
   attributo: inietterebbe markup;
-- **`id`, `class`, `hidden`, `name` e `data-dw-*` sono riservati**: i primi quattro li scrive
-  gia' il controllo (si usano `Id`, `CssClass`, `Visible`), l'ultimo e' il canale fra server e
-  runtime. Scriverli solleva, invece di produrre un HTML con l'attributo doppio in cui il
-  browser tiene il primo — cioe' non quello appena messo.
+- **`id`, `class`, `style`, `hidden`, `name` e `data-dw-*` sono riservati**: i primi cinque li
+  scrive gia' il controllo (si usano `Id`, `CssClass`, `Style`, `Visible`), l'ultimo e' il
+  canale fra server e runtime. Scriverli solleva, invece di produrre un HTML con l'attributo
+  doppio in cui il browser tiene il primo — cioe' non quello appena messo.
 
 Gli attributi stanno nel ViewState, quindi uno messo in un handler c'e' ancora al click dopo;
 dentro un `Repeater` con `OnItemDataBound` viaggiano per riga come tutto il resto.
@@ -451,8 +425,14 @@ proprieta' personalizzate: `--dw-mio`), controllato quando lo si scrive e di nuo
 Il valore invece puo' contenere qualunque cosa: l'attributo esce escapato tutto insieme,
 quindi una virgoletta diventa un'entita' e non puo' chiudere niente.
 
-`style` e' fra i nomi riservati di `Attributes->Add()`: due sorgenti per lo stesso
-attributo darebbero un HTML con `style` scritto due volte, e il browser terrebbe il primo.
+### Le proprieta' enum
+
+Una proprieta' con due o tre valori possibili e' un **enum**, non una costante stringa: il
+`Mode` del `DatePicker` e' `DateTimeMode::Date` o `DateTimeMode::DateTime`. Il motore le
+tratta da solo: dal markup si sceglie il caso **per nome**, senza badare alle maiuscole
+(`Mode="datetime"` va bene, `Mode="Ora"` si ferma al markup con il nome del controllo); nello
+stato viaggia il valore e torna come enum; la prova generica su tutti i controlli le sonda
+come le altre. Il prossimo controllo con un'alternativa chiusa la dichiara cosi'.
 
 ### `Literal`
 
@@ -481,7 +461,7 @@ Rende uno `<span>`.
 | `Text` | il valore |
 | `Placeholder` | |
 | `TextMode` | `SingleLine` (predefinito), `MultiLine` (textarea), `Password` |
-| `Type` | il `type` HTML, quando serve `email`, `number`, `date`… |
+| `Type` | il `type` HTML, quando serve `email`, `number`… Per le date c'e' il `DatePicker` |
 | `Rows` | righe della textarea |
 | `Enabled` | |
 | `AutoPostBack` | posta appena il valore cambia |
@@ -514,7 +494,7 @@ $this->dtDal->Min = new \DateTimeImmutable('2026-01-01');
 
 | proprieta' | |
 |---|---|
-| `Mode` | `DateTimeMode::Date` (predefinito) o `DateTimeMode::DateTime`: `<input type="date">` o `type="datetime-local"`. Nel markup `Mode="Date"` / `Mode="DateTime"`, senza badare alle maiuscole; un nome sbagliato si ferma al markup |
+| `Mode` | `DateTimeMode::Date` (predefinito) o `DateTimeMode::DateTime`: `<input type="date">` o `type="datetime-local"`. Nel markup `Mode="Date"` / `Mode="DateTime"` |
 | `Value` `Min` `Max` | **date**, `?DateTimeImmutable`. Nello stato viaggia il testo nel formato dell'input (`Text`, `MinText`, `MaxText`): il pacchetto si riapre senza classi |
 | `AutoPostBack` | scegliere una data fa partire il postback |
 | `OnDateChanged` | handler di pagina, `(DatePicker $sender)` |
@@ -530,11 +510,6 @@ marzo; un'ora mandata a un `Mode="Date"` cade. Si accettano anche i formati di u
 — con lo spazio, con i secondi — e si normalizzano. Cambiando `Mode` a runtime il valore resta
 e si adegua al tipo nuovo: senza, il browser rifiuterebbe `2026-09-14T10:30` in un
 `type="date"` e mostrerebbe il campo vuoto senza dire niente.
-
-`Mode` e' il primo caso di **proprieta' enum** in un controllo, e il motore ora le tratta
-da solo: dal markup si sceglie il caso per nome, nello stato viaggia il valore e torna
-come enum, e la prova generica su tutti i controlli sonda anche quelle. Il prossimo controllo
-con due o tre valori possibili li dichiari come enum, non come costanti stringa.
 
 ### `Button` e `LinkButton`
 
@@ -561,7 +536,7 @@ richiesta finisce, comunque sia andata.
 
 Si spegne **solo quello**: il resto della pagina continua a rispondere. E' una difesa contro
 il doppio click, non un blocco della pagina; per l'attesa lunga c'e' `js-dw-attesa` sul
-`<body>`, che c'e' da prima.
+`<body>`, e l'`UpdateProgress` che ci reagisce.
 
 Non c'e' niente da riaccendere a mano e niente da scrivere nella pagina: il render che torna
 e' quello che comanda, e nel suo HTML il controllo e' acceso. Vale per i click, non per gli
@@ -668,7 +643,7 @@ Tre cose da sapere:
   che riparte e' un controllo diverso ogni volta, e lo stato del precedente resta orfano;
 - **chi lo ricrea in `OnInit` non si ritrova doppioni.** Se al momento di rimetterlo esiste
   gia' un figlio con quell'id, il motore gli posa sopra lo stato invece di aggiungerne un
-  secondo: le pagine scritte alla maniera vecchia continuano a funzionare come sempre;
+  secondo: le pagine scritte alla maniera di WebForms funzionano come sempre;
 - **solo i controlli del motore si sanno ricostruire da un nome di classe.** Un UserControl
   e' markup piu' designer piu' classe, e un `new` nudo darebbe un guscio vuoto: attaccarne
   uno a runtime solleva **subito**, dicendo di ricrearlo in `OnInit`, invece di lasciarlo
@@ -683,10 +658,12 @@ rileggerlo — e solo lui: per quelli del markup sarebbe la stessa informazione 
 un CRUD intero a postback, una volta alla radice e una dentro un Panel del markup.
 
 Chi si ricostruisce i figli da se' lo dichiara con `RebuildsChildren()`, e allora non
-finiscono nello stato: lo fanno il `Repeater` con le sue righe e `PageNavigator` con i suoi
-numeri di pagina, che li rifa' da `CurrentPage`, `PageSize` e `TotalItems`.
+finiscono nello stato: lo fanno il `Repeater` con le sue righe, `PageNavigator` con i suoi
+numeri di pagina, che li rifa' da `CurrentPage`, `PageSize` e `TotalItems`, e la master con
+i suoi segnaposto, che vengono dal markup.
 
-`Common/WebForms/ProveAMano/Stato.php` fa vedere le tre cose una accanto all'altra.
+`ProveAMano/Stato.php` fa vedere le tre cose una accanto all'altra; `Tabella.php` e' il caso
+piu' severo, righe di tabella che nascono solo da click.
 
 ### `Stylesheet` e `Script`
 
@@ -713,9 +690,10 @@ sito senza vestito o senza script si diagnostica peggio di un errore esplicito.
 **Uno `<dw:Script>` viene eseguito una volta sola**, al caricamento vero. Qui le pagine non si
 ricaricano - un click e' una fetch e poi un morph - e il runtime riesegue solo gli script
 INLINE dopo una navigazione, non quelli con `src`, che sono gia' in memoria. Quindi ci va
-codice che si aggancia al documento (delega sugli eventi, `DW.onLeave`, `dw:pagina`), non
-codice che cerca i suoi elementi all'avvio e se li tiene: al primo morph quelli diventano nodi
-che non stanno piu' in pagina.
+codice che si aggancia al documento (delega sugli eventi, `DW.onLeave`, `dw:pagina`,
+`DW.on`), non codice che cerca i suoi elementi all'avvio e se li tiene: al primo morph quelli
+diventano nodi che non stanno piu' in pagina. Trova `DW` gia' pronto: gli script del motore
+stanno in testa, con `defer`, e i differiti girano nell'ordine in cui sono scritti.
 
 ### `Alert`
 
@@ -814,6 +792,7 @@ niente da annullare — l'animazione semplicemente non parte.
 |---|---|
 | `DataBind()` | fotografa `DataSource` nelle righe e le costruisce |
 | `Items()` | le righe rese, come `RepeaterItem` |
+| `ClearItems()` | via tutte le righe, e dallo stato: e' l'`Items.Clear()` di WebForms |
 
 ```html
 <table>
@@ -904,8 +883,8 @@ non combaciano piu'** con la loro fotografia. Un template a soli segnaposto rico
 celle dai dati della riga, che sono gia' in `Items`: niente e' cambiato, e nello stato non
 finisce niente. Chi tocca tre celle su quaranta paga tre celle.
 
-`Common/WebForms/ProveAMano/Stato.php` e' la prova vista da fuori: un Repeater, un bottone
-che fa postback senza ridatabindare, e righe vestite dal codice dopo il `DataBind()`.
+`ProveAMano/Stato.php` e' la prova vista da fuori: un Repeater, un bottone che fa postback
+senza ridatabindare, e righe vestite dal codice dopo il `DataBind()`.
 
 Il prezzo del modo WK e' una lettura per riga. Si paga volentieri con dieci o venti righe per
 pagina, ed e' quello che permette di far fare al **database** filtro, ordinamento e
@@ -1084,8 +1063,10 @@ non dichiara nessun `<dw:Content>` per quell'id.
 **Dalla pagina la master si tocca per nome, tipizzata.** Il designer dichiara
 `public \Layouts\Sito $Master;` quando il markup ne nomina una, quindi
 `$this->Master->SetTitle('Categorie', '…')` si completa da solo e un refuso si vede in rosso.
+La master ha `OnInit`, `OnLoad` e `OnPreRender` come un UserControl, e da li' arriva alla
+pagina con `$this->Page`: e' cosi' che si iscrive a un evento per tutte le pagine (§6).
 
-Tre scelte, e sono il punto:
+Quattro scelte, e sono il punto:
 
 **La master NON avvolge il contenuto in un elemento.** Un UserControl rende un `<div>`
 attorno a se'; la master invece *e'* il corpo della pagina, e un `<div>` in piu' attorno a
@@ -1094,16 +1075,25 @@ tutto cambierebbe il CSS di ogni sito che la adotta.
 **La master NON e' un contenitore di denominazione.** Di master ce n'e' una sola per pagina,
 quindi non c'e' niente da disambiguare, e `txtFiltro` resta `txtFiltro`: e' la regola su cui
 si regge il morph, ed e' proprio quella che in WebForms la master rompeva trasformandolo in
-`ctl00$corpo$txtFiltro`.
+`ctl00$corpo$txtFiltro`. Il rovescio: **gli id della master e quelli della pagina vivono
+nello stesso elenco**. Un `<dw:Panel id="corpo">` in una pagina il cui segnaposto si chiama
+`corpo` e' un errore di tipo al primo caricamento, con il nome della proprieta' nel messaggio,
+non un avviso; i controlli della master si chiamano in modo da non incrociarsi con quelli
+delle pagine.
 
 **Un `<dw:Content>` che punta a un segnaposto inesistente e' un errore, non un silenzio.**
 Sparirebbe dalla pagina senza che niente lo segnali, ed e' il tipo di difetto che si scopre
 guardando una pagina vuota e chiedendosi perche'. Stessa cosa per il markup scritto fuori
 dai `<dw:Content>` di una pagina con master: non avrebbe un posto dove finire.
 
+**La master puo' stare ovunque**, anche fuori dal sito: il terzo argomento e' un percorso dalla
+radice dei sorgenti php, e `Common/WebForms/ProveAMano/Cornice` e' una master che vive nel
+motore. I suoi controlli vengono dal markup, quindi non finiscono nello stato dei figli
+dinamici: e' la stessa regola dei segnaposto e dei `<dw:Content>`.
+
 ## La testa del documento
 
-`Response::Document` non e' piu' l'unico posto da cui si tocca l'`<head>`:
+L'`<head>` si tocca dalla pagina, in `OnPreRender`, quando sa gia' cosa sta mostrando:
 
 ```php
 protected function OnPreRender(): void
@@ -1115,23 +1105,24 @@ protected function OnPreRender(): void
 
 `Page::$Head` e' HTML gia' pronto, quindi ci va solo roba decisa dal server; esce **dopo**
 gli stili del motore, cosi' un foglio di stile di pagina o di master li sovrascrive senza
-dover alzare la specificita'. `Page::$Lang` riempie `<html lang="…">`, che su un sito
-multilingua cambia per richiesta.
+dover alzare la specificita'. `Page::$Title` e' il `<title>`, `Page::$Lang` riempie
+`<html lang="…">`, che su un sito multilingua cambia per richiesta. Tutti e due viaggiano
+nello stato e tornano con la pagina quando la si ripristina.
 
 ## Il CSS: cosa porta il motore e cosa no
 
 Il motore porta **solo il minimo senza cui qualcosa non funziona**: l'attesa che compare dopo
 un ritardo, il controllo spento mentre il postback viaggia, il campo file invisibile steso
-sopra la zona di trascinamento, il banner degli errori, `[hidden]`. Toglierne una non rende
-una pagina brutta: la rompe. I colori li prende da `var(--dw-…)` con un ripiego scritto
-accanto, quindi si vede qualcosa anche senza tavolozza.
+sopra la zona di trascinamento, il riquadro degli errori, gli avvisi, `[hidden]`. Toglierne
+una non rende una pagina brutta: la rompe. I colori li prende da `var(--dw-…)` con un ripiego
+scritto accanto, quindi si vede qualcosa anche senza tavolozza.
 
 Sta in `Common/WebForms/runtime.css`, ed entra in testa da solo — con la marca temporale,
 come qualunque altro foglio. Non c'e' niente da dichiarare nel markup: e' il motore, non un
 pezzo del sito.
 
-**Il vestito lo mette il sito, e non sta in una costante PHP.** Nell'esempio e' un foglio di
-stile vero, `Layouts/Sito.css`, agganciato con una riga nel markup della master:
+**Il vestito lo mette il sito.** Nell'esempio e' un foglio di stile vero, `Layouts/Sito.css`,
+agganciato con una riga nel markup della master:
 
 ```html
 <dw:Stylesheet src="Layouts/Sito.css" />
@@ -1156,7 +1147,7 @@ ricorda di alzare il `?v=` le prime due volte e poi mai piu', e si finisce a pre
 senza capire perche' il sito non cambia; qui l'indirizzo cambia da solo quando cambia il file.
 
 Un `<style>` scritto nel markup va bene uguale, e per poche righe e' anche meglio: una
-richiesta in meno.
+richiesta in meno. `ProveAMano/Cornice.php` e' fatta cosi'.
 
 ---
 
@@ -1187,11 +1178,19 @@ protected function SalvaClick(Control $sender, string $argomento): void
 diventerebbe pubblicazione. E' la temp dell'**utente del processo**, quindi condivisa fra i
 siti serviti dallo stesso account.
 
-**Il tipo si legge dal contenuto** con `getimagesize()`, non dall'intestazione che scrive il
-client — quella vale quanto una promessa. Un `.txt` rinominato `.png` viene rifiutato
-(provato). `getimagesize` e non `mime_content_type` perche' l'estensione fileinfo non c'e',
-e comunque e' piu' severa: il file dev'essere davvero un'immagine leggibile, non solo
-cominciare con i byte giusti.
+**Il tipo si legge dal contenuto**, non dall'intestazione che scrive il client — quella vale
+quanto una promessa. Le immagini passano da `getimagesize()`: un `.txt` rinominato `.png`
+viene rifiutato (provato). `getimagesize` e non `mime_content_type` perche' l'estensione
+fileinfo non c'e', e comunque e' piu' severa: il file dev'essere davvero un'immagine
+leggibile, non solo cominciare con i byte giusti.
+
+**I documenti si riconoscono dai byte, non dal nome.** Un `.pdf` che non comincia con `%PDF-`
+non e' un pdf comunque si chiami; `.docx`, `.xlsx` e `.zip` cominciano con `PK`, `.doc` e
+`.xls` con la firma dei vecchi Office. Solo per i file inerti - txt e csv - non c'e' niente da
+riconoscere e si accetta l'estensione.
+
+**Un documento si scarica, un'immagine si guarda**: l'anteprima manda
+`Content-Disposition: attachment` per i documenti e niente per le immagini.
 
 **Il `drop` va annullato su tutto il documento**, non solo sulla zona: altrimenti un file
 lasciato cadere accanto al riquadro lo apre e porta via dalla pagina. Vale anche quando
@@ -1212,17 +1211,9 @@ guardia.
     <dw:FileUpload id="fuImmagine" Vincoli="Model\Prodotti::Immagine" />
     <dw:FileUpload id="fuAllegato" Vincoli="Model\AllegatiOrdine::Documento" />
 
-Senza `Vincoli` il campo accetta tutto quello che il canale sa riconoscere: va bene per una
-vetrina, non per un campo che finisce in un database.
-
-**I documenti si riconoscono dai byte, non dal nome.** Un `.pdf` che non comincia con `%PDF-`
-non e' un pdf comunque si chiami; un `.docx` e' uno zip e comincia con `PK`. Solo per i file
-inerti - txt e csv - non c'e' niente da riconoscere e si accetta l'estensione. Le immagini
-passano da `getimagesize`, che e' piu' severa di un confronto sui primi byte perche' il file
-deve essere davvero un'immagine leggibile.
-
-**Un documento si scarica, un'immagine si guarda**: l'anteprima manda
-`Content-Disposition: attachment` per i documenti e niente per le immagini.
+Senza `Vincoli` il campo accetta tutto quello che il canale sa riconoscere — JPG, PNG, GIF,
+pdf, zip, docx, xlsx, doc, xls, txt, csv — fino a 8 MB, e comunque entro il limite di PHP,
+che vince sempre. Va bene per una vetrina, non per un campo che finisce in un database.
 
 **Le immagini che non vanno bene si rifiutano, non si convertono.** Quali vadano bene lo dice
 il campo, non il controllo: l'elenco delle estensioni e' quello del pannello. Il posto giusto
@@ -1239,11 +1230,9 @@ a cui appartiene. Non c'e' nessuna tabella da nessuna parte - ne' in sessione ne
 il legame col browser e' il cookie del motore. Provato: lo stesso token, valido e firmato,
 chiesto senza quel cookie riceve **404**.
 
-Ammessi JPG, PNG e GIF, fino a 8 MB — e comunque entro il limite di PHP, che vince
-sempre. Il temporaneo si butta con `Clear()` dopo il salvataggio, e in ogni caso dopo un'ora:
-la potatura guarda la **cartella**, non un elenco, quindi passa da tutti i `dwup_` scaduti di
-chiunque fossero. Con l'elenco in sessione si vedevano solo i propri, e gli orfani restavano
-li' per sempre — misurati, dieci alla volta.
+Il temporaneo si butta con `Clear()` dopo il salvataggio, e in ogni caso dopo un'ora: la
+potatura guarda la **cartella**, non un elenco, quindi passa da tutti i `dwup_` scaduti di
+chiunque fossero, e non lascia orfani.
 
 ---
 
@@ -1270,7 +1259,8 @@ gli anelli.
 Non c'e' niente da chiamare: il gancio sta in `BaseModel::Save` e `BaseModel::Delete`, quindi
 **ogni** salvataggio annuncia la propria entita' — da una pagina WebForms, dal pannello, da un
 cron, da un'importazione. Il topic e' il nome della classe senza namespace, cosi' chi ascolta
-si iscrive a `Categorie` e non a `Model\Categorie`.
+si iscrive a `Categorie` e non a `Model\Categorie`. Due livelli: `Categorie` per gli elenchi,
+`Categorie/1042` per i dettagli.
 
 A mano si chiama solo per annunciare qualcosa che non passa da un salvataggio:
 
@@ -1308,8 +1298,15 @@ postback **vuoto** con quel nome (`__push`), e il motore chiama l'handler iscrit
 server, con lo stato di quella pagina in mano, dentro il normale giro degli eventi. Da li'
 si fa quello che si farebbe in un click: un avviso, una rilettura, un `DataBind()`. E' cosi'
 che due browser sulla stessa griglia restano allineati senza che nessuno abbia scritto una
-riga di JavaScript. `ProveAMano/Prima.php` e `Seconda.php` aperte in due schede lo fanno
-vedere: si preme nella prima, la seconda mostra l'avviso e sale il contatore.
+riga di JavaScript.
+
+La radice della pagina porta `data-dw-topics` con i topic a cui e' iscritta: il runtime fa il
+postback di notifica **solo** se ne arriva uno di quelli, invece di svegliare il server a ogni
+salvataggio del sito. Chi scrive firma l'evento con il proprio `PushId`, cosi' la scheda che
+ha agito scarta la propria notifica invece di rileggersi due volte.
+
+`ProveAMano/Prima.php` e `Seconda.php` aperte in due schede lo fanno vedere: si preme nella
+prima, la seconda mostra l'avviso e sale il contatore.
 
 **Un evento che deve arrivare su ogni pagina si ascolta nella master**, una volta:
 
@@ -1336,7 +1333,13 @@ Il conteggio sta in un `Literal` della master e non in una proprieta' della clas
 variabili che restano da sole sono quelle della **pagina** (§2), la master e' un controllo e
 il suo stato e' quello dei suoi controlli.
 
-**E l'evento puo' portare un oggetto.** Terzo argomento di `Notify()`:
+**Gli eventi dei salvataggi portano solo il nome del topic, mai i dati.** Il salvataggio e'
+avvenuto nel contesto di sicurezza di qualcun altro: spedire i valori li farebbe attraversare
+un confine di autorizzazione. Chi riceve rilegge con i **propri** permessi, e se quel record
+non puo' vederlo non gli torna nulla — nessun controllo da scrivere a mano. In piu'
+l'aggiornamento diventa idempotente: eventi doppi o fuori ordine non fanno danno.
+
+**Un `Notify()` scritto a mano puo' invece portare un oggetto.** Terzo argomento:
 
 ```php
 $utente = new Utente('Anna', 'Bianchi', 'anna@esempio.it', $immagine);
@@ -1360,11 +1363,13 @@ non cancella quelli del primo.
 
 La firma protegge l'**integrita'**, non la riservatezza: quello che si passa esce dal
 contesto di chi salva ed entra in ogni browser del dominio. Ci va cio' che tutti gli utenti
-del sito possono vedere; per il resto il nome e basta, e ognuno rilegge il suo.
+del sito possono vedere — e' la ragione per cui i salvataggi non lo fanno; per il resto il
+nome e basta, e ognuno rilegge il suo. `ProveAMano/Prima.php` manda un utente con nome,
+cognome, email e foto; `Seconda.php` lo mostra.
 
-La radice della pagina porta `data-dw-topics` con i topic a cui e' iscritta: il runtime fa
-il postback di notifica **solo** se ne arriva uno di quelli, invece di svegliare il server
-a ogni salvataggio del sito. Prima lo faceva sempre, e il server scartava.
+Gli eventi si accumulano e partono **una volta sola a fine richiesta**: un salvataggio con
+venti righe costa un giro sul pipe, non ventuno, e un'importazione che scrive mille righe
+manda un evento solo per entita'. `Suspend()` / `Resume()` se nemmeno quello serve.
 
 La libreria arriva da **`static.doweb.site`**, non da un CDN pubblico: un sito che per
 funzionare dipende da un dominio di qualcun altro smette di funzionare quando quel dominio
@@ -1377,23 +1382,6 @@ sintomo da cui risalire.
 
 Il tag e' in `defer`: se la libreria non arriva restano i postback e si perdono solo le
 notifiche.
-
-**L'evento porta solo il nome del topic, mai i dati.** Il salvataggio e' avvenuto nel
-contesto di sicurezza di qualcun altro: spedire i valori li farebbe attraversare un confine
-di autorizzazione. Chi riceve rilegge con i **propri** permessi, e se quel record non puo'
-vederlo non gli torna nulla — nessun controllo da scrivere a mano. In piu' l'aggiornamento
-diventa idempotente: eventi doppi o fuori ordine non fanno danno.
-
-Due livelli: `Categorie` per gli elenchi, `Categorie/1042` per i dettagli.
-
-Chi scrive firma l'evento con il proprio `PushId`, cosi' la scheda che ha agito scarta la
-propria notifica invece di rileggersi due volte.
-
-Gli eventi si accumulano e partono **una volta sola a fine richiesta**: un salvataggio con
-venti righe costa un giro sul pipe, non ventuno. `Suspend()` / `Resume()` per le importazioni.
-
-Il salvataggio a blocchi resta una richiesta sola, quindi anche un'importazione che scrive
-mille righe manda un evento solo per entita'. `Suspend()` se nemmeno quello serve.
 
 ## Un messaggio con dati a tutti: `Broadcast()` — solo quando serve davvero il JavaScript
 
@@ -1437,16 +1425,95 @@ conosce, e al postback dopo il morph lo toglierebbe come figlio in piu'. Il marc
 «questo e' mio»: il morph non lo confronta e non lo toglie. E' il patto delle classi `js-`
 portato ai nodi, e solo il client puo' scriverlo — dal server `data-dw-*` e' del motore.
 
-Gli script del motore stanno nella **testa** del documento, tutti in `defer`: i differiti
-girano nell'ordine in cui stanno scritti, e cosi' un `<dw:Script>` di pagina, nel body, trova
-`DW` gia' pronto. In fondo al body, il motore girava *dopo* lo script della pagina.
-
-`ProveAMano/Prima.php` aperta in due schede fa vedere tutto: si scrive in una, arriva in
+`ProveAMano/Prima.php` aperta in due schede fa vedere anche questo: si scrive in una, arriva in
 tutte e due.
 
 ---
 
 # 7. Navigazione e accesso
+
+## Senza ricarico
+
+I link interni non ricaricano: il documento viene chiesto al server e fuso nel DOM, con
+`history` e scroll. Restano fuori i link esterni, quelli con `target`, i download, e i click
+con ctrl/cmd/shift o tasto centrale — sbagliarlo romperebbe "apri in nuova scheda".
+
+Gli `<script>` inline della pagina vengono **rieseguiti**: uno `<script>` inserito nel DOM da
+codice non parte da solo, ed e' la sorpresa classica di chi aggiorna una pagina senza
+ricaricarla. Solo in navigazione, mai nel postback.
+
+Il codice di pagina che apre qualcosa (timer, editor, osservatori) lo chiude con
+`DW.onLeave(fn)`, altrimenti dopo venti navigazioni se ne trascinano venti copie vive.
+
+I postback **si accodano**: due richieste sovrapposte sullo stesso stato lo lascerebbero in
+una via di mezzo fra i due esiti. Anche una navigazione aspetta il postback in volo, cosi' lo
+stato che si tiene per il ritorno e' quello di dopo.
+
+## Redirect e login
+
+```php
+if (!/* il controllo di accesso dell'applicazione */)
+    $this->RedirectToLogin();
+```
+
+`Page::Redirect()` si chiama allo stesso modo dal primo caricamento e da dentro un handler:
+nel primo caso e' un `302`, nel secondo un'istruzione JSON che il runtime traduce in
+navigazione. Durante un postback un `302` non funzionerebbe: la fetch lo seguirebbe e l'HTML
+della destinazione finirebbe fuso nel DOM della pagina di partenza.
+
+**Verso un'altra pagina si usa `RedirectToPage()`, che la nomina invece di scriverne
+l'indirizzo:**
+
+```php
+$this->RedirectToPage(\Pages::Northwind_Categorie);
+```
+
+`Pages` e' un enum **generato dai markup**, in `Pages.php` alla radice dei sorgenti: ci
+finiscono solo i file che chiamano `Page::Run()`, cioe' le pagine vere — non i codebehind, non
+i designer, non gli UserControl e non le master, che chiesti da un indirizzo rispondono 404.
+Il nome del caso e' il percorso con gli underscore al posto delle barre:
+`Northwind/Categorie.php` → `Northwind_Categorie`. Ogni caso risponde a `Path()`.
+
+Si rigenera da solo quando si apre una pagina che non c'e' dentro, quindi una pagina nuova
+entra nell'elenco la prima volta che la si visita; a mano lo rifa' `PageMap::Refresh()`, da
+una richiesta HTTP — da riga di comando non c'e' un `DOCUMENT_ROOT` da cui ricavare i
+percorsi, e si ferma dicendolo. `Common` non viene attraversato: i banchi di prova non
+entrano nell'enum.
+
+Il perche' non e' l'eleganza: una stringa la si sbaglia a scrivere e non se ne accorge nessuno
+finche' un utente non ci clicca sopra, e quando una pagina si sposta i rimandi rotti non
+compaiono in nessuna ricerca perche' sono pezzi di testo. Un caso dell'enum l'IDE lo completa,
+lo rinomina e lo trova.
+
+**`Redirect()` accetta solo destinazioni interne.** Percorsi, e indirizzi assoluti soltanto
+verso l'host della richiesta; `//altrosito.it/x`, `javascript:`, `data:` e un a capo
+nell'indirizzo sollevano. Un redirect che accetta qualunque cosa e' un trampolino: basta che
+un giorno una pagina ci passi un valore che viene dall'utente, e il nostro dominio manda la
+gente dove vuole chi ha scritto il link.
+
+E' cortesia verso l'utente, non la difesa. Il controllo di accesso vive nel Controller ed e'
+la ragione per cui esiste: una pagina che lo scavalca per "far funzionare la demo" e' il modo
+in cui i controlli spariscono davvero. Un handler che elimina chiama il Controller, non il
+metodo di cancellazione del modello.
+
+## CSRF, e i controlli che non si vedono
+
+Il canale di postback ha il CSRF, e non passa dalla sessione: il motore mette un valore
+casuale in un cookie e lo scrive nella pagina, il runtime lo rimanda nell'intestazione, il
+server confronta i due. Un sito estraneo puo' far partire la richiesta col cookie allegato -
+e' il cuore del CSRF - ma non puo' leggere ne' il cookie ne' la nostra pagina, quindi non sa
+cosa scrivere nell'intestazione. **Un postback senza cookie viene rifiutato**, non lasciato
+passare: il cookie e' `SameSite=Lax` e in una POST cross-site non viene mandato, quindi
+"cookie assente" e' proprio la situazione da fermare. `Common\Csrf`, che invece tiene il token
+in sessione, resta al suo posto per il dispatcher del sito: qui non si tocca.
+
+**Un controllo nascosto non scatena eventi.** Qui `Visible = false` rende il controllo lo
+stesso, con l'attributo `hidden`, perche' il morph lo ritrovi quando torna visibile invece di
+ricostruire il ramo: il rovescio e' che il suo id resta nella pagina, e dalla console si
+premerebbe il bottone di una scheda chiusa. L'evento si ferma sul server se il controllo o un
+suo antenato e' invisibile, quindi un pannello chiuso e' davvero inerte. `Enabled` vale allo
+stesso modo: il `disabled` dell'HTML si toglie dalla console, e la condizione si ricontrolla
+dove conta.
 
 ## Gli errori si leggono nel log, non solo sullo schermo
 
@@ -1468,87 +1535,13 @@ raccoglie una funzione di chiusura, che tace se il `catch` ha gia' scritto.
 
 Non si inghiotte niente: l'eccezione riparte com'era, PHP la scrive anche nel suo log e la
 mostra se `display_errors` e' acceso. Ma la risposta e' un **500**, messo a mano: il SAPI
-del pipe lascia il 200 anche su un fatal, e con un 200 il runtime provava a leggere la
-pagina d'errore come se fosse il frammento della pagina. Con il 500 il runtime la mette nel
-riquadro degli errori (`#dw-errore`, quello degli errori JavaScript), com'e' arrivata e
-senza tag; i 403 e gli stati scaduti continuano a ricaricare pulito.
+del pipe lascia il 200 anche su un fatal, e con un 200 il runtime leggerebbe la pagina
+d'errore come se fosse il frammento della pagina. Con il 500 il runtime la mette nel
+riquadro degli errori (`#dw-errore`, lo stesso degli errori JavaScript, che non sono mai
+silenziosi), com'e' arrivata e senza tag; i 403 e gli stati scaduti ricaricano pulito.
 
 Dal cli - le prove - il pipe non c'e' e `Log::Error` lancia: il motore lo prende e ripiega
 su `error_log`, perche' un errore nel loggare non deve coprire quello vero.
-
-## Senza ricarico
-
-I link interni non ricaricano: il documento viene chiesto al server e fuso nel DOM, con
-`history` e scroll. Restano fuori i link esterni, quelli con `target`, i download, e i click
-con ctrl/cmd/shift o tasto centrale — sbagliarlo romperebbe "apri in nuova scheda".
-
-Gli `<script>` inline della pagina vengono **rieseguiti**: uno `<script>` inserito nel DOM da
-codice non parte da solo, ed e' la sorpresa classica di chi aggiorna una pagina senza
-ricaricarla. Solo in navigazione, mai nel postback.
-
-Il codice di pagina che apre qualcosa (timer, editor, osservatori) lo chiude con
-`DW.onLeave(fn)`, altrimenti dopo venti navigazioni se ne trascinano venti copie vive.
-
-## Redirect e login
-
-```php
-if (!/* il controllo di accesso dell'applicazione */)
-    $this->RedirectToLogin();
-```
-
-`Page::Redirect()` si chiama allo stesso modo dal primo caricamento e da dentro un handler:
-nel primo caso e' un `302`, nel secondo un'istruzione JSON che il runtime traduce in
-navigazione. Durante un postback un `302` non funzionerebbe: la fetch lo seguirebbe e l'HTML
-della destinazione finirebbe fuso nel DOM della pagina di partenza.
-
-**Verso un'altra pagina si usa `RedirectToPage()`, che la nomina invece di scriverne
-l'indirizzo:**
-
-```php
-$this->RedirectToPage(\Pages::Northwind_Categorie);
-```
-
-`Pagine` e' un enum **generato dai markup**: ci finiscono solo i file che chiamano
-`Page::Run()`, cioe' le pagine vere — non i codebehind, non i designer, non gli UserControl e
-non le master, che chiesti da un indirizzo rispondono 404. Il nome del caso e' il percorso
-con gli underscore al posto delle barre: `Northwind/Categorie.php` → `Northwind_Categorie`.
-
-Si rigenera da solo quando si apre una pagina che non c'e' dentro, quindi una pagina nuova
-entra nell'elenco la prima volta che la si visita; a mano lo rifa' `PageMap::Refresh()`.
-
-Il perche' non e' l'eleganza: una stringa la si sbaglia a scrivere e non se ne accorge nessuno
-finche' un utente non ci clicca sopra, e quando una pagina si sposta i rimandi rotti non
-compaiono in nessuna ricerca perche' sono pezzi di testo. Un caso dell'enum l'IDE lo completa,
-lo rinomina e lo trova.
-
-**`Redirect()` accetta solo destinazioni interne.** Percorsi, e indirizzi assoluti soltanto
-verso l'host della richiesta; `//altrosito.it/x`, `javascript:`, `data:` e un a capo
-nell'indirizzo sollevano. Un redirect che accetta qualunque cosa e' un trampolino: basta che
-un giorno una pagina ci passi un valore che viene dall'utente, e il nostro dominio manda la
-gente dove vuole chi ha scritto il link.
-
-E' cortesia verso l'utente, non la difesa. Il controllo di accesso vive nel Controller ed e'
-la ragione per cui esiste: una pagina che lo scavalca per "far funzionare la demo" e' il modo
-in cui i controlli spariscono davvero. Un handler che elimina chiama il Controller, non il
-metodo di cancellazione del modello.
-
-Il canale di postback ha il CSRF, e non passa dalla sessione: il motore mette un valore
-casuale in un cookie e lo scrive nella pagina, il runtime lo rimanda nell'intestazione, il
-server confronta i due. Un sito estraneo puo' far partire la richiesta col cookie allegato -
-e' il cuore del CSRF - ma non puo' leggere ne' il cookie ne' la nostra pagina, quindi non sa
-cosa scrivere nell'intestazione. **Un postback senza cookie viene rifiutato**, non lasciato
-passare: il cookie e' `SameSite=Lax` e in una POST cross-site non viene mandato, quindi
-"cookie assente" e' proprio la situazione da fermare. `Common\Csrf`, che invece tiene il token
-in sessione, resta al suo posto per il dispatcher del sito: qui non si tocca. Gli errori
-JavaScript sono sempre visibili in pagina, mai silenziosi.
-
-**Un controllo nascosto non scatena eventi.** Qui `Visible = false` rende il controllo lo
-stesso, con l'attributo `hidden`, perche' il morph lo ritrovi quando torna visibile invece di
-ricostruire il ramo: il rovescio e' che il suo id resta nella pagina, e dalla console si
-premerebbe il bottone di una scheda chiusa. L'evento si ferma sul server se il controllo o un
-suo antenato e' invisibile, quindi un pannello chiuso e' davvero inerte. `Enabled` vale allo
-stesso modo: il `disabled` dell'HTML si toglie dalla console, e la condizione si ricontrolla
-dove conta.
 
 ---
 
@@ -1556,7 +1549,8 @@ dove conta.
 
 **Gli id escono verbatim.** Nessun prefisso di contenitore, nessun `ctl00$`. E' l'errore che
 rendeva inservibile `getElementById` in WebForms, ed e' anche cio' che permette al morph di
-riconoscere i nodi invece di ricrearli.
+riconoscere i nodi invece di ricrearli. Gli UserControl sono l'eccezione dichiarata, con il
+suffisso `__id`; la master no.
 
 **Le righe del Repeater si chiavano sul dato** (`DataKeyField`), mai sulla posizione. Con id
 posizionali, inserire una riga in testa riscrive l'intera griglia: sparisce il focus, muoiono
@@ -1565,15 +1559,22 @@ i listener, si vede il lampo. E' la `key` di React, per lo stesso motivo.
 **L'handler lo nomina il markup, non il client.** Il browser manda l'id del controllo. Non
 esiste una richiesta capace di far eseguire un metodo che il markup non abbia autorizzato.
 
-**L'albero costruito in `OnInit` dev'essere deterministico.** Se dipendesse dai dati, lo stato
-non si riaggancerebbe al postback successivo. I controlli creati a runtime — le righe di un
-Repeater, i numeri di un paginatore — si ricreano prima che si scatenino gli eventi.
+**L'albero costruito dal markup dev'essere deterministico.** Se dipendesse dai dati, lo stato
+non si riaggancerebbe al postback successivo. Quello che il codice aggiunge sopra torna dallo
+stato, con un id stabile; chi si ricostruisce da se' — le righe di un Repeater, i numeri di
+un paginatore — lo fa prima che si scatenino gli eventi.
 
 **Il morph ha delle regole sue.** Le classi con prefisso `js-` sono del client e sopravvivono
-al postback; un sottoalbero con `dw-preserve` non viene toccato (editor, datepicker); il
-campo con il focus non viene mai calpestato.
+al postback; un sottoalbero con `dw-preserve` non viene toccato (editor, datepicker); un nodo
+con `data-dw-client` e' del client e non viene ne' confrontato ne' tolto; il campo con il
+focus non viene mai calpestato.
 
-**Gli eventi di dominio non portano dati.** Chi riceve rilegge con i propri permessi.
+**Gli eventi dei salvataggi non portano dati.** Chi riceve rilegge con i propri permessi. I
+dati viaggiano solo se una pagina li mette a mano in `Notify()`, e allora sono per tutti.
+
+**Niente sessione, niente querystring per lo stato.** Lo stato e' nel campo firmato e nel
+pacchetto portatile; la querystring e' l'indirizzo della pagina, e un cambio di querystring
+non e' un cambio di pagina.
 
 ---
 
@@ -1588,6 +1589,8 @@ campo con il focus non viene mai calpestato.
 - **`TreeView`**, quattro usi in WK.
 - **`idiomorph`.** Se lo si carica in pagina, `DW.morph` lo usa da solo. Il morph incluso e'
   la scorta autosufficiente.
+- **Un calendario JavaScript.** Il `DatePicker` usa quello del browser; il giorno in cui un
+  sito ne vuole uno suo, lo mette sopra con `dw-preserve`.
 
 ---
 
@@ -1595,32 +1598,35 @@ campo con il focus non viene mai calpestato.
 
     UnitTest/prove.cmd             TUTTE le prove: quelle PHP e quelle del JavaScript
     UnitTest/Esegui.php            le prove PHP: da URL risponde 200 se e' tutto verde e 500 se no
-    UnitTest/prove.mjs             le prove del JavaScript, con node: il cassetto, la navigazione, DW.on
+    UnitTest/prove.mjs             le prove del JavaScript, con node: il cassetto, la navigazione, DW.on, il 500
     UnitTest/Prova.php             confronto, conto, e "deve sollevare"
     UnitTest/ProveControlli.php    cosa rendono i controlli, e cosa diventano col POST
     UnitTest/ProveDatePicker.php   date vere, i due Mode, cosa entra dal browser, l'evento, l'enum nello stato
-    UnitTest/ProveEventiConDati.php Notify con un oggetto: il messaggio firmato che parte e il postback che torna
-    UnitTest/ProveErrori.php       l'eccezione di una pagina nel log del sito, una volta, e poi fuori com'era
+    UnitTest/ProveOgniControllo.php le tre domande fatte a TUTTI i controlli, per riflessione
     UnitTest/ProveDinamici.php     i controlli attaccati dal codice, e come tornano indietro
     UnitTest/ProvePaginaVuota.php  markup vuoto, tutto dal codice: un CRUD intero a postback
-    UnitTest/ProveQuerystring.php  la querystring cambia, lo stato resta, la pagina rilega
-    UnitTest/ProveMemoria.php      lo stato cala con i dati: ClearItems e rimpiazzi non lasciano niente
     UnitTest/ProveVariabili.php    le variabili di pagina restano tutte; #[Transient] e #[Portable]
     UnitTest/ProveViewStateMode.php Inherit/Enabled/Disabled, e cosa resta sotto uno spento
-    UnitTest/ProveOgniControllo.php le tre domande fatte a TUTTI i controlli, per riflessione
+    UnitTest/ProveQuerystring.php  la querystring cambia, lo stato resta, la pagina rilega
+    UnitTest/ProveMemoria.php      lo stato cala con i dati: ClearItems e rimpiazzi non lasciano niente
+    UnitTest/ProveEventiConDati.php Notify con un oggetto: il messaggio firmato che parte e il postback che torna
+    UnitTest/ProveErrori.php       l'eccezione di una pagina nel log del sito, una volta, e poi fuori com'era
     UnitTest/ProveMarkup.php       il compilatore, i segnaposto {{Campo}}, i <dw:Content>
     UnitTest/ProveRepeater.php     OnItemDataBound: quando scatta, e cosa sopravvive al postback
     UnitTest/ProveSicurezza.php    controlli nascosti, redirect fuori sito, CSRF
     UnitTest/ProveStato.php        il pacchetto firmato: soprattutto cosa RIFIUTA
-    ProveAMano/Stato.php           il banco di prova da aprire nel browser (vedi sotto)
+    ProveAMano/Cornice.php         la master dei banchi: menu, titolo, piede, e l'iscrizione a «Saluti»
+    ProveAMano/Prima.php           eventi fra schede, DatePicker, #[Portable]: cosa attraversa la navigazione
+    ProveAMano/Seconda.php         e cosa invece resta di la'; riceve l'utente mandato dalla prima
+    ProveAMano/Utente.php          l'oggetto che viaggia con Notify()
     ProveAMano/Tabella.php         righe di tabella costruite a mano, e nient'altro
-    ProveAMano/Prima.php           due pagine con un menu: cosa attraversa la navigazione
-    ProveAMano/Seconda.php         e cosa invece resta di la'
-    ProveAMano/Cornice.php         la master dei banchi (menu, titolo, piede)
+    ProveAMano/Stato.php           il banco dello stato: cosa sopravvive a un postback, un riquadro per domanda
 
-Si lanciano nei due modi, e l'esito e' un numero: **uscita 1** da riga di comando, **500**
-sull'HTTP, cosi' le puo' guardare uno script senza leggerle a occhio.
+Sono 379 prove PHP e 20 JavaScript. Si lanciano nei due modi, e l'esito e' un numero:
+**uscita 1** da riga di comando, **500** sull'HTTP, cosi' le puo' guardare uno script senza
+leggerle a occhio.
 
+    UnitTest\prove.cmd
     "C:\Program Files\PHP\php.exe" Esegui.php
     http://localhost:8081/public/php/Common/WebForms/UnitTest/Esegui.php
 
@@ -1630,28 +1636,31 @@ che e' esattamente quello che devono provare.
 
 **Il JavaScript si prova ritagliandolo.** `runtime.js` e' scritto per il DOM, ma i pezzi con una
 logica propria — il cassetto delle pagine tenute, la navigazione e il tasto indietro, la
-consegna dei messaggi — si tagliano fra due marcatori e girano in node con un DOM finto grande
-quanto basta. Non e' il morph, che si guarda nel browser: e' quello che si puo' sbagliare
-senza che il browser lo dica — la chiave sbagliata sul tasto indietro, il postback in volo
-durante la navigazione. `prove.mjs` va lanciato con node; `Esegui.php` non puo' farlo, perche'
-`exec` e compagni sono spenti in `php.ini` — com'e' giusto su un server web — e le prove
-girano con lo stesso `php.ini` del sito.
+consegna dei messaggi, il testo di un 500 — si tagliano fra due marcatori e girano in node con
+un DOM finto grande quanto basta. Non e' il morph, che si guarda nel browser: e' quello che si
+puo' sbagliare senza che il browser lo dica — la chiave sbagliata sul tasto indietro, il
+postback in volo durante la navigazione. `prove.mjs` va lanciato con node; `Esegui.php` non
+puo' farlo, perche' `exec` e compagni sono spenti in `php.ini` — com'e' giusto su un server
+web — e le prove girano con lo stesso `php.ini` del sito. `prove.cmd` lancia tutti e due.
 
 **Si prova quello che e' PHP puro**: i controlli sono oggetti, si valorizzano e si guarda
 l'HTML, oppure si passa loro l'array del POST e si guarda cosa diventano. Niente HTTP,
 niente database, niente pipe. Una prova che ha bisogno di un sito acceso non e' una prova
 unitaria, e' un collaudo.
 
-## Il banco di prova a mano
+## I banchi di prova a mano
 
-    http://<sito>/public/php/Common/WebForms/ProveAMano/Stato.php
+    http://<sito>/public/php/Common/WebForms/ProveAMano/Prima.php
 
-Le prove unitarie dicono che lo stato torna indietro; questa pagina lo fa vedere
-cliccando — che e' l'unico modo di provare anche il pezzo che gira nel browser, cioe' il
-morph che rimpiazza i nodi senza ricaricare. Risponde a tre domande, una per riquadro:
-quello che il codice mette nelle righe di un `Repeater` resta; un controllo costruito in
-`OnInit` resta, con dentro anche quello che l'utente ci ha digitato, e senza diventare un
-doppione; e restano anche quelli costruiti in `OnLoad` o dentro un handler.
+Quattro pagine sotto una master con un menu. Le prove unitarie dicono che lo stato torna
+indietro; queste lo fanno vedere cliccando — che e' l'unico modo di provare anche il pezzo
+che gira nel browser, cioe' il morph che rimpiazza i nodi senza ricaricare, il cassetto
+delle pagine tenute, il hub.
+
+`Stato.php` risponde a tre domande, una per riquadro: quello che il codice mette nelle righe
+di un `Repeater` resta; un controllo costruito in `OnInit` resta, con dentro anche quello che
+l'utente ci ha digitato, e senza diventare un doppione; e restano anche quelli costruiti in
+`OnLoad` o dentro un handler.
 
 `Tabella.php` e' il caso limite, ed e' il piu' severo che si possa fare allo stato: in
 `OnLoad` **non succede niente**, e ogni `<tr>` — con dentro un `Literal` e un `LinkButton`
@@ -1660,21 +1669,22 @@ che di solito si rompono una alla volta: un albero dinamico **annidato** (`tr` d
 `tbody`, `td` dentro `tr`), un controllo che **scatena eventi** creato dal codice, la
 **rimozione** di una riga che deve restare rimossa senza spostare le altre, e il **tag**
 giusto — un `<div>` dentro una `<table>` il browser lo butta fuori dalla tabella, e il
-morph poi non ritrova piu' niente al suo posto.
+morph poi non ritrova piu' niente al suo posto. L'orario stampato in ogni riga e' li' per
+questo: se dopo cinque postback e' ancora quello del click che l'ha creata, quella riga non
+e' stata ricostruita da nessuno. Ha la casella del modo WinForms e i due link per provarlo
+col tasto indietro.
 
-L'orario stampato in ogni riga e' li' per questo: se dopo cinque postback e' ancora quello
-del click che l'ha creata, quella riga non e' stata ricostruita da nessuno.
+`Prima.php` e `Seconda.php` sono la coppia degli eventi: aperte in due schede, «Saluta tutti»
+nella prima arriva nella seconda — e in tutte le altre, tramite la cornice — e «Manda un
+utente» porta un oggetto con la foto. Prima ha anche il banco del `DatePicker` e un campo
+`#[Portable]` che Seconda legge e riscrive.
 
 **Stanno in `Common` di proposito.** Niente Model, niente database, nessun foglio di stile
 del sito: e' una prova **del motore**, quindi viaggia con il motore e si apre uguale su un
-sito appena creato che non ha ancora niente dentro. La master page c'e', ma e' `Cornice.php`
-li' accanto: il menu che lega i banchi fra loro e' la prova a mano del "modo WinForms" (§4),
-e una master dentro `Common` e' anche la prova che una master page puo' stare fuori dal sito.
-Per lo stesso motivo non entrano nell'enum `Pagine`: `PageMap` non attraversa `Common`.
-
-Sotto una master gli `id` dei controlli della pagina e quelli della master vivono nello stesso
-elenco: un `<dw:Panel id="corpo">` in una pagina il cui segnaposto si chiama `corpo` e' un
-errore di tipo al primo caricamento, non un avviso.
+sito appena creato che non ha ancora niente dentro. La master e' `Cornice.php` li' accanto:
+il menu che lega i banchi e' la prova a mano del modo WinForms (§2), e una master dentro
+`Common` e' anche la prova che una master puo' stare fuori dal sito. Per lo stesso motivo non
+entrano nell'enum `Pages`: `PageMap` non attraversa `Common`.
 
 ## Le prove che non si scrivono
 
@@ -1688,26 +1698,28 @@ senza che nessuno scriva una riga.
    `DataItem` che vale solo dentro l'handler - stanno in un elenco **con scritto il
    perche'**: cosi' aggiungerne una e' una decisione, non una dimenticanza.
 2. **Lo stato torna indietro intero?** Si riempie ogni proprieta' con un valore del tipo
-   giusto, si salva, si ricarica su un controllo nuovo e si confronta.
+   giusto — anche gli enum, un caso alla volta — si salva, si ricarica su un controllo nuovo
+   e si confronta.
 3. **Il testo cattivo esce escapato?** Ogni proprieta' di testo, piu' un attributo e uno
    stile aggiunti dal codice, si riempiono di `<script>"x"&'y'</script>`, e nell'HTML non
    deve comparire com'era. E' la regola che tiene su tutto il resto, e vale per i controlli
    di domani come per quelli di oggi.
 
-**Non si prova** il morph, la coda dei postback e la navigazione: sono JavaScript e vanno
-guardati nel browser. Ne' il layer dati, che passa dal pipe.
+**Non si prova** il morph, che va guardato nel browser. Ne' il layer dati, che passa dal pipe.
 
 Ogni prova corrisponde a un difetto vero, gia' capitato: il doppio escape negli attributi,
 la casella non spuntata che non si distingueva da "controllo assente", il `select multiple`
-che mandava un valore solo, il ViewState manomesso. Il nome di una prova dice **cosa deve
-succedere**, non cosa fa il codice: quando diventa rossa, la riga che si legge spiega gia'
-cosa si e' rotto.
+che mandava un valore solo, il ViewState manomesso, il tasto indietro che salvava lo stato
+sotto la chiave sbagliata, l'errore del server che spariva in un ricarico. Il nome di una
+prova dice **cosa deve succedere**, non cosa fa il codice: quando diventa rossa, la riga che
+si legge spiega gia' cosa si e' rotto.
 
 ---
 
 # 11. Il plugin per PhpStorm
 
-In `Z:\Rete\_Programmi\DOWEB\PHPSTORM` — jar, sorgenti, `compila.cmd`, `installa.cmd`.
+In `Z:\Rete\_Programmi\DOWEB\PHPSTORM` — jar, sorgenti, `compila.cmd`, `installa.cmd`
+(PhpStorm chiuso).
 
 **Navigazione.** Ctrl+click sul nome di un tag apre la classe del controllo - e per un
 UserControl chiamato per nome, `<dw:PageNavigator>`, il suo codebehind. Sul valore di un
@@ -1718,18 +1730,16 @@ il controllo lo solleva; su `src` il markup, il foglio di stile o lo script. Su
 **Completamento.** I nomi degli attributi dentro un tag `dw:`: scrivendo `Con` dentro un
 `<dw:LinkButton>` esce `Confirm`. L'elenco non e' una tabella scritta a mano, viene da
 `ViewStateProperties()` della classe: un controllo nuovo o una proprieta' nuova entrano nel
-completamento senza toccare il plugin.
+completamento senza toccare il plugin. Propone anche `ViewStateMode`, che non sta in
+`ViewStateProperties()` per forza — e' lui a decidere se lo stato esiste.
 
 **Generazione.** `X.designer.php` si riscrive ad ogni salvataggio di `X.php`, quindi il
 controllo appena aggiunto al markup si completa subito nel codebehind. Un UserControl
 chiamato per nome — `<dw:Menu>` — si dichiara con la SUA classe, `\UserControls\Menu`, con
-la stessa regola di `ControlBuilder::TagSrc()` (dalla **1.21.0**: prima scriveva
-`Controls\Menu`, e la pagina moriva al primo caricamento). Il motore comunque non si fida
-della data: se un designer dichiara un tipo del motore che non esiste, lo rigenera lui. **New
-&rarr; WebForms** chiede il nome e crea i tre file.
-
-Il completamento degli attributi propone anche `ViewStateMode`, che non sta in
-`ViewStateProperties()` per forza — e' lui a decidere se lo stato esiste.
+la stessa regola di `ControlBuilder::TagSrc()`; la master con la sua, `$Master`. Il motore
+comunque non si fida della data: se un designer dichiara un tipo del motore che non esiste,
+lo rigenera lui — un plugin vecchio non puo' lasciare una pagina rotta. **New &rarr; WebForms**
+chiede il nome e crea i tre file.
 
 **Tasti.** Mappa `DOWEB WebForms (Visual Studio)` da Settings > Keymap: i tasti del debugger
 di Visual Studio e **F7** per saltare fra markup e codebehind, nei due versi.
