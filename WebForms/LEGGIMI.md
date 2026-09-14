@@ -10,6 +10,20 @@ codice.
 
 ---
 
+## Cosa e' cambiato il 14/09/2026
+
+- **`<dw:DatePicker>`**: `Value`, `Min`, `Max` sono `DateTimeImmutable`; `Mode` e' l'enum
+  `DateTimeMode` (`Date` / `DateTime`) e sceglie fra `type="date"` e `type="datetime-local"`,
+  calendario nativo del browser; `AutoPostBack` e `OnDateChanged`. Quello che arriva dal
+  browser si rilegge come data: la spazzatura diventa vuoto, l'ora di troppo cade. (§3)
+- **Proprieta' enum nei controlli**: dal markup per nome del caso, nello stato come valore, e
+  la prova generica le sonda. D'ora in poi due o tre valori possibili sono un enum. (§3)
+- **Ispezioni PhpStorm a zero** sul motore: costanti tipate, eccezioni checked fermate alla
+  sorgente come `RuntimeException`, `__DIR__` al posto di `DOCUMENT_ROOT` in `Bootstrap`.
+- Il **designer** si rigenera anche quando un tipo dichiarato non esiste: un plugin vecchio non
+  puo' piu' lasciare una pagina rotta con un 200. Plugin **1.21.0**: UserControl per nome nel
+  designer, `ViewStateMode` nel completamento. (§11)
+
 ## Cosa e' cambiato l'11/09/2026
 
 Per chi conosceva il motore com'era: le cose sono cambiate in profondita', e i nomi con loro.
@@ -32,7 +46,7 @@ Per chi conosceva il motore com'era: le cose sono cambiate in profondita', e i n
   Tutta l'API e' in inglese, con i nomi di WebForms; i commenti restano in italiano. (§3)
 - **`runtime.js` e `runtime.css`** sono file veri accanto al motore, non piu' `const` PHP. (§1)
 - **`Pages::`** e' il nuovo nome dell'enum delle pagine (`Pagine::`), `SitePage` dell'interfaccia.
-- **Prove**: 321, di cui sessanta per riflessione su tutti i controlli, piu' i banchi a mano in
+- **Prove**: 356, di cui sessantatre per riflessione su tutti i controlli, piu' i banchi a mano in
   `ProveAMano/` — due pagine con un menu, la tabella costruita a mano, lo stato. (§10)
 
 ---
