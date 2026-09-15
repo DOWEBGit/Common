@@ -482,6 +482,8 @@ class Cache
     {
         $siteName = $_SERVER['PIPENAME'];
         apcu_delete(new \APCUIterator('/^' . $siteName . '\|E\|/'));
+        //e le etichette admin ([EA:NOME]), che vivono con le stesse regole
+        apcu_delete(new \APCUIterator('/^' . $siteName . '\|EA\|/'));
     }
 
     static function GetEtichette(\Code\Enum\EtichetteEnum $etichetteEnum, string $iso, bool $encode, bool &$success): mixed
@@ -531,6 +533,52 @@ class Cache
             $GLOBALS['CacheEtichette'] = [];
 
         $globalCache = &$GLOBALS['CacheEtichette'];
+
+        $globalCache[$key] = $value;
+
+        self::Store($key, $value, self::TTL);
+    }
+
+    //Le etichette admin ([EA:NOME]) hanno un nome libero e nessun encode, quindi la chiave e'
+    //diversa da quella delle etichette del sito. Chi le mette in cache ci lascia dentro il
+    //token [NONCE] NON sostituito: il nonce e' della singola richiesta e si mette dopo.
+    static function GetEtichetteAdmin(string $nome, string $iso, bool &$success): mixed
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|EA|" . strtoupper($nome) . "|" . $iso;
+
+        if (!isset($GLOBALS['CacheEtichetteAdmin']))
+            $GLOBALS['CacheEtichetteAdmin'] = [];
+
+        $globalCache = &$GLOBALS['CacheEtichetteAdmin'];
+
+        if (array_key_exists($key, $globalCache))
+        {
+            $success = true;
+            return $globalCache[$key];
+        }
+
+        $item = apcu_fetch($key, $success);
+
+        if (!$success)
+            return null;
+
+        $globalCache[$key] = $item;
+
+        return $item;
+    }
+
+    static function SetEtichetteAdmin(string $nome, string $iso, mixed $value): void
+    {
+        $siteName = $_SERVER['PIPENAME'];
+
+        $key = $siteName . "|EA|" . strtoupper($nome) . "|" . $iso;
+
+        if (!isset($GLOBALS['CacheEtichetteAdmin']))
+            $GLOBALS['CacheEtichetteAdmin'] = [];
+
+        $globalCache = &$GLOBALS['CacheEtichetteAdmin'];
 
         $globalCache[$key] = $value;
 
