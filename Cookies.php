@@ -88,18 +88,24 @@ class Cookies
     /**
      * Risolve nell'HTML i blocchi [COOKIES:NOME:ATTIVO]...[/COOKIES:NOME:ATTIVO] e
      * [COOKIES:NOME:NONATTIVO]...[/COOKIES:NOME:NONATTIVO]: il contenuto resta se la condizione
-     * vale, altrimenti sparisce insieme ai tag. Un nome sconosciuto va nel log e conta come
+     * vale, altrimenti sparisce insieme ai tag. Tag e nome si leggono senza badare alle
+     * maiuscole, come fa il CMS con i suoi. Un nome sconosciuto va nel log e conta come
      * non attivo.
+     *
+     * In caso di dubbio si chiude: dentro un blocco ATTIVO ci sono script di terze parti
+     * che senza consenso non devono partire. Se la regex non riesce (testo enorme, limite
+     * di backtracking) i blocchi si tolgono tutti, contenuto compreso, invece di lasciare
+     * la pagina com'era con gli script dentro.
      */
     public static function Resolve(string $html): string
     {
-        if (!str_contains($html, '[COOKIES:'))
+        if (stripos($html, '[COOKIES:') === false)
             return $html;
 
         $nomi = self::Nomi();
 
         $risolto = preg_replace_callback(
-            '/\[COOKIES:([A-Za-z0-9_\-]+):(ATTIVO|NONATTIVO)\](.*?)\[\/COOKIES:\1:\2\]/s',
+            '/\[COOKIES:([A-Za-z0-9_\-]+):(ATTIVO|NONATTIVO)\](.*?)\[\/COOKIES:\1:\2\]/si',
             static function (array $m) use ($nomi): string
             {
                 if (!in_array(strtolower($m[1]), $nomi, true))
@@ -111,12 +117,34 @@ class Cookies
                 else
                     $attivo = self::Attivo($m[1]);
 
-                return ($m[2] === 'ATTIVO') === $attivo ? $m[3] : '';
+                return (strtoupper($m[2]) === 'ATTIVO') === $attivo ? $m[3] : '';
             },
             $html
         );
 
-        //un blocco aperto e mai chiuso non si tocca: resta visibile, che e' il modo di accorgersene
-        return $risolto ?? $html;
+        if ($risolto === null)
+        {
+            \Common\Log::Error('Cookies: risoluzione dei tag fallita (' . preg_last_error_msg() . '): blocchi tolti per intero.');
+
+            return self::Strip($html);
+        }
+
+        //un blocco aperto e mai chiuso e' un errore di chi ha scritto il tag: non si rende
+        //nulla da li' in poi, che e' il modo piu' sicuro di accorgersene
+        return stripos($risolto, '[COOKIES:') === false ? $risolto : self::Strip($risolto);
+    }
+
+    /** Toglie senza regex tutto quello che sta da un "[COOKIES:" al suo "[/COOKIES:...]" (o alla fine, se manca). */
+    private static function Strip(string $html): string
+    {
+        while (($inizio = stripos($html, '[COOKIES:')) !== false)
+        {
+            $fine   = stripos($html, '[/COOKIES:', $inizio);
+            $chiusa = $fine === false ? false : strpos($html, ']', $fine);
+
+            $html = substr($html, 0, $inizio) . ($chiusa === false ? '' : substr($html, $chiusa + 1));
+        }
+
+        return $html;
     }
 }

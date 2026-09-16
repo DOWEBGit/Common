@@ -40,8 +40,16 @@ class Pagine
 
         $controllo = $phpobj->PagineControlliValori($pagina, $identificativo, $iso);
 
+        //anche il valore decodificato va in cache (la chiave porta gia' $decode): tornare
+        //prima lasciava questo ramo a interrogare il pipe ad ogni richiesta
         if ($decode)
-            return html_entity_decode($controllo->Valore);
+        {
+            $valore = html_entity_decode($controllo->Valore);
+
+            \Common\Cache::SetPagine($key, $valore);
+
+            return $valore;
+        }
 
         $valore = $controllo->Valore;
 

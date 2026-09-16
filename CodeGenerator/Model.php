@@ -322,7 +322,11 @@ foreach ($dati as $index => $dato)
      */
     $vincoli = static function ($colonna) use ($tab, $obj): string
     {
-        $testo = static fn($valore) => str_replace(["'", "\\"], "", (string)($valore ?? ""));
+        //finisce dentro un letterale PHP fra apici singoli: si escapano barra e apice, non si
+        //tolgono. Toglierli mutilava le regex ("\d" diventava "d", e "^\+?" un "^+?" che
+        //non compila: preg_match torna false e il vincolo non veniva piu' controllato) e
+        //storpiava gli avvisi ("Inserire l'email" -> "Inserire lemail")
+        $testo = static fn($valore) => str_replace(["\\", "'"], ["\\\\", "\\'"], (string)($valore ?? ""));
 
         //il pipe manda le stringhe "true"/"false", e "false" e' una stringa non vuota: letta
         //come booleano sarebbe vera, e ogni campo uscirebbe obbligatorio
