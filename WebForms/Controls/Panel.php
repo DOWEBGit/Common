@@ -8,6 +8,7 @@ use Common\WebForms\Control;
 /** Contenitore: raggruppa e permette di nascondere un pezzo di pagina in un colpo solo. */
 class Panel extends Control
 {
+    /** L'elemento reso: div, o quello che serve - tbody, tr, td, span, section. Un div dentro una table il browser lo butta fuori. */
     public string $Tag = 'div';
 
     protected function ViewStateProperties(): array

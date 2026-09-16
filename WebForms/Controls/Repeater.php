@@ -44,6 +44,7 @@ class Repeater extends Control
     /** @var array<int,array> righe da rendere, come array associativi */
     public array $DataSource = [];
 
+    /** Il campo della riga che la identifica: e' la chiave del morph, mai la posizione. */
     public string $DataKeyField = 'Id';
 
     /**
@@ -53,6 +54,7 @@ class Repeater extends Control
      */
     public string $Tag = 'div';
 
+    /** L'elemento di ogni riga: tr dentro un tbody, li dentro un ul. */
     public string $ItemTag = 'div';
 
     /**

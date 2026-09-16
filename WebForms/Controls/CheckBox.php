@@ -7,14 +7,19 @@ use Common\WebForms\Control;
 
 class CheckBox extends Control
 {
+    /** Spuntata o no. Torna dal browser a ogni postback. */
     public bool $Checked = false;
 
+    /** L'etichetta accanto alla casella: e' una <label>, quindi si clicca anche sul testo. */
     public string $Text = '';
 
+    /** Spento rende disabled; il server ricontrolla comunque. */
     public bool $Enabled = true;
 
+    /** Il click sulla casella e' un postback: OnCheckedChanged gira subito. */
     public bool $AutoPostBack = false;
 
+    /** Il nome del metodo del codebehind che gira quando cambia, con AutoPostBack. */
     public string $OnCheckedChanged = '';
 
     protected function ViewStateProperties(): array

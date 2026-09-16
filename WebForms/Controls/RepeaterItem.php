@@ -26,6 +26,7 @@ class RepeaterItem extends Panel
     /** Posizione nella pagina corrente, base zero. */
     public int $ItemIndex = 0;
 
+    /** ITEM o ALTERNATING_ITEM, come in WebForms: per la riga pari e quella dispari. */
     public string $ItemType = self::ITEM;
 
     /**

@@ -7,6 +7,7 @@ use Common\WebForms\Control;
 
 class Label extends Control
 {
+    /** Il testo, escapato; con Html a true esce com'e'. */
     public string $Text = '';
 
     /** Il testo esce sempre escapato. Per l'HTML vero si alza questo flag, consapevolmente. */

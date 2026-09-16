@@ -7,10 +7,13 @@ use Common\WebForms\Control;
 
 class Button extends Control
 {
+    /** Il testo del bottone. */
     public string $Text = '';
 
+    /** Spento rende disabled. Non e' una difesa: si toglie dalla console, e l'handler ricontrolla. */
     public bool $Enabled = true;
 
+    /** Il nome del metodo del codebehind che gira al click: (Control $sender, string $argument). */
     public string $OnClick = '';
 
     /** Argomento fisso passato all'handler: serve quando lo stesso metodo copre piu' bottoni. */

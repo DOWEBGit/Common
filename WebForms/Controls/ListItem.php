@@ -21,10 +21,13 @@ use Common\WebForms\Control;
  */
 class ListItem extends Control
 {
+    /** Il valore della voce: e' quello che finisce in SelectedValue. */
     public string $Value = '';
 
+    /** Il testo mostrato; se manca vale Value. */
     public string $Text = '';
 
+    /** La voce scelta all'inizio. */
     public bool $Selected = false;
 
     protected function ViewStateProperties(): array

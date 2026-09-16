@@ -21,8 +21,10 @@ class Literal extends Control
     public const string ENCODE = 'Encode';
     /** Il testo esce cosi' com'e': solo su HTML costruito dal server. */
     public const string PASSTHROUGH = 'PassThrough';
+    /** Il testo. Esce escapato, salvo Mode="PassThrough". */
     public string $Text = '';
 
+    /** Encode (predefinito) escapa; PassThrough lascia l'HTML com'e' - solo per markup costruito dal server. */
     public string $Mode = self::ENCODE;
 
     protected function ViewStateProperties(): array

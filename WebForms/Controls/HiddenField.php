@@ -15,6 +15,7 @@ use Common\WebForms\Control;
  */
 class HiddenField extends Control
 {
+    /** Il valore: va nel form e torna. Arriva dal browser, quindi serve a trovare, non ad autorizzare. */
     public string $Value = '';
 
     protected function ViewStateProperties(): array
