@@ -37,7 +37,8 @@ include_once $_SERVER['DOCUMENT_ROOT'] . '/public/php/start.php';
 //file che contiene le fetch (Common/Include/Head.php).
 if (!\Common\Csrf::Verifica())
 {
-    \Common\Log::Error("\Common\View\Client.php, token CSRF assente o non valido: " . print_r($_GET, true));
+    //metto in warn, non ha senso in error: il client non ha CSRF, ma non e' un bug del server, e' un tentativo di attacco
+    \Common\Log::Warn("\Common\View\Client.php, token CSRF assente o non valido: " . print_r($_GET, true));
 
     http_response_code(403);
 
