@@ -36,6 +36,7 @@ class Site extends MasterPage
             'Label'          => ['Label', 'Testo in uno <span>, con classe e stile dal codice.'],
             'TextBox'        => ['TextBox', 'Una riga, piu\' righe, password; la ricerca mentre si scrive.'],
             'DatePicker'     => ['DatePicker', 'Il calendario del browser, date vere sul server.'],
+            'RichTextBox'    => ['RichTextBox', 'Testo formattato come in Word: ogni funzione si spegne, il server ripulisce.'],
             'Button'         => ['Button e LinkButton', 'Il click, la conferma, l\'argomento, il doppio click che non passa.'],
             'CheckBox'       => ['CheckBox', 'Spuntata o no, con postback automatico.'],
             'DropDownList'   => ['DropDownList e ListItem', 'Le voci dal markup o dal codice, la scelta che fa postback.'],

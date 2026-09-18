@@ -43,6 +43,8 @@
     th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--ex-tenue)}
     td.ex-action{width:80px;text-align:right}
     tbody:empty + tfoot .ex-empty{display:table-cell}
+    /* il telefono: il menu sopra e il contenuto a tutta larghezza, invece di 45 pixel accanto a una colonna da 250 */
+    @media (max-width:760px){.ex-shell{display:block}.ex-nav{position:static;width:auto;height:auto;max-height:40vh}.ex-main{padding:16px}.ex-props,.ex-demo>table{display:block;overflow-x:auto}}
     .ex-empty{display:none;color:#94a3b8;font-style:italic}
     code{background:#eef2f7;padding:1px 5px;border-radius:4px;font-size:13px}
     pre{margin:0;padding:14px 16px;background:#0f172a;color:#e2e8f0;border-radius:8px;overflow:auto;font:12.5px/1.5 ui-monospace,Consolas,monospace}

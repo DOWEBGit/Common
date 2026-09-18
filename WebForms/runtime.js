@@ -442,6 +442,7 @@ async function esegui(target, evento, arg) {
 
     armaAvvisi();
     armaPopup();
+    armaEditor();
 
     riepilogoStato();
 }
@@ -740,6 +741,7 @@ DW.navigate = async (url, push) => {
 
     armaAvvisi();
     armaPopup();
+    armaEditor();
 
     riepilogoStato();
 
@@ -756,6 +758,36 @@ DW.navigate = async (url, push) => {
 
     document.dispatchEvent(new CustomEvent('dw:pagina'));
 };
+
+// ---------------------------------------------------------------- editor di testo
+// Il codice di <dw:RichTextBox> non sta qui: pesa, e serve solo alle pagine che hanno un
+// editor. Lo si carica la prima volta che ne compare uno - all'apertura, dopo un postback che
+// lo mostra, dopo una navigazione - e poi basta: resta in memoria, e ad ogni render gli si
+// chiede soltanto di riallinearsi al server. L'indirizzo, con la sua marca temporale, lo
+// scrive il controllo: qui non c'e' niente da tenere allineato.
+//
+// Sta PRIMA della prima chiamata, in cima al file: un let chiamato prima della sua riga e'
+// un ReferenceError, e la prima chiamata e' quella dell'apertura della pagina.
+
+let editorPronto = null;
+
+function armaEditor() {
+    const primo = document.querySelector('[data-dw-rte-js]');
+    if (!primo) return;
+
+    if (!editorPronto) {
+        editorPronto = new Promise((pronto, fallito) => {
+            const s = document.createElement('script');
+            s.src = primo.dataset.dwRteJs;
+            s.onload = pronto;
+            // se non arriva si riprova al render dopo, invece di restare senza editor per sempre
+            s.onerror = () => { editorPronto = null; fallito(new Error('non riesco a caricare ' + s.src)); };
+            document.head.appendChild(s);
+        });
+    }
+
+    editorPronto.then(() => DW.rte && DW.rte.arma()).catch(e => DW.error('RichTextBox: ' + e.message));
+}
 
 // Uno <script> inserito nel DOM da codice NON viene eseguito: e' la sorpresa classica di
 // chi aggiorna una pagina senza ricaricarla, e si manifesta come "il JavaScript di questa
@@ -798,6 +830,7 @@ leggiPortatile();
 //e gli avvisi che il server ha gia' messo in pagina, e i popup che ha gia' aperto
 armaAvvisi();
 armaPopup();
+armaEditor();
 
 riepilogoStato();
 

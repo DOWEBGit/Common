@@ -1,0 +1,143 @@
+/* <dw:RichTextBox>: l'editor di testo formattato.
+
+   Il vestito minimo per funzionare e per stare in piedi da solo su un sito che non ha
+   ancora niente. I colori passano da var(--dw-...) con il ripiego accanto, come in
+   runtime.css: una master che dichiara la sua tavolozza lo riveste senza toccare Common.
+
+   LE ICONE SONO QUI SOTTO, come maschere: il disegno e' l'SVG dentro l'url, il colore e'
+   quello del testo del bottone (background-color:currentColor). Un file solo, in cache per
+   sessanta giorni come ogni statico, e un bottone in pagina e' uno <span> vuoto. */
+
+.dw-rte{position:relative;display:flex;flex-direction:column;border:1px solid var(--dw-bordo,#d8dbe0);border-radius:8px;background:var(--dw-fondo,#fff);color:var(--dw-testo,#1f2328);font:inherit}
+.dw-rte:focus-within{border-color:var(--dw-acc,#1f6feb);box-shadow:0 0 0 3px color-mix(in srgb,var(--dw-acc,#1f6feb) 18%,transparent)}
+
+/* la barra resta in vista mentre si scorre un testo lungo: sticky dentro la pagina */
+.dw-rte-barra{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:4px;border-bottom:1px solid var(--dw-bordo,#d8dbe0);background:var(--dw-fondo-barra,#f6f8fa);border-radius:8px 8px 0 0}
+.dw-rte-gruppo{display:inline-flex;align-items:center;gap:1px}
+.dw-rte-gruppo+.dw-rte-gruppo{margin-left:3px;padding-left:4px;border-left:1px solid var(--dw-bordo,#d8dbe0)}
+
+.dw-rte-b{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 5px;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.dw-rte-b:hover{background:rgba(0,0,0,.06)}
+.dw-rte-b:focus-visible{outline:2px solid var(--dw-acc,#1f6feb);outline-offset:-2px}
+.dw-rte-b.js-dw-rte-attivo,.dw-rte-b[aria-expanded=true]{background:color-mix(in srgb,var(--dw-acc,#1f6feb) 15%,transparent);color:var(--dw-acc,#1f6feb)}
+.dw-rte-b:disabled{opacity:.4;cursor:default;background:transparent}
+.dw-rte-freccia{width:0;height:0;margin-left:2px;border:4px solid transparent;border-top-color:currentColor;border-bottom:0;opacity:.6}
+/* il colore scelto per ultimo, sotto l'icona del colore: lo mette il browser */
+.dw-rte-b[data-rte-menu=forecolor]::after,.dw-rte-b[data-rte-menu=backcolor]::after{content:"";position:absolute;left:7px;right:17px;bottom:4px;height:3px;border-radius:2px;background:var(--dw-rte-ultimo,transparent)}
+
+.dw-rte-i{display:inline-block;flex:0 0 auto;width:18px;height:18px;background-color:currentColor;-webkit-mask:var(--i) center/contain no-repeat;mask:var(--i) center/contain no-repeat}
+.dw-rte-b .dw-rte-i-exitfullscreen,.js-dw-rte-pieno .dw-rte-b .dw-rte-i-fullscreen{display:none}
+.js-dw-rte-pieno .dw-rte-b .dw-rte-i-exitfullscreen{display:inline-block}
+
+/* l'area di scrittura */
+.dw-rte-area{position:relative;flex:1 1 auto;padding:12px 14px;overflow:auto;outline:none;line-height:1.5;overflow-wrap:anywhere;cursor:text;-webkit-user-select:text;user-select:text}
+.dw-rte-area[contenteditable=false]{cursor:default;background:var(--dw-fondo-spento,#f6f8fa)}
+.dw-rte-area>:first-child{margin-top:0}
+.dw-rte-area>:last-child{margin-bottom:0}
+.dw-rte-area p{margin:0 0 .6em}
+.dw-rte-area h1,.dw-rte-area h2,.dw-rte-area h3,.dw-rte-area h4{margin:.8em 0 .4em;line-height:1.25}
+.dw-rte-area ul,.dw-rte-area ol{margin:0 0 .6em;padding-left:1.6em}
+.dw-rte-area blockquote{margin:0 0 .6em;padding:.2em 0 .2em 1em;border-left:3px solid var(--dw-bordo,#d8dbe0);color:var(--dw-tenue,#57606a)}
+.dw-rte-area hr{border:0;border-top:1px solid var(--dw-bordo,#d8dbe0);margin:1em 0}
+.dw-rte-area a{color:var(--dw-acc,#1f6feb)}
+.dw-rte-area table{border-collapse:collapse;margin:0 0 .6em;min-width:40%}
+.dw-rte-area td,.dw-rte-area th{border:1px solid var(--dw-bordo,#c9ced6);padding:4px 8px;min-width:2em;vertical-align:top}
+.dw-rte-area th{background:var(--dw-fondo-barra,#f6f8fa);font-weight:600}
+/* il segnaposto: la classe la mette il browser quando non c'e' testo, perche' un editor
+   "vuoto" contiene quasi sempre un <p><br></p> e :empty non scatterebbe mai */
+.js-dw-rte-vuoto .dw-rte-area::before{content:attr(data-placeholder);position:absolute;left:14px;top:12px;right:14px;color:var(--dw-tenue,#8c959f);pointer-events:none}
+
+.dw-rte-sorgente{flex:1 1 auto;display:none;width:100%;box-sizing:border-box;margin:0;padding:12px 14px;border:0;outline:none;resize:vertical;background:#0d1117;color:#e6edf3;font:13px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap}
+.js-dw-rte-sorgente .dw-rte-sorgente{display:block}
+.js-dw-rte-sorgente .dw-rte-area{display:none}
+
+.dw-rte-piede{display:flex;justify-content:flex-end;padding:4px 10px;border-top:1px solid var(--dw-bordo,#d8dbe0);color:var(--dw-tenue,#6b7280);font-size:12px}
+.js-dw-rte-troppo .dw-rte-conto{color:#b42318;font-weight:600}
+
+/* schermo intero: tutto il viewport, e la barra sempre sopra */
+.dw-rte.js-dw-rte-pieno{position:fixed;inset:0;z-index:9980;border-radius:0;border:0;box-shadow:none}
+.js-dw-rte-pieno .dw-rte-barra{border-radius:0}
+.js-dw-rte-pieno .dw-rte-area{max-height:none!important}
+html.js-dw-rte-bloccato,html.js-dw-rte-bloccato body{overflow:hidden}
+
+/* i menu: un riquadro sotto il bottone. Li costruisce il browser, con data-dw-client, cosi'
+   il morph non li tocca */
+.dw-rte-menu{position:absolute;z-index:20;min-width:180px;max-width:min(320px,calc(100vw - 24px));max-height:min(380px,70vh);overflow:auto;padding:6px;border:1px solid var(--dw-bordo,#d8dbe0);border-radius:8px;background:var(--dw-fondo,#fff);box-shadow:0 10px 30px rgba(0,0,0,.16);font-size:14px}
+.dw-rte-voce{display:flex;align-items:center;gap:8px;width:100%;min-height:32px;padding:4px 10px;border:0;border-radius:6px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.dw-rte-voce:hover,.dw-rte-voce:focus-visible{background:rgba(0,0,0,.06);outline:none}
+.dw-rte-voce:disabled{opacity:.4;cursor:default;background:transparent}
+.dw-rte-voce.js-dw-rte-attivo{color:var(--dw-acc,#1f6feb);font-weight:600}
+.dw-rte-voce h1,.dw-rte-voce h2,.dw-rte-voce h3,.dw-rte-voce h4,.dw-rte-voce p{margin:0;line-height:1.2}
+.dw-rte-voce h1{font-size:1.6em}.dw-rte-voce h2{font-size:1.35em}.dw-rte-voce h3{font-size:1.15em}.dw-rte-voce h4{font-size:1em}
+.dw-rte-sep{height:1px;margin:5px 2px;background:var(--dw-bordo,#d8dbe0)}
+.dw-rte-titolo{padding:4px 6px 6px;color:var(--dw-tenue,#6b7280);font-size:12px}
+.dw-rte-colori{display:grid;grid-template-columns:repeat(8,24px);gap:4px;padding:2px}
+.dw-rte-colore{width:24px;height:24px;padding:0;border:1px solid rgba(0,0,0,.15);border-radius:4px;cursor:pointer}
+.dw-rte-colore:hover,.dw-rte-colore:focus-visible{outline:2px solid var(--dw-acc,#1f6feb);outline-offset:1px}
+.dw-rte-riga{display:flex;align-items:center;gap:6px;margin-top:6px}
+.dw-rte-riga input[type=color]{width:36px;height:28px;padding:0 2px;border:1px solid var(--dw-bordo,#d8dbe0);border-radius:4px;background:none}
+.dw-rte-campo{display:block;width:100%;box-sizing:border-box;margin:2px 0 8px;padding:7px 9px;border:1px solid var(--dw-bordo,#d8dbe0);border-radius:6px;font:inherit}
+.dw-rte-spunta{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.dw-rte-azioni{display:flex;justify-content:flex-end;gap:6px}
+.dw-rte-azione{min-height:32px;padding:4px 12px;border:1px solid var(--dw-bordo,#d8dbe0);border-radius:6px;background:var(--dw-fondo,#fff);color:inherit;font:inherit;cursor:pointer}
+.dw-rte-azione.dw-rte-primaria{border-color:var(--dw-acc,#1f6feb);background:var(--dw-acc,#1f6feb);color:#fff}
+.dw-rte-griglia{display:grid;grid-template-columns:repeat(8,20px);gap:3px;padding:2px}
+.dw-rte-griglia span{width:20px;height:20px;border:1px solid var(--dw-bordo,#c9ced6);border-radius:3px;cursor:pointer}
+.dw-rte-griglia span.js-dw-rte-sopra{background:color-mix(in srgb,var(--dw-acc,#1f6feb) 25%,transparent);border-color:var(--dw-acc,#1f6feb)}
+
+/* IL TELEFONO. Bottoni da dito (44px e' la misura delle linee guida di Apple, 40 con lo
+   spazio fra l'uno e l'altro), la barra su una riga sola che scorre di lato invece di
+   mangiarsi mezzo schermo, e i menu come un foglio che sale dal basso: sotto il pollice */
+@media (pointer:coarse){
+  .dw-rte-b{min-width:40px;height:40px}
+  .dw-rte-voce{min-height:42px}
+  .dw-rte-colori{grid-template-columns:repeat(8,32px)}
+  .dw-rte-colore{width:32px;height:32px}
+  .dw-rte-griglia{grid-template-columns:repeat(6,32px)}
+  .dw-rte-griglia span{width:32px;height:32px}
+}
+@media (max-width:640px){
+  .dw-rte-barra{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .dw-rte-barra::-webkit-scrollbar{display:none}
+  .dw-rte-gruppo{flex:0 0 auto}
+  .dw-rte-menu{position:fixed;left:0!important;right:0;bottom:0;top:auto!important;max-width:none;max-height:60vh;border-radius:14px 14px 0 0;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+}
+
+/* LE ICONE: Lucide v1.47.0 (https://lucide.dev), licenza ISC - vedi LICENSE-lucide.txt accanto.
+   Scaricate da lucide-static@1.47.0 il 18/09/2026. Per aggiungerne una si prende il suo .svg,
+   se ne tiene il contenuto dentro lo stesso <svg> di queste, e la si mette qui con lo stesso
+   schema: il tratto e' nero perche' conta solo la forma, il colore lo da' la maschera. */
+.dw-rte-i-bold{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8'/%3E%3C/svg%3E")}
+.dw-rte-i-italic{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='19' x2='10' y1='4' y2='4'/%3E%3Cline x1='14' x2='5' y1='20' y2='20'/%3E%3Cline x1='15' x2='9' y1='4' y2='20'/%3E%3C/svg%3E")}
+.dw-rte-i-underline{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 4v6a6 6 0 0 0 12 0V4'/%3E%3Cline x1='4' x2='20' y1='20' y2='20'/%3E%3C/svg%3E")}
+.dw-rte-i-strikethrough{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 4H9a3 3 0 0 0-2.83 4'/%3E%3Cpath d='M14 12a4 4 0 0 1 0 8H6'/%3E%3Cline x1='4' x2='20' y1='12' y2='12'/%3E%3C/svg%3E")}
+.dw-rte-i-superscript{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 19 8-8'/%3E%3Cpath d='m12 19-8-8'/%3E%3Cpath d='M20 12h-4c0-1.5.442-2 1.5-2.5S20 8.334 20 7.002c0-.472-.17-.93-.484-1.29a2.105 2.105 0 0 0-2.617-.436c-.42.239-.738.614-.899 1.06'/%3E%3C/svg%3E")}
+.dw-rte-i-subscript{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 5 8 8'/%3E%3Cpath d='m12 5-8 8'/%3E%3Cpath d='M20 19h-4c0-1.5.44-2 1.5-2.5S20 15.33 20 14c0-.47-.17-.93-.48-1.29a2.11 2.11 0 0 0-2.62-.44c-.42.24-.74.62-.9 1.07'/%3E%3C/svg%3E")}
+.dw-rte-i-forecolor{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20h16'/%3E%3Cpath d='m6 16 6-12 6 12'/%3E%3Cpath d='M8 12h8'/%3E%3C/svg%3E")}
+.dw-rte-i-backcolor{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 11-6 6v3h9l3-3'/%3E%3Cpath d='m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4'/%3E%3C/svg%3E")}
+.dw-rte-i-fontsize{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 16 2.536-7.328a1.02 1.02 1 0 1 1.928 0L22 16'/%3E%3Cpath d='M15.697 14h5.606'/%3E%3Cpath d='m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16'/%3E%3Cpath d='M3.304 13h6.392'/%3E%3C/svg%3E")}
+.dw-rte-i-fontname{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v16'/%3E%3Cpath d='M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2'/%3E%3Cpath d='M9 20h6'/%3E%3C/svg%3E")}
+.dw-rte-i-lineheight{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22v-6'/%3E%3Cpath d='M12 8V2'/%3E%3Cpath d='M4 12H2'/%3E%3Cpath d='M10 12H8'/%3E%3Cpath d='M16 12h-2'/%3E%3Cpath d='M22 12h-2'/%3E%3Cpath d='m15 19-3 3-3-3'/%3E%3Cpath d='m15 5-3-3-3 3'/%3E%3C/svg%3E")}
+.dw-rte-i-heading{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12h12'/%3E%3Cpath d='M6 20V4'/%3E%3Cpath d='M18 20V4'/%3E%3C/svg%3E")}
+.dw-rte-i-bulletedlist{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5h.01'/%3E%3Cpath d='M3 12h.01'/%3E%3Cpath d='M3 19h.01'/%3E%3Cpath d='M8 5h13'/%3E%3Cpath d='M8 12h13'/%3E%3Cpath d='M8 19h13'/%3E%3C/svg%3E")}
+.dw-rte-i-numberedlist{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 5h10'/%3E%3Cpath d='M11 12h10'/%3E%3Cpath d='M11 19h10'/%3E%3Cpath d='M4 4h1v5'/%3E%3Cpath d='M4 9h2'/%3E%3Cpath d='M6.5 20H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02'/%3E%3C/svg%3E")}
+.dw-rte-i-indent{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 5H11'/%3E%3Cpath d='M21 12H11'/%3E%3Cpath d='M21 19H11'/%3E%3Cpath d='m3 8 4 4-4 4'/%3E%3C/svg%3E")}
+.dw-rte-i-outdent{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 5H11'/%3E%3Cpath d='M21 12H11'/%3E%3Cpath d='M21 19H11'/%3E%3Cpath d='m7 8-4 4 4 4'/%3E%3C/svg%3E")}
+.dw-rte-i-alignleft{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 5H3'/%3E%3Cpath d='M15 12H3'/%3E%3Cpath d='M17 19H3'/%3E%3C/svg%3E")}
+.dw-rte-i-aligncenter{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 5H3'/%3E%3Cpath d='M17 12H7'/%3E%3Cpath d='M19 19H5'/%3E%3C/svg%3E")}
+.dw-rte-i-alignright{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 5H3'/%3E%3Cpath d='M21 12H9'/%3E%3Cpath d='M21 19H7'/%3E%3C/svg%3E")}
+.dw-rte-i-alignjustify{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5h18'/%3E%3Cpath d='M3 12h18'/%3E%3Cpath d='M3 19h18'/%3E%3C/svg%3E")}
+.dw-rte-i-quote{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 5H3'/%3E%3Cpath d='M21 12H8'/%3E%3Cpath d='M21 19H8'/%3E%3Cpath d='M3 12v7'/%3E%3C/svg%3E")}
+.dw-rte-i-horizontalrule{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E")}
+.dw-rte-i-link{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E")}
+.dw-rte-i-unlink{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71'/%3E%3Cpath d='m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71'/%3E%3Cline x1='8' x2='8' y1='2' y2='5'/%3E%3Cline x1='2' x2='5' y1='8' y2='8'/%3E%3Cline x1='16' x2='16' y1='19' y2='22'/%3E%3Cline x1='19' x2='22' y1='16' y2='16'/%3E%3C/svg%3E")}
+.dw-rte-i-table{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v18'/%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M3 9h18'/%3E%3Cpath d='M3 15h18'/%3E%3C/svg%3E")}
+.dw-rte-i-rows{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M21 9H3'/%3E%3Cpath d='M21 15H3'/%3E%3C/svg%3E")}
+.dw-rte-i-columns{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2'/%3E%3Cpath d='M9 3v18'/%3E%3Cpath d='M15 3v18'/%3E%3C/svg%3E")}
+.dw-rte-i-delete{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 11v6'/%3E%3Cpath d='M14 11v6'/%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6'/%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/%3E%3C/svg%3E")}
+.dw-rte-i-clearformatting{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7V4h16v3'/%3E%3Cpath d='M5 20h6'/%3E%3Cpath d='M13 4 8 20'/%3E%3Cpath d='m15 15 5 5'/%3E%3Cpath d='m20 15-5 5'/%3E%3C/svg%3E")}
+.dw-rte-i-undo{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14 4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11'/%3E%3C/svg%3E")}
+.dw-rte-i-redo{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 14 5-5-5-5'/%3E%3Cpath d='M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13'/%3E%3C/svg%3E")}
+.dw-rte-i-source{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 16 4-4-4-4'/%3E%3Cpath d='m6 8-4 4 4 4'/%3E%3Cpath d='m14.5 4-5 16'/%3E%3C/svg%3E")}
+.dw-rte-i-fullscreen{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='m21 3-7 7'/%3E%3Cpath d='m3 21 7-7'/%3E%3Cpath d='M9 21H3v-6'/%3E%3C/svg%3E")}
+.dw-rte-i-exitfullscreen{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m14 10 7-7'/%3E%3Cpath d='M20 10h-6V4'/%3E%3Cpath d='m3 21 7-7'/%3E%3Cpath d='M4 14h6v6'/%3E%3C/svg%3E")}
