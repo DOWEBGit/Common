@@ -39,7 +39,7 @@ class Master
         if (($_SESSION[self::SESSIONE_ACCESSO] ?? '') === $oggi)
             return;
 
-        $guid = $_COOKIE['doweb_guid'] ?? '';
+        $guid = $_COOKIE['AdminSession'] ?? '';
 
         if ($guid === '')
             return;
@@ -76,6 +76,6 @@ class Master
 
         //il flag resta non impostato apposta: se e' un problema passeggero la pagina dopo riprova.
         //Se invece e' stabile lo si vede nel log, che e' meglio di un accesso perso in silenzio.
-        \Common\Log::Error('MasterAccessoGiornaliero: ' . $avviso);
+        \Common\Log::Warn('MasterAccessoGiornaliero: ' . $avviso);
     }
 }
