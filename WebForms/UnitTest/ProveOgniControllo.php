@@ -167,12 +167,13 @@ class ProveOgniControllo
      */
     private static function Prepara(Control $controllo): void
     {
+        //.../public/php meno gli ultimi due pezzi: e' quello che il server chiamerebbe
+        //radice dei documenti, e da cui esce il prefisso "/public/php". Serve a tutti quelli
+        //che compongono l'indirizzo di un loro file - anche il RichTextBox, per il suo CSS e JS
+        $_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__, 4);
+
         if (!$controllo instanceof \Common\WebForms\Controls\StaticResource)
             return;
-
-        //.../public/php meno gli ultimi due pezzi: e' quello che il server chiamerebbe
-        //radice dei documenti, e da cui esce il prefisso "/public/php"
-        $_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__, 4);
 
         $controllo->Src = self::FILE_VERO;
     }

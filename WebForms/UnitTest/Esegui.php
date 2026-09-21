@@ -59,6 +59,7 @@ use Common\WebForms\UnitTest\ProveOgniControllo;
 use Common\WebForms\UnitTest\ProvePaginaVuota;
 use Common\WebForms\UnitTest\ProveQuerystring;
 use Common\WebForms\UnitTest\ProveRepeater;
+use Common\WebForms\UnitTest\ProveRichTextBox;
 use Common\WebForms\UnitTest\ProveSicurezza;
 use Common\WebForms\UnitTest\ProveStato;
 use Common\WebForms\UnitTest\ProveVariabili;
@@ -71,6 +72,7 @@ $prova = new Prova();
 
 ProveControlli::Esegui($prova);
 ProveDatePicker::Esegui($prova);
+ProveRichTextBox::Esegui($prova);
 ProveOgniControllo::Esegui($prova);
 ProveDinamici::Esegui($prova);
 ProveVariabili::Esegui($prova);

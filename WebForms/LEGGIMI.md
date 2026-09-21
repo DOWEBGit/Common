@@ -365,6 +365,7 @@ Scelti contando l'uso reale nelle pagine WebForms del gestionale WK
 | `Button` | 21 | si' |
 | `Panel` | 16 | si' |
 | `DatePicker` | — | si': non c'era in WebForms, in WK erano TextBox con un calendario JavaScript |
+| `RichTextBox` | — | si': testo formattato come in Word, ogni funzione si spegne da sola |
 | `ListBox` | 6 | si' |
 | `ModalPopupExtender` | 0 | si', come `<dw:ModalPopup>`: WK non lo usa, ma una scheda sopra l'elenco e' il caso piu' comune |
 | `TreeView` | 4 | manca, e con quattro usi non vale il prezzo |
@@ -393,6 +394,7 @@ PascalCase che dice **cosa contiene**, non com'e' fatto.
 | `Label` | `__Label_` | |
 | `TextBox` | `__TextBox_` | |
 | `DatePicker` | `__DatePicker_` | |
+| `RichTextBox` | `__RichTextBox_` | |
 | `Button` / `LinkButton` | `__Button_` / `__LinkButton_` | `__Button_Salva`, `__Button_Chiudi`, `__Button_Nuovo` sono i nomi che WK usa ovunque |
 | `CheckBox` | `__CheckBox_` | |
 | `DropDownList` | `__DropDownList_` | in WK compare anche `__DDL_`: si preferisce il nome intero |
@@ -561,6 +563,118 @@ marzo; un'ora mandata a un `Mode="Date"` cade. Si accettano anche i formati di u
 — con lo spazio, con i secondi — e si normalizzano. Cambiando `Mode` a runtime il valore resta
 e si adegua al tipo nuovo: senza, il browser rifiuterebbe `2026-09-14T10:30` in un
 `type="date"` e mostrerebbe il campo vuoto senza dire niente.
+
+### `RichTextBox`
+
+Un editor di testo formattato, alla maniera di Word.
+
+```html
+<dw:RichTextBox id="__RichTextBox_Descrizione" MinHeight="220" MaxHeight="600"
+                Placeholder="Scrivi qui..." ShowCounter="true" MaxLength="2000"
+                EnableTable="false" EnableFontName="false" />
+```
+
+```php
+$this->__RichTextBox_Descrizione->Text = $articolo->Descrizione;   // HTML
+$articolo->Descrizione = $this->__RichTextBox_Descrizione->Text;   // HTML gia' ripulito
+$anteprima = $this->__RichTextBox_Descrizione->PlainText();        // solo il testo, con gli a capo
+
+$this->__RichTextBox_Nota->EnableOnly('Bold', 'Italic', 'Link');   // solo queste
+$this->__RichTextBox_Nota->SetAll(false);                          // nessun bottone
+```
+
+| proprieta' | |
+|---|---|
+| `Text` | il contenuto, in **HTML**. Quello che arriva dal browser e' gia' ripulito secondo le funzioni accese |
+| `Placeholder` | il suggerimento nell'editor vuoto |
+| `MinHeight` `MaxHeight` | in pixel; `MaxHeight` 0 = cresce col testo, altrimenti l'area scorre |
+| `MaxLength` | caratteri di **testo** (la formattazione non conta). Il browser non lascia scrivere oltre, il server lo ricontrolla con `LengthExceeded()` |
+| `ShowCounter` | parole e caratteri sotto l'editor (con `MaxLength` c'e' comunque) |
+| `Enabled` | spento si legge e non si scrive; il server ignora quello che arriva |
+| `AutoPostBack` `AutoPostBackDelay` `OnTextChanged` | come il `TextBox`: all'uscita dall'editor, o dopo la pausa mentre si scrive. Handler `(RichTextBox $sender)` |
+| `FontNames` | i caratteri del menu, con `;`. **Sono anche gli unici che passano**: il Calibri incollato da Word cade |
+| `FontSizes` | le dimensioni del menu, in pixel, con `,` |
+| `Colors` | la tavolozza dei due menu colore, con `,`; vuota = quella predefinita (40 colori, otto per riga) |
+
+**Le funzioni, una per una.** Ognuna ha la sua proprieta', tutte `true` tranne `EnableSourceView`:
+
+| proprieta' | cosa | tastiera |
+|---|---|---|
+| `EnableUndoRedo` | Annulla, Ripeti | Ctrl+Z, Ctrl+Y / Ctrl+Maiusc+Z |
+| `EnableHeadings` | Paragrafo, Titolo 1-4 | |
+| `EnableFontName` `EnableFontSize` | carattere e dimensione, dai due elenchi sopra | |
+| `EnableBold` `EnableItalic` `EnableUnderline` | grassetto, corsivo, sottolineato | Ctrl+B, Ctrl+I, Ctrl+U |
+| `EnableStrikethrough` `EnableSuperscript` `EnableSubscript` | barrato, apice, pedice | |
+| `EnableForeColor` `EnableBackColor` | colore del testo, evidenziatore; la tavolozza piu' "Altro colore…" | |
+| `EnableAlign` | sinistra, centro, destra, giustificato | Ctrl+L, E, R, J |
+| `EnableLineHeight` | interlinea 1 / 1,15 / 1,5 / 2 / 2,5 / 3 | |
+| `EnableBulletedList` `EnableNumberedList` | elenchi | Ctrl+Maiusc+8, Ctrl+Maiusc+7 |
+| `EnableIndent` | rientro: negli elenchi annida, fuori sposta il paragrafo di 40 px | Tab / Maiusc+Tab negli elenchi |
+| `EnableQuote` `EnableHorizontalRule` | citazione, linea orizzontale | |
+| `EnableLink` | collegamento: indirizzo, testo, nuova scheda. "doweb.it" diventa https, una mail mailto:, un numero tel: | Ctrl+K |
+| `EnableTable` | tabella dalla griglia 8×8, poi righe e colonne da aggiungere e togliere | |
+| `EnableClearFormatting` | toglie la formattazione dalla selezione | |
+| `EnableSourceView` | mostra e fa modificare l'HTML — ripulito comunque, come il resto | |
+| `EnableFullScreen` | l'editor a tutto lo schermo: sul telefono e' quello che serve | Esc per uscire |
+
+In codice: `EnableOnly('Bold', 'Link')`, `SetAll(bool)`, `IsEnabled('Table')`, e l'elenco
+`RichTextBox::FEATURES`. Un nome che non esiste si ferma con l'elenco di quelli buoni.
+
+**Spenta vuol dire spenta anche sul server.** Il bottone sparisce E quello che la funzione
+farebbe non passa: con `EnableTable="false"` una tabella incollata da Word diventa paragrafi,
+con `EnableLink="false"` un link resta testo, con `EnableForeColor="false"` il colore cade. La
+regola vale per quello che scrive l'utente (`LoadPostData`); quello che mette il **codice** in
+`Text` esce con tutte le funzioni — spegnere un bottone non deve far sparire un contenuto messo
+apposta — ma sempre ripulito.
+
+**La pulizia e' un elenco, non una lista nera.** L'HTML che arriva si ricostruisce da zero con il
+parser HTML5 di PHP 8.4 (`Dom\HTMLDocument`, lo stesso algoritmo dei browser) tenendo solo: `p`
+`br` `span` `strong` `em` `u` `s` `sup` `sub` `h1-h4` `ul` `ol` `li` `blockquote` `hr` `a`
+`table` `thead` `tbody` `tr` `th` `td`; un solo attributo, `style`, con `color`,
+`background-color`, `font-size`, `font-family`, `font-weight`, `font-style`, `text-decoration`,
+`vertical-align`, `text-align`, `line-height`, `margin-left` — ognuna col valore controllato;
+e sui link `href` solo `http` `https` `mailto` `tel` o un percorso del sito, con `target="_blank"`
+che si porta sempre dietro `rel="noopener noreferrer"`. Quello che non si conosce si scioglie e
+ne resta il testo; `script`, `style`, `iframe`, `img`, `svg`, i campi di una form se ne vanno col
+contenuto. `b` `i` `strike` `del` `div` `font` diventano i loro equivalenti, `h5` `h6` diventano
+`h4`. Un editor svuotato (`<p><br></p>`) e' vuoto: `Text` vale `''`.
+
+Serve anche fuori da una pagina, per un testo arrivato da un'API o da un import:
+
+```php
+$pulito = RichTextBox::Sanitize($html, (new RichTextBox())->Rules());
+```
+
+**Come e' fatto.** L'area e' un `contenteditable` con `dw-preserve`: il morph non la tocca mai. Il
+valore viaggia in un `<input type="hidden">` col nome del controllo, e dopo ogni render il
+runtime dell'editor decide chi comanda: se l'utente e' dentro l'editor vince quello che sta
+scrivendo, altrimenti vince il server. Senza, un `AutoPostBackDelay` che torna mentre si scrive
+riporterebbe indietro le ultime lettere e il cursore. I comandi di base sono quelli del browser
+(`execCommand`: l'unico modo che funzioni uguale su Chrome, Safari, Firefox, e con la tastiera
+del telefono, la dettatura, il correttore); interlinea, rientri, tabelle, dimensioni in pixel si
+fanno sul DOM. **Annulla e Ripeti sono dell'editor**, non del browser: tornano indietro anche su
+quelle. **L'incolla** — da Word, da una pagina, da un'altra app — si ripulisce PRIMA di entrare con
+le stesse regole del server, che gliele manda nella configurazione: quello che si vede e' quello
+che restera'.
+
+**Il telefono.** Bottoni da 40 px sui touch, la barra su una riga che scorre di lato sotto i 640 px,
+i menu come un foglio che sale dal basso, lo schermo intero; la barra resta in vista mentre si
+scorre un testo lungo. Toccare un bottone non chiude la tastiera e non perde la selezione.
+
+**I file.** `RichTextBox/RichTextBox.js` lo carica il motore (`armaEditor` in `runtime.js`) la prima
+volta che in pagina c'e' un editor — all'apertura, dopo un postback che lo mostra, dopo una
+navigazione — **una volta sola** anche con dieci editor. `RichTextBox/RichTextBox.css` e' un
+`<link>` dentro il controllo, cosi' c'e' anche per un editor comparso a un postback. **Le icone
+stanno nel CSS**, come maschere SVG (`mask-image` con l'SVG in un `data:`): il colore e' quello del
+testo del bottone, un bottone in pagina e' uno `<span>` vuoto, e il file e' in cache come ogni
+statico. Sono di [Lucide](https://lucide.dev) 1.47, licenza ISC (`RichTextBox/LICENSE-lucide.txt`);
+per aggiungerne una si prende il suo `.svg` e la si mette in fondo al CSS con lo stesso schema.
+
+**Piu' editor nella stessa pagina** vanno da se': ognuno ha il suo campo, la sua area
+(`<id>__area`), la sua configurazione e il suo stato nel browser. In un `Repeater` gli id
+prendono il suffisso della riga come ogni controllo, e il Salva di una riga trova il suo editor
+con `$sender->NamingContainer()->FindControl('__RichTextBox_Testo')`. L'esempio fa un elenco di
+note con Salva per riga, Aggiungi e Salva tutto.
 
 ### `Button` e `LinkButton`
 
@@ -1770,10 +1884,13 @@ non e' un cambio di pagina.
 
     UnitTest/prove.cmd             TUTTE le prove: quelle PHP e quelle del JavaScript
     UnitTest/Esegui.php            le prove PHP: da URL risponde 200 se e' tutto verde e 500 se no
-    UnitTest/prove.mjs             le prove del JavaScript, con node: il cassetto, la navigazione, gli script, DW.on, il 500
+    UnitTest/prove.mjs             le prove del JavaScript, con node: il cassetto, la navigazione, gli script, DW.on, il 500,
+                                   l'editor caricato una volta sola, piu' editor insieme, le regole uguali al server
     UnitTest/Prova.php             confronto, conto, e "deve sollevare"
     UnitTest/ProveControlli.php    cosa rendono i controlli, e cosa diventano col POST
     UnitTest/ProveDatePicker.php   date vere, i due Mode, cosa entra dal browser, l'evento, l'enum nello stato
+    UnitTest/ProveRichTextBox.php  la pulizia coi trucchi veri, ogni funzione spenta anche sul server, piu' editor,
+                                   un editor per riga di Repeater con Salva, Aggiungi e Salva tutto
     UnitTest/ProveOgniControllo.php le tre domande fatte a TUTTI i controlli, per riflessione
     UnitTest/ProveDinamici.php     i controlli attaccati dal codice, e come tornano indietro
     UnitTest/ProvePaginaVuota.php  markup vuoto, tutto dal codice: un CRUD intero a postback
@@ -1798,7 +1915,7 @@ non e' un cambio di pagina.
     Examples/PropertyTable.php     UserControl: le proprieta' di un controllo lette dalla classe, con i docblock
     Examples/SourceView.php        UserControl: markup e codebehind della pagina che lo ospita, dal disco
 
-Sono 412 prove PHP e 24 JavaScript. Si lanciano nei due modi, e l'esito e' un numero:
+Sono 600 prove PHP e 61 JavaScript. Si lanciano nei due modi, e l'esito e' un numero:
 **uscita 1** da riga di comando, **500** sull'HTTP, cosi' le puo' guardare uno script senza
 leggerle a occhio.
 
