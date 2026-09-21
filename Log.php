@@ -46,5 +46,5 @@ class Log
         $obj = PHPDOWEB();
         $obj->LogWarn($messaggio);
         return $messaggio;
-    }       
+    }
 }

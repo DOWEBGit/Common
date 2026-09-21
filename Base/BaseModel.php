@@ -827,6 +827,15 @@ class BaseModel
         return (bool)$riflesso->getValue($this);
     }
 
+    /** Il tipo del campo come scritto nel PropertyAttribute (Testo, Numeri, Dato...), o "" se manca. */
+    private static function TipoDato(ReflectionProperty $property): string
+    {
+        foreach ($property->getAttributes(PropertyAttribute::class) as $attribute)
+            return (string)($attribute->getArguments()[1] ?? "");
+
+        return "";
+    }
+
     /** Cosa c'e' che non va in questo valore, o stringa vuota se va bene. */
     private static function Sbaglio(VincoliAttribute $vincoli, ReflectionProperty $property, object $modello): string
     {
@@ -881,6 +890,12 @@ class BaseModel
 
         if (is_int($valore) || is_float($valore))
         {
+            //Le foreign key (tipo Dato) non hanno un intervallo: il generatore scrive Min e Max
+            //a 0, e presi alla lettera farebbero scartare qualunque id > 0, mentre Kestrel li
+            //accetta. Sui campi Dato quindi Min/Max non si controllano
+            if (self::TipoDato($property) === "Dato")
+                return "";
+
             if ($vincoli->Min !== -1 && $valore < $vincoli->Min)
                 return $nonValido;
 
