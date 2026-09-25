@@ -22,6 +22,5 @@ trait StateDesigner
     public \Common\WebForms\Controls\TextBox $__TextBox_Name;
     public \Common\WebForms\Controls\Button $__Button_Carry;
     public \Common\WebForms\Controls\Literal $__Literal_Carried;
-    public \Common\WebForms\Controls\CheckBox $__CheckBox_Keep;
     public \Common\WebForms\Examples\SourceView $__SourceView;
 }

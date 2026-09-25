@@ -22,9 +22,8 @@ use Common\WebForms\ViewState;
  * Un Panel con stile e attributi, una casella, un bottone, un'etichetta, un Repeater con il
  * suo template - tutto attaccato dal codice al primo caricamento - e poi un CRUD intero
  * fatto a postback: crea, legge, aggiorna, elimina. Ogni passo e' un giro vero di stato:
- * Pack, pagina nuova, Unpack. Alla fine si "cambia pagina" e si torna - cioe' lo stato
- * rientra in una pagina appena nata, come fa il modo WinForms - e dev'esserci tutto, e
- * funzionare ancora.
+ * Pack, pagina nuova, Unpack - lo stato rientra in un oggetto pagina appena nato, com'e' ogni
+ * postback - e alla fine dev'esserci tutto, e funzionare ancora.
  *
  * Lo stesso scenario gira due volte: attaccando alla RADICE della pagina, che non ha nessun
  * tag attorno, e dentro un Panel dichiarato nel markup. Sono due strade diverse nel motore -

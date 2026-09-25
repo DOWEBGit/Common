@@ -25,31 +25,6 @@ abstract class Page
     public bool $IsPostBack = false;
 
     /**
-     * La pagina si tiene com'era quando la si lascia, come una form di WinForms.
-     *
-     * ACCESA PER TUTTI: il browser conserva lo stato di questa pagina e glielo rimanda quando
-     * ci si torna - filtri, righe aperte, controlli attaccati dal codice, tutto dov'era. E'
-     * il modello di WinForms, dove una form resta in memoria mentre se ne guarda un'altra.
-     *
-     * Spenta, ogni volta che si arriva sulla pagina la si trova nuova, com'e' il web:
-     *
-     *     protected function OnInit(): void
-     *     {
-     *         $this->KeepState = false;
-     *     }
-     *
-     * Quando spegnerla: su un elenco di dati che cambiano sotto le mani di altri, dove
-     * tornare e trovare le righe di prima vorrebbe dire mostrare cose che qualcuno ha gia'
-     * cambiato o cancellato. L'alternativa e' lasciarla accesa e rileggere in OnLoad quando
-     * serve: IsPostBack e' vero al ritorno, e la pagina sa di essere stata ripristinata.
-     *
-     * Lo stato conservato vive nella memoria della SCHEDA del browser: si perde chiudendola o
-     * ricaricando con F5, non si vede da un'altra scheda, e resta firmato - il server lo
-     * verifica come qualunque altro stato. Se non torna buono, la pagina si apre pulita.
-     */
-    public bool $KeepState = true;
-
-    /**
      * Identificativo di instradamento per le notifiche push: dice CHI e' questa pagina, non
      * cosa contiene. Si puo' diffondere senza esporre niente.
      */
@@ -248,15 +223,12 @@ abstract class Page
         //arriva puo' portare avvisi lasciati dalla pagina precedente
         $this->Alert = new Alert($this);
 
+        //Il ViewState vale per UNA visita della pagina: nasce al primo caricamento, attraversa
+        //i postback e muore quando si va altrove. Tornando - con un link, col tasto indietro -
+        //la pagina riparte da zero e rilegge i dati: un elenco non mostra le righe di prima
+        //di una modifica fatta nella scheda di dettaglio. Quello che deve attraversare le
+        //pagine e' #[Portable], che ha un canale suo.
         $postback = ($_SERVER['HTTP_X_DW_POSTBACK'] ?? '') === '1';
-
-        //Il ritorno su una pagina gia' visitata, con lo stato che il browser si era tenuto.
-        //E' una POST come il postback - lo stato e' lungo e non sta in un'intestazione - ma
-        //non porta nessun evento e la risposta e' un documento intero, non un frammento.
-        $ripristino = ($_SERVER['HTTP_X_DW_RIPRISTINA'] ?? '') === '1';
-
-        if ($ripristino)
-            $postback = true;
 
         //il canale di postback e' una POST con un header personalizzato: senza il token la
         //richiesta e' partita da un altro sito con la sessione della vittima allegata
@@ -319,20 +291,8 @@ abstract class Page
 
             if ($state === null)
             {
-                //su un ripristino non si urla e non si ricarica: lo stato tenuto dal browser
-                //puo' essere di una versione fa, o firmato con un segreto rigenerato. Si apre
-                //la pagina pulita, che e' esattamente quello che l'utente si aspetta.
-                if ($ripristino)
-                {
-                    //il PushId lo rifa' il ramo qui sotto, come per un primo caricamento
-                    $postback = false;
-                    $this->IsPostBack = false;
-                }
-                else
-                {
-                    $this->OnViewStateExpired();
-                    return;
-                }
+                $this->OnViewStateExpired();
+                return;
             }
         }
 
@@ -362,8 +322,7 @@ abstract class Page
 
         $this->ForEachUserControl(static fn(UserControl $uc) => $uc->OnLoad());
 
-        //un ripristino non porta eventi: rimette in piedi la pagina e basta
-        if ($postback && !$ripristino)
+        if ($postback)
             $this->ProcessPostBackEvent();
 
         $this->eventsClosed = true;
@@ -384,9 +343,7 @@ abstract class Page
         //riconoscesse e ne aggiornasse il valore. Fuori non dipende piu' da niente - il
         //client ce lo scrive dentro e basta - e si trova sempre nello stesso posto, come una
         //volta si trovava la sessione.
-        //il frammento e' la risposta del postback; il ripristino invece e' una navigazione, e
-        //il client si aspetta un documento da cui prendere dw-root
-        if ($postback && !$ripristino)
+        if ($postback)
             Response::Fragment($html, $stato);
         else
             Response::Document($this, $html, $stato);
@@ -695,10 +652,9 @@ abstract class Page
             $fields[$property->getName()] = $valore;
         }
 
-        //Titolo e lingua sono roba della TESTA del documento, non di un controllo, e nessun
-        //variabile di pagina li copre. Su un postback non conterebbero - la risposta e' un frammento -
-        //ma su un ripristino si rende un documento intero, e senza di loro la linguetta del
-        //browser resterebbe senza nome.
+        //Titolo e lingua sono roba della TESTA del documento, non di un controllo, e nessuna
+        //variabile di pagina li copre: tornano col postback perche' la pagina che li ha scritti
+        //al primo caricamento li ritrovi uguali quando li rilegge dopo.
         $stato = [
             'push'  => $this->PushId,
             'c'     => $controls,
@@ -941,10 +897,6 @@ abstract class Page
             ? ''
             : ' data-dw-portable="' . Control::HtmlEncode($this->PackPortable()) . '"';
 
-        //la pagina che si tiene: il client se ne conserva lo stato quando la si lascia, e
-        //glielo rimanda quando ci si torna
-        $tieni = $this->KeepState ? ' data-dw-tieni="1"' : '';
-
         //a quali topic risponde questa pagina: il runtime fa il postback di notifica SOLO se
         //ne arriva uno di questi, invece di svegliare il server per ogni salvataggio del sito
         $topics = $this->subscriptions === []
@@ -953,7 +905,6 @@ abstract class Page
 
         return '<div id="dw-root"'
             . ' data-dw-push="' . Control::HtmlEncode($this->PushId) . '"'
-            . $tieni
             . $topics
             . $portatile . '>'
             . $html

@@ -14,10 +14,9 @@ use Common\WebForms\ViewState;
 /**
  * Lo stato cala quando calano i dati: niente resta appeso.
  *
- * Il dubbio e' legittimo: una pagina tenuta col modo WinForms si porta dietro il suo stato
- * per tutta la vita della scheda. Se svuotare un elenco o rimpiazzare un pannello lasciasse
- * in giro pezzi di stato vecchio, il pacchetto crescerebbe a ogni giro e la memoria del
- * browser con lui. Qui si misura: si riempie, si svuota, si rimpiazza, e il pacchetto deve
+ * Il dubbio e' legittimo: una pagina si porta dietro il suo stato a ogni postback, andata e
+ * ritorno. Se svuotare un elenco o rimpiazzare un pannello lasciasse in giro pezzi di stato
+ * vecchio, il pacchetto crescerebbe a ogni click e la banda con lui. Qui si misura: si riempie, si svuota, si rimpiazza, e il pacchetto deve
  * tornare piccolo com'era. Non "piu' piccolo": com'era.
  *
  * Sul server non c'e' niente da misurare per costruzione: l'oggetto pagina nasce e muore in

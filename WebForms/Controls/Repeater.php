@@ -129,11 +129,10 @@ class Repeater extends Control
     /**
      * Via tutte le righe, come Items.Clear() in WebForms.
      *
-     * Serve quando l'elenco va rifatto da capo per un motivo che non e' un evento della
-     * pagina: e' cambiata la querystring - un altro mese, un altro filtro nell'indirizzo - e
-     * le righe tenute nello stato descrivono il mese di prima. Si svuota e si ridatabinda in
-     * OnLoad; senza svuotare, DataBind() rimpiazzerebbe comunque le righe, ma questo dice
-     * l'intenzione e lascia l'elenco vuoto anche se poi non c'e' niente da rilegare.
+     * Serve quando l'elenco va rifatto da capo: un filtro cambiato, una ricerca svuotata. Si
+     * svuota e si ridatabinda; senza svuotare, DataBind() rimpiazzerebbe comunque le righe, ma
+     * questo dice l'intenzione e lascia l'elenco vuoto anche se poi non c'e' niente da
+     * rilegare. E lo stato torna al peso di prima: le righe tolte non restano appese.
      */
     public function ClearItems(): void
     {

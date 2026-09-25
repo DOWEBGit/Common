@@ -17,7 +17,7 @@ cosi': e' un esempio, non un modello di stile.
 Il documento e' diviso cosi':
 
     1. Una pagina            i tre file, il ciclo di vita, le classi
-    2. Lo stato              le variabili che restano, #[Portable], il ViewState, KeepState, ViewStateMode
+    2. Lo stato              le variabili che restano, #[Portable], il ViewState e quanto dura, ViewStateMode
     3. I controlli           uno per uno, con le regole che il motore garantisce
     4. UserControl           i controlli composti e la master page
     5. Upload                il canale dei file, separato dal postback
@@ -106,7 +106,7 @@ il `?>`, con emmet e completamento dei tag.
 
 | classe | ruolo |
 |---|---|
-| `Page` | ciclo di vita, `IsPostBack`, `FindControl()`, `Add()`, `KeepState`, `Title` `Lang` `Head`, `Alert`, `Subscribe()`/`Raise()`, `Redirect()`, `RedirectToPage()`, `RedirectToLogin()` |
+| `Page` | ciclo di vita, `IsPostBack`, `FindControl()`, `Add()`, `Title` `Lang` `Head`, `Alert`, `Subscribe()`/`Raise()`, `Redirect()`, `RedirectToPage()`, `RedirectToLogin()` |
 | `Control` | base: `Id` `Visible` `CssClass` `Attributes` `Style` `ViewStateMode` `Parent` `Controls` `Page`, `FindControl()`, `NamingContainer()`, `IsViewStateEnabled()`, `CanRaiseEvents()`, `RaiseBubbleEvent()`, `Render()` |
 | `AttributeCollection` / `CssStyleCollection` | `Attributes` e `Style`: `Add` `Remove` `Clear` `Has`, leggibili come array |
 | `UserControl` | controllo composto: ciclo di vita proprio, `OnBubbleEvent()`, `RaiseHostEvent()` |
@@ -167,9 +167,9 @@ Il poco che deve **rinascere** ad ogni richiesta — una cache riempita in `OnLo
 grosso che non ha senso far viaggiare — si marca `#[Transient]`. Serve anche a chi legge:
 senza, un campo che si azzera sembra un difetto.
 
-Tutto questo vive quanto la pagina; e con il modo WinForms (piu' sotto), che e' il
-predefinito, la pagina vive finche' la scheda e' aperta, anche mentre se ne guarda un'altra.
-Per un valore che deve passare **da una pagina all'altra** c'e' `#[Portable]`.
+Tutto questo vive quanto **una visita** della pagina: dal primo caricamento, attraverso i
+postback, finche' non si va altrove. Tornando la pagina riparte da zero (piu' sotto il
+perche'). Per un valore che deve passare **da una pagina all'altra** c'e' `#[Portable]`.
 
 ## `#[Portable]`: lo stato che attraversa le pagine
 
@@ -243,65 +243,40 @@ Il postback lo aggiorna **prima** di toccare il DOM: se il morph solleva a meta'
 campo e' gia' quello nuovo e il click successivo resta allineato col server. Una navigazione
 senza ricarico lo prende dal documento appena scaricato.
 
-## Il modo WinForms: `KeepState`, acceso per tutti
+## Quanto dura: una visita
 
-Il **browser** si conserva lo stato di ogni pagina quando la si lascia e glielo rimanda
-quando ci si torna: contatori, filtri, pannelli aperti, controlli attaccati dal codice,
-tutto dov'era — come una form di WinForms che resta in memoria mentre ne guardi un'altra.
-E' il comportamento predefinito. Chi non lo vuole lo spegne:
+Il ViewState nasce al primo caricamento, attraversa i postback e **muore quando si va
+altrove**. Tornando sulla pagina — con un link, col tasto indietro o avanti, con un
+`Redirect()` — la pagina si apre nuova: `IsPostBack` e' falso, `OnLoad` rilegge i dati.
+
+E' voluto, e c'e' passato: per un periodo il browser si teneva lo stato di ogni pagina e
+glielo rimandava al ritorno, come una form di WinForms che resta in memoria. Il giro piu'
+comune di un gestionale lo rompeva: dall'elenco si apre la scheda, si salva, si torna
+all'elenco — e l'elenco ricompariva con le righe di **prima** della modifica, perche' era lo
+stato di prima a tornare. Una pagina che rilegge ad ogni arrivo non puo' sbagliare cosi'.
+
+Quello che deve sopravvivere al giro — il filtro scritto, la pagina dell'elenco, la riga
+selezionata — si dichiara `#[Portable]`: viaggia in tutte le navigazioni, tasto indietro
+compreso, e l'elenco lo ritrova e rilegge i dati con quello.
 
 ```php
-protected function OnInit(): void
-{
-    $this->KeepState = false;   //ogni arrivo e' una pagina nuova, com'e' il web
-}
+#[Portable]
+public string $Filtro = '';      //l'elenco lo ritrova tornando dalla scheda
+
+#[Portable]
+public int $PaginaElenco = 1;
 ```
 
-Spento, cambiare pagina **azzera il ViewState**: lo stato descrive quella pagina com'era, e
-tornarci dopo essere stati altrove vuol dire ricominciare — su un elenco di dati che cambiano
-sotto le mani di altri e' anche l'unica cosa giusta. Quello che attraversa le pagine resta
-`#[Portable]`, in tutti e due i modi.
+Due dettagli:
 
-Come funziona: la radice esce con `data-dw-tieni`, il client tiene una mappa
-*indirizzo → stato* (fino a **50 MB**, poi butta quelle con l'ultimo accesso piu' vecchio), e
-quando si torna su un indirizzo che ha in serbo fa una **POST** invece della solita GET, con
-l'intestazione `X-DW-Ripristina`. Il server la tratta come un postback senza evento —
-`IsPostBack` e' vero, quindi l'inizializzazione di `OnLoad` non ricomincia da capo — e
-risponde con un documento intero perche' resta una navigazione.
-
-Cosa sapere:
-
-- lo stato tenuto vive **nella memoria di quella scheda**: F5 lo butta, un'altra scheda non
-  lo vede, chiudere il browser lo perde. Non e' un salvataggio, e non va usato come tale;
-- la chiave e' il **percorso senza querystring**: `Calendario.php?mese=2026-10` e' la stessa
-  pagina di `?mese=2026-09`, e lo stato rientra lo stesso. Il server vede la `$_GET` nuova e
-  `IsPostBack` e' vero; cosa ricaricare lo decide la pagina in `OnLoad` — confronta il
-  parametro con quello che si ricorda, e se e' cambiato fa `$rpt->ClearItems()` e rilega.
-  `UnitTest/ProveQuerystring.php` e' esattamente questo, con i giorni di un mese;
-- **il tasto indietro e avanti del browser** ripristinano come un link: lo stato che si tiene
-  e' quello di **dopo** l'ultimo postback, anche se il click sul link e' arrivato mentre
-  quel postback era ancora in volo — la navigazione aspetta che finisca;
-- **niente resta appeso**: svuotare un elenco con `ClearItems()` o rimpiazzare un pannello
-  riporta il pacchetto al peso di prima — misurato: 329 B vuota, 12 KB con 500 righe, 329 B
-  dopo `ClearItems()`, e dieci postback a vuoto non lo muovono di un byte. Sul server non c'e'
-  niente da liberare per costruzione: la pagina nasce e muore in una richiesta, senza
-  sessione. Nel browser la copia tenuta si aggiorna quando si lascia la pagina, e il conto
-  dei byte scende con lei;
-- in console, alla fine di ogni postback e di ogni navigazione, una riga dice quanto pesa:
-  `DW stato: pagina 1.1 KB · tenute 3 pagine, 12.4 KB su 50.00 MB`. Si vede crescere il
-  pacchetto mentre si lavora, invece di scoprirlo quando e' gia' grosso;
-- resta **firmato**: il server lo verifica come qualunque altro stato, e se non torna buono
-  apre la pagina pulita invece di protestare;
-- se la pagina smette di volersi tenere — una casella spenta, una condizione cambiata — il
-  client **butta** quello che aveva in serbo, altrimenti al ritorno rimetterebbe in piedi
-  uno stato che la pagina ha appena rinnegato;
-- **su un elenco di dati che cambiano sotto le mani di altri** puo' mostrare righe che
-  qualcuno ha gia' cambiato o cancellato. Li' o lo si spegne, o si rilegge in `OnLoad`
-  quando serve: al ritorno `IsPostBack` e' vero e la pagina sa di essere stata
-  ripristinata.
-
-`Examples/State.php` ha la casella per accenderlo e spegnerlo, e il menu a sinistra per
-andare altrove e tornare.
+- una navigazione **aspetta il postback in volo**: "salvo e clicco subito il link" non fonde
+  la risposta del salvataggio nella pagina nuova, e il pacchetto portatile che quel postback
+  ha scritto parte con il link;
+- in console, alla fine di ogni postback e di ogni navigazione, una riga dice quanto pesa lo
+  stato della pagina: `DW stato: 1.1 KB`. Si vede crescere il pacchetto mentre si lavora,
+  invece di scoprirlo quando e' gia' grosso. Svuotare un elenco con `ClearItems()` o
+  rimpiazzare un pannello lo riporta al peso di prima — misurato: 329 B vuota, 12 KB con 500
+  righe, 329 B dopo `ClearItems()`, e dieci postback a vuoto non lo muovono di un byte.
 
 ## La terza via: non tenerlo — `ViewStateMode`
 
@@ -338,7 +313,7 @@ rilegge ad ogni richiesta: li' le righe nello stato erano solo peso.
 # 3. I controlli
 
 **I nomi sono quelli di WebForms**, in inglese: `Attributes->Add()`, `Style->Remove()`,
-`ViewStateMode`, `IsViewStateEnabled()`, `KeepState`, `ClearItems()`, `CanRaiseEvents()`. I
+`ViewStateMode`, `IsViewStateEnabled()`, `ClearItems()`, `CanRaiseEvents()`. I
 commenti restano in italiano. Quello che in WebForms era una collection qui e' una
 collection: `Attributes` e `Style` sono oggetti con `Add`, `Remove`, `Clear`, `Has`, e si
 leggono anche come array — `$btn->Attributes['title']`.
@@ -912,9 +887,7 @@ sotto gli avvisi di proposito.
 **Lo stato aperto/chiuso vive nel browser**, in una classe `js-` che il morph rispetta, non
 nel ViewState: `Show()` e `Hide()` sono ordini per **questa** risposta, non uno stato che si
 porta dietro. Se fosse nello stato, un Annulla fatto nel browser lascerebbe il server
-convinto che il popup e' aperto, e al postback dopo lo riaprirebbe. Il rovescio: un ritorno
-sulla pagina con il modo WinForms lo trova chiuso, e va bene cosi' — un popup e' un lavoro in
-corso, non un dato.
+convinto che il popup e' aperto, e al postback dopo lo riaprirebbe.
 
 Cliccare sullo sfondo **non fa niente**, di proposito: e' un lavoro da finire o da annullare,
 non un avviso da far sparire. Il fuoco entra nel primo campo del popup e torna dov'era alla
@@ -1391,7 +1364,7 @@ protected function OnPreRender(): void
 gli stili del motore, cosi' un foglio di stile di pagina o di master li sovrascrive senza
 dover alzare la specificita'. `Page::$Title` e' il `<title>`, `Page::$Lang` riempie
 `<html lang="…">`, che su un sito multilingua cambia per richiesta. Tutti e due viaggiano
-nello stato e tornano con la pagina quando la si ripristina.
+nello stato, cosi' la pagina li ritrova ai postback come li aveva scritti.
 
 ## Il CSS: cosa porta il motore e cosa no
 
@@ -1859,8 +1832,11 @@ focus non viene mai calpestato.
 dati viaggiano solo se una pagina li mette a mano in `Notify()`, e allora sono per tutti.
 
 **Niente sessione, niente querystring per lo stato.** Lo stato e' nel campo firmato e nel
-pacchetto portatile; la querystring e' l'indirizzo della pagina, e un cambio di querystring
-non e' un cambio di pagina.
+pacchetto portatile; la querystring e' l'indirizzo della pagina.
+
+**Il ViewState vale per una visita.** Cambiando pagina riparte da zero, anche col tasto
+indietro: tenerlo fra le pagine rimetteva in piedi elenchi con i dati di prima di una
+modifica. Quello che deve attraversare le pagine e' `#[Portable]`.
 
 ---
 
@@ -1884,7 +1860,7 @@ non e' un cambio di pagina.
 
     UnitTest/prove.cmd             TUTTE le prove: quelle PHP e quelle del JavaScript
     UnitTest/Esegui.php            le prove PHP: da URL risponde 200 se e' tutto verde e 500 se no
-    UnitTest/prove.mjs             le prove del JavaScript, con node: il cassetto, la navigazione, gli script, DW.on, il 500,
+    UnitTest/prove.mjs             le prove del JavaScript, con node: la navigazione, gli script, DW.on, il 500,
                                    l'editor caricato una volta sola, piu' editor insieme, le regole uguali al server
     UnitTest/Prova.php             confronto, conto, e "deve sollevare"
     UnitTest/ProveControlli.php    cosa rendono i controlli, e cosa diventano col POST
@@ -1896,7 +1872,6 @@ non e' un cambio di pagina.
     UnitTest/ProvePaginaVuota.php  markup vuoto, tutto dal codice: un CRUD intero a postback
     UnitTest/ProveVariabili.php    le variabili di pagina restano tutte; #[Transient] e #[Portable]
     UnitTest/ProveViewStateMode.php Inherit/Enabled/Disabled, e cosa resta sotto uno spento
-    UnitTest/ProveQuerystring.php  la querystring cambia, lo stato resta, la pagina rilega
     UnitTest/ProveMemoria.php      lo stato cala con i dati: ClearItems e rimpiazzi non lasciano niente
     UnitTest/ProveModalPopup.php   i marcatori che il server scrive per il runtime, Show/Hide, X e Y, i riferimenti in un UserControl
     UnitTest/ProveEventiConDati.php Notify con un oggetto: il messaggio firmato che parte e il postback che torna
@@ -1908,7 +1883,7 @@ non e' un cambio di pagina.
     Examples/Site.php              la master degli esempi: menu a sinistra, titolo, e l'iscrizione a «Saluti»
     Examples/Index.php             la panoramica, con le schede di tutte le pagine
     Examples/<Controllo>.php       una pagina per controllo: la prova, le proprieta', il sorgente
-    Examples/State.php             le variabili restano, #[Portable], il modo WinForms
+    Examples/State.php             le variabili restano per una visita, #[Portable] attraversa le pagine
     Examples/DynamicControls.php   controlli creati in OnLoad e negli handler, righe di tabella a mano
     Examples/Events.php            Notify e Subscribe, l'oggetto User in viaggio, Broadcast con DW.on
     Examples/Errors.php            un'eccezione nell'handler: nel log e nel riquadro rosso
@@ -1928,10 +1903,10 @@ verso Kestrel. Si registra il minimo per trovare le classi e le prove girano su 
 che e' esattamente quello che devono provare.
 
 **Il JavaScript si prova ritagliandolo.** `runtime.js` e' scritto per il DOM, ma i pezzi con una
-logica propria — il cassetto delle pagine tenute, la navigazione e il tasto indietro, gli
+logica propria — la navigazione e il tasto indietro, gli
 script da caricare dopo una navigazione, la consegna dei messaggi, il testo di un 500 — si tagliano fra due marcatori e girano in node con
 un DOM finto grande quanto basta. Non e' il morph, che si guarda nel browser: e' quello che si
-puo' sbagliare senza che il browser lo dica — la chiave sbagliata sul tasto indietro, il
+puo' sbagliare senza che il browser lo dica — uno stato vecchio rimandato col tasto indietro, il
 postback in volo durante la navigazione. `prove.mjs` va lanciato con node; `Esegui.php` non
 puo' farlo, perche' `exec` e compagni sono spenti in `php.ini` — com'e' giusto su un server
 web — e le prove girano con lo stesso `php.ini` del sito. `prove.cmd` lancia tutti e due.
@@ -1948,7 +1923,7 @@ unitaria, e' un collaudo.
 Una pagina per controllo, sotto una master con il menu a sinistra: il modello e' il sito
 dell'AjaxControlToolkit. Le prove unitarie dicono che lo stato torna indietro; queste lo
 fanno vedere cliccando — che e' l'unico modo di provare anche il pezzo che gira nel browser:
-il morph, il cassetto delle pagine tenute, il hub.
+il morph, la navigazione senza ricarico, il hub.
 
 Ogni pagina ha tre parti. **La prova**: si clicca, si scrive, si guarda cosa resta. **Le
 proprieta'**: `PropertyTable` e' un UserControl che legge la classe del controllo per
@@ -1961,7 +1936,8 @@ legge e' esattamente quello che ha reso la pagina.
 Le quattro pagine **Motore** sono le prove del motore piu' che di un controllo:
 
 - `State.php` — le variabili che restano, `#[Portable]` che attraversa le pagine (la pagina
-  degli eventi dichiara la stessa chiave e lo legge), e la casella del modo WinForms;
+  degli eventi dichiara la stessa chiave e lo legge), e il contatore che riparte da zero
+  quando si torna sulla pagina;
 - `DynamicControls.php` — controlli costruiti in `OnLoad` e negli handler, e in fondo il caso
   piu' severo: in `OnLoad` **non succede niente**, ogni `<tr>` nasce da un click — un albero
   dinamico **annidato**, un `LinkButton` «elimina» creato dal codice che funziona ancora al
@@ -1976,7 +1952,7 @@ Le quattro pagine **Motore** sono le prove del motore piu' che di un controllo:
 **Stanno in `Common` di proposito.** Niente Model, niente database, nessun foglio di stile
 del sito: sono una prova **del motore**, quindi viaggiano con il motore e si aprono uguali su
 un sito appena creato che non ha ancora niente dentro. La master e' `Site.php` li' accanto:
-il menu che lega le pagine e' la prova a mano del modo WinForms (§2), e una master dentro
+il menu che lega le pagine e' la prova a mano di quanto dura lo stato (§2), e una master dentro
 `Common` e' anche la prova che una master puo' stare fuori dal sito. Per lo stesso motivo non
 entrano nell'enum `Pages`: `PageMap` non attraversa `Common`. I nomi dei file e degli id sono
 in inglese, come vuole la regola della lingua; i testi in italiano.

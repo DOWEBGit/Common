@@ -8,8 +8,8 @@
         Tre livelli, e sono tre cose diverse. <b>Le variabili della pagina</b> e i controlli restano
         da soli a ogni postback, come i campi di una form: nessun attributo. <b><code>#[Portable]</code></b>
         attraversa le pagine, in un pacchetto firmato che il browser si porta dietro navigando.
-        <b>Il modo WinForms</b> (<code>KeepState</code>, acceso per tutti) fa si' che anche il primo
-        livello sopravviva alla navigazione: si va altrove, si torna, e la pagina e' com'era.
+        <b>Il ViewState vale per una visita</b>: si va altrove, si torna, e la pagina e' nuova —
+        l'elenco rilegge i dati invece di mostrare quelli di prima.
     </p>
 
     <div class="ex-demo">
@@ -50,18 +50,15 @@
     </div>
 
     <div class="ex-demo">
-        <h3>3. Il modo WinForms</h3>
-
-        <p>
-            <dw:CheckBox id="__CheckBox_Keep" Text="Tieni questa pagina com'era quando la lascio" Checked="true" AutoPostBack="true" />
-        </p>
+        <h3>3. Tornando, la pagina e' nuova</h3>
 
         <p class="ex-note">
-            Acceso — com'e' per tutte le pagine — conta fino a tre, vai su un'altra pagina del menu
-            e torna: il contatore e la casella sono dov'erano, e l'ora nel piede e' cambiata perche'
-            la pagina e' stata chiesta davvero, con lo stato rimandato dal browser. Spento, torni e
-            ricominci da zero: e' il web. Funziona anche col tasto indietro. Il cassetto tiene fino
-            a 50 MB di pagine; in console, dopo ogni postback, una riga dice quanto pesa.
+            Conta fino a tre, vai su un'altra pagina del menu e torna — anche col tasto indietro: il
+            contatore e' ripartito da zero, e l'ora nel piede e' cambiata perche' la pagina e' stata
+            chiesta davvero. Il nome portato invece e' ancora li': e' <code>#[Portable]</code>.
+            E' il giro elenco → scheda → elenco: tornando, l'elenco rilegge i dati salvati nella
+            scheda, e quello che deve sopravvivere al giro — il filtro, la pagina — sta in un
+            <code>#[Portable]</code>.
         </p>
     </div>
 

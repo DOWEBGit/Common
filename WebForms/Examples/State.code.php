@@ -43,15 +43,8 @@ class StateExample extends Page
             : '"' . $this->CarriedName . '" viaggia con te: vai sulla pagina degli eventi.');
     }
 
-    /**
-     * L'interruttore del modo WinForms si decide qui e non in OnInit: la casella e' un controllo
-     * della pagina, il suo valore arriva col postback e va letto dopo. Il render viene dopo
-     * ancora, quindi l'attributo sulla radice esce gia' giusto.
-     */
     protected function OnPreRender(): void
     {
-        $this->KeepState = $this->__CheckBox_Keep->Checked;
-
         $this->__Literal_Counter->Text = (string)$this->Counter;
         $this->__Literal_Carried->Text = $this->CarriedName === '' ? '(niente)' : $this->CarriedName;
         $this->__TextBox_Name->Text    = $this->CarriedName;

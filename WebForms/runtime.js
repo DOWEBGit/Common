@@ -601,97 +601,27 @@ document.addEventListener('click', e => {
     void DW.navigate(a.href, true);
 });
 
-// ---------------------------------------------------------------- pagine che si tengono
-// Una pagina con data-dw-tieni si comporta come una form di WinForms: la si lascia, si torna,
-// e la si ritrova com'era. Lo stato sta QUI, nella memoria di questa scheda - non sul server,
-// che non tiene niente, e non in sessionStorage, che il tasto indietro e altre schede
-// vedrebbero. Chiudere la scheda o premere F5 lo butta via, ed e' quello che deve succedere.
-//
-// Il tetto e' in BYTE, non in numero di pagine: una pagina normale pesa 250 byte e una
-// costruita a mano con duecento righe ne pesa 9000, e un conteggio non distingue le due.
-// Cinquanta megabyte non si raggiungono con l'uso normale e fermano una scheda che naviga
-// per ore fra indirizzi sempre diversi. Superato, si buttano le pagine con l'ultimo accesso
-// piu' vecchio finche' non si rientra: ogni accesso rimette la pagina in fondo alla Map,
-// quindi la piu' vecchia e' sempre la prima chiave.
-const TENUTE_BYTE = 50 * 1024 * 1024;
-
-const tenute = new Map();
-
-let tenuteByte = 0;
-
-// La chiave e' il PERCORSO, senza querystring. Cambiare la querystring non e' cambiare
-// pagina: e' la stessa pagina con un parametro diverso - un altro mese, un altro filtro -
-// e lo stato tenuto va rimesso lo stesso. Il server vede la $_GET nuova, e la pagina decide
-// in OnLoad cosa ricaricare: e' lavoro suo, non del motore.
-const chiaveDi = (url) => { const u = new URL(url, location.href); return u.origin + u.pathname; };
-
-// Quanto pesa lo stato in questo momento, in console: la pagina corrente e le tenute. Esce
-// alla fine di ogni postback e di ogni navigazione, cosi' chi sviluppa vede crescere il
-// pacchetto mentre lavora invece di scoprirlo quando e' gia' grosso.
+// ---------------------------------------------------------------- il peso dello stato
+// Quanto pesa il ViewState di questa pagina, in console: esce alla fine di ogni postback e di
+// ogni navigazione, cosi' chi sviluppa vede crescere il pacchetto mentre lavora invece di
+// scoprirlo quando e' gia' grosso.
 const riepilogoStato = () => {
     // l'unita' segue la misura: "0.00 MB" non dice niente, "1.1 KB" si'
-    const misura = (b) => b < 1024 * 1024 ? (b / 1024).toFixed(1) + ' KB' : (b / 1024 / 1024).toFixed(2) + ' MB';
+    const b = campoStato().value.length;
 
-    console.info('DW stato: pagina ' + misura(campoStato().value.length)
-        + ' · tenute ' + tenute.size + ' pagine, ' + misura(tenuteByte) + ' su ' + misura(TENUTE_BYTE));
+    console.info('DW stato: ' + (b < 1024 * 1024 ? (b / 1024).toFixed(1) + ' KB' : (b / 1024 / 1024).toFixed(2) + ' MB'));
 };
 
-const dimentica = (chiave) => {
-    const vecchio = tenute.get(chiave);
-
-    if (vecchio === undefined) return;
-
-    tenuteByte -= vecchio.length;
-    tenute.delete(chiave);
-};
-
-// La pagina di cui il DOM e' fatto ADESSO. Non e' location.href: sul tasto indietro il
-// browser cambia l'indirizzo PRIMA di avvisare, e per un istante l'indirizzo dice "Tabella"
-// mentre in pagina c'e' ancora "Stato". Salvare con quell'indirizzo metteva lo stato di
-// Stato nel cassetto di Tabella: al ritorno Tabella riceveva uno stato non suo, e ne usciva
-// vuota e col titolo dell'altra. Provato, tre righe perse.
-let paginaCorrente = location.href;
-
-const tieniStato = () => {
-    const root = radice();
-
-    if (!root) return;
-
-    const chiave = chiaveDi(paginaCorrente);
-
-    // La pagina ha smesso di volersi tenere - una casella spenta, una condizione cambiata:
-    // quello che c'era in serbo va buttato, o al ritorno si rimetterebbe in piedi uno stato
-    // che la pagina stessa ha appena rinnegato.
-    if (!root.dataset.dwTieni) {
-        dimentica(chiave);
-
-        return;
-    }
-
-    const stato = campoStato().value;
-
-    // rimessa in fondo: cosi' la piu' vecchia e' davvero quella lasciata da piu' tempo
-    dimentica(chiave);
-
-    tenute.set(chiave, stato);
-    tenuteByte += stato.length;
-
-    while (tenuteByte > TENUTE_BYTE && tenute.size > 1)
-        dimentica(tenute.keys().next().value);
-};
-
+// Cambiare pagina e' sempre una GET: il ViewState vale per una visita, e tornando su una
+// pagina - con un link, col tasto indietro - la si trova nuova, con i dati riletti. Quello
+// che deve attraversare le pagine viaggia in X-DW-Portable.
 DW.navigate = async (url, push) => {
     let testo;
 
-    // Un postback ancora in volo si aspetta. Lo stato che ci si tiene dev'essere quello di
-    // DOPO il click, non quello di prima: "aggiungo una riga e clicco il link" salverebbe la
-    // pagina senza la riga, e al ritorno la riga non ci sarebbe - e sembrerebbe un caso.
+    // Un postback ancora in volo si aspetta: la sua risposta arriverebbe dopo, e il morph la
+    // fonderebbe nella pagina nuova. E il pacchetto portatile che porta con se' - un avviso,
+    // un id scelto - deve partire con questa navigazione, non perdersi a meta'.
     await inCorso;
-
-    // prima di andarsene: se questa pagina si tiene, ci si tiene il suo stato
-    tieniStato();
-
-    const tenuto = tenute.get(chiaveDi(url));
 
     // anche cambiare pagina e' un'attesa, e dura piu' di un postback: senza questa classe
     // l'UpdateProgress comparirebbe sui click e non sulle navigazioni, che e' il contrario
@@ -699,21 +629,7 @@ DW.navigate = async (url, push) => {
     document.body.classList.add('js-dw-attesa');
 
     try {
-        // Con uno stato da rimettere la richiesta diventa una POST: un ViewState non ci sta
-        // in un'intestazione. Risponde comunque con un documento intero, perche' resta una
-        // navigazione - il server lo sa dall'intestazione X-DW-Ripristina.
-        const r = tenuto === undefined
-            ? await fetch(url, { headers: { 'X-DW-Nav': '1', 'X-DW-Portable': portatile } })
-            : await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-DW-Nav': '1',
-                    'X-DW-Ripristina': '1',
-                    'X-DW-Portable': portatile,
-                    'X-Csrf-Token': window.DW_CSRF
-                },
-                body: new URLSearchParams({ __dw_state: tenuto })
-            });
+        const r = await fetch(url, { headers: { 'X-DW-Nav': '1', 'X-DW-Portable': portatile } });
 
         // un redirect, un 401 o un errore non si fondono nel DOM: si naviga davvero
         if (!r.ok || r.redirected) { location.href = url; return; }
@@ -748,9 +664,6 @@ DW.navigate = async (url, push) => {
     eseguiScript(radice());
 
     document.title = doc.title;
-
-    // da qui in poi il DOM e' della pagina nuova: e' lei che si tiene, quando si andra' via
-    paginaCorrente = new URL(url, location.href).href;
 
     if (push) history.pushState({ url }, '', url);
 

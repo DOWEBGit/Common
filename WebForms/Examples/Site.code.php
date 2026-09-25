@@ -51,7 +51,7 @@ class Site extends MasterPage
             'Resources'      => ['Stylesheet e Script', 'Un foglio e uno script del sito, con la marca temporale.'],
         ],
         'Motore' => [
-            'State'           => ['Lo stato', 'Le variabili restano, #[Portable] attraversa le pagine, il modo WinForms.'],
+            'State'           => ['Lo stato', 'Le variabili restano per una visita, #[Portable] attraversa le pagine.'],
             'DynamicControls' => ['Controlli creati dal codice', 'In OnInit, in OnLoad, in un handler: restano tutti. Righe di tabella a mano.'],
             'Events'          => ['Eventi fra pagine e browser', 'Notify e Subscribe, un oggetto in viaggio, Broadcast con DW.on.'],
             'Errors'          => ['Gli errori', 'Un\'eccezione in un handler: nel log del sito, e nel riquadro rosso.'],
