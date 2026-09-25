@@ -192,6 +192,9 @@ Due cose da sapere:
 - **il nome della proprieta' e' una chiave globale.** Due pagine che dichiarano
   `#[Portable] private int $categoria` condividono il valore — ed e' il punto. Due pagine che
   intendono cose diverse non devono chiamarle uguale, come per le chiavi di sessione.
+- **passa anche dalle pagine che non lo dichiarano.** Elenco con `$Filtro`, poi la scheda,
+  poi un'altra pagina ancora, e di nuovo l'elenco: il filtro c'e'. Ogni pagina rimanda il
+  pacchetto con tutte le chiavi che ha ricevuto, e riscrive solo le sue;
 - **un caricamento vero azzera tutto.** F5, indirizzo scritto a mano, link aperto in una
   scheda nuova: li' il server rende la pagina prima che il JavaScript esista, quindi i campi
   partono dai loro valori iniziali. Blazor si comporta uguale: F5 e' un circuito nuovo.

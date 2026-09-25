@@ -90,6 +90,15 @@ abstract class Page
     /** @var array<string,callable[]> */
     private array $subscriptions = [];
 
+    /**
+     * Il pacchetto #[Portable] com'e' arrivato, TUTTE le chiavi: anche quelle che questa pagina
+     * non dichiara. Ripartono con lei, altrimenti passare da una pagina che non le conosce -
+     * l'elenco, la scheda, poi una terza - le cancellerebbe per strada.
+     *
+     * @var array<string,mixed>
+     */
+    private array $portableIn = [];
+
     private bool $eventsClosed = false;
 
     private int $depth = 0;
@@ -728,11 +737,6 @@ abstract class Page
      */
     private function LoadPortable(): void
     {
-        $proprieta = $this->PortableProperties();
-
-        if ($proprieta === [])
-            return;
-
         $pacchetto = (string)($_POST['__dw_portable'] ?? $_SERVER['HTTP_X_DW_PORTABLE'] ?? '');
 
         if ($pacchetto === '')
@@ -745,7 +749,9 @@ abstract class Page
         if ($valori === null)
             return;
 
-        foreach ($proprieta as $property)
+        $this->portableIn = $valori;
+
+        foreach ($this->PortableProperties() as $property)
             if (array_key_exists($property->getName(), $valori))
                 $property->setValue($this, $valori[$property->getName()]);
     }
@@ -753,7 +759,8 @@ abstract class Page
     /** Il pacchetto firmato da rimandare al browser. */
     private function PackPortable(): string
     {
-        $valori = [];
+        //quelle delle altre pagine si ripassano com'erano; le sue le scrive la pagina
+        $valori = $this->portableIn;
 
         foreach ($this->PortableProperties() as $property)
             $valori[$property->getName()] = $property->getValue($this);

@@ -72,6 +72,71 @@ class ProveVariabili
 
                 self::Salva($rotta);
             });
+
+        self::PortableDiPassaggio($p);
+    }
+
+    /**
+     * Il pacchetto #[Portable] attraversa anche le pagine che non conoscono una sua chiave.
+     *
+     * Il difetto vero: una pagina con $CarriedName, poi una pagina qualunque, poi di nuovo la
+     * prima - e il nome non c'era piu'. La pagina in mezzo reimpacchettava solo le sue
+     * proprieta' e buttava le altre.
+     */
+    private static function PortableDiPassaggio(Prova $p): void
+    {
+        $p->Sezione('#[Portable]: le chiavi delle altre pagine passano');
+
+        $scheda = new class extends Page {
+            #[Portable]
+            public string $Filtro = '';
+        };
+
+        $scheda->Filtro = 'rossi';
+
+        $pacco = self::Viaggio(null, $scheda);
+
+        $pacco = self::Viaggio($pacco, new class extends Page {
+        });
+
+        $ritorno = new class extends Page {
+            #[Portable]
+            public string $Filtro = '';
+        };
+
+        $pacco = self::Viaggio($pacco, $ritorno, function (Page $pagina): void { $pagina->Filtro = 'bianchi'; });
+
+        $p->Uguale('passando da una pagina che non la dichiara, la chiave arriva intera', 'rossi', self::$letto);
+
+        $ultima = new class extends Page {
+            #[Portable]
+            public string $Filtro = '';
+        };
+
+        self::Viaggio($pacco, $ultima);
+
+        $p->Uguale('chi la dichiara la riscrive, e riparte cambiata', 'bianchi', $ultima->Filtro);
+    }
+
+    /** Il valore letto all'arrivo, prima che il codice della pagina lo cambiasse. */
+    private static string $letto = '';
+
+    /** Il pacchetto arriva (LoadPortable), la pagina lavora, lo rimanda (PackPortable): come il motore. */
+    private static function Viaggio(?string $arrivato, Page $pagina, ?callable $lavoro = null): string
+    {
+        $_SERVER['HTTP_X_DW_PORTABLE'] = $arrivato ?? '';
+
+        (new \ReflectionMethod($pagina, 'LoadPortable'))->invoke($pagina);
+
+        unset($_SERVER['HTTP_X_DW_PORTABLE']);
+
+        if (property_exists($pagina, 'Filtro'))
+            self::$letto = $pagina->Filtro;
+
+        if ($lavoro !== null)
+            $lavoro($pagina);
+
+        return (new \ReflectionMethod($pagina, 'PackPortable'))->invoke($pagina);
     }
 
     private static function Pagina(): Page
